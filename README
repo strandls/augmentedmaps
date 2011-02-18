@@ -1,0 +1,46 @@
+1.0 Summary
+-----------
+
+AugmentedMaps is a map-based platform forked from MapLocator. It integrates a webGIS platform, built with OpenLayers and MapServer, with a Content Management System, Drupal. 
+
+Program Name........: AugmentedMaps
+Version.............: 0.1
+Release Date........: beta
+License Type........: GPL V3 or Later (http://www.gnu.org/licenses/gpl-3.0.html)
+Source URL..........: http://github.com/strandls/augmentedmaps
+
+2.0 Contributors 
+----------------
+
+Hareesh Ravuri
+R Prabhkar
+Rahul Yadava
+
+
+3.0 License
+-----------
+
+All AugmentedMaps code is Copyright 2010 by the original authors.
+
+This work is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 3 of the License, or any
+later version.
+
+This work is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See version 3 of
+the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+Version 3 along with this program as the file LICENSE.txt; if not,
+please see http://www.gnu.org/licenses/gpl-3.0.html.
+
+4.0 Deployment
+--------------
+
+For deployment details look at trunk/docs/maplocator_installation_configuration_guide.doc under maplocator source
+
+
+
+
