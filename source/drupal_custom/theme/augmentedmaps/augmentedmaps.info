@@ -1,0 +1,51 @@
+; $Id: augmentedmaps.info,v 1.5 2007/07/01 23:27:32 goba Exp $
+name = augmentedmaps
+description = Tableless
+version = VERSION
+core = 6.x
+engine = phptemplate
+;scripts[] = scripts/jquery.js
+;scripts[] = scripts/jquery-plugins.js
+;scripts[] = scripts/ecopradesh.js
+scripts[] = scripts/maplayout.js
+scripts[] = scripts/functions.js
+scripts[] = scripts/AC_OETags.js
+scripts[] = scripts/FABridge.js
+scripts[] = scripts/jquery.dimensions.js
+scripts[] = scripts/jquery.wresize.js
+scripts[] = scripts/jquery-ui.js
+scripts[] = scripts/jquery.cookie.js
+scripts[] = scripts/jquery.blockUI.js
+;scripts[] = scripts/jquery.form.js
+;scripts[] = scripts/jtip.js
+scripts[] = scripts/jquery.maskedinput.js
+scripts[] = scripts/jquery.expander.js
+scripts[] = scripts/jquery-linkize.js
+
+;stylesheets[all][] = css/style.css
+;stylesheets[all][] = css/dialog.css
+;stylesheets[all][] = css/popup.css
+;stylesheets[all][] = css/layerinfo.css
+;stylesheets[print][] = css/print.css
+
+; Custom regions
+regions[home_left] = Home Left
+regions[home_right] = Home Right
+regions[profile] = Profile
+regions[nav] = Navigation
+regions[main_menu] = Main Menu
+regions[user_login] = User Login
+regions[blurb] = Blurb
+regions[content] = Content
+regions[map_area] = Map Area
+regions[community] = Community
+regions[content_menu] = Content Menu
+regions[map_search] = Map Search
+regions[data] = Data
+regions[footer] = Footer
+
+
+; Information added by drupal.org packaging script on 2008-04-09
+version = "6.2"
+project = "drupal"
+datestamp = "1207776008"

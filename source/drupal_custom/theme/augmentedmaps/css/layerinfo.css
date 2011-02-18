@@ -1,0 +1,229 @@
+
+#layerDetailsPane .tabs ul {
+	list-style: none;
+	padding: 0;
+	margin-left: 10px;
+}
+
+#layerDetailsPane .tabs li{
+	float: left;
+	padding: 2px 10px 2px 10px;
+	border: 1px solid #725F39;
+	border-bottom: 0;
+	position: relative;
+	bottom: -1px;
+	left: 0;
+	background-color: #725F39;
+	margin-left: 5px;
+	width: 100px;
+	overflow: hidden;
+	height: 18px;
+	text-align: center;
+}
+
+#layerDetailsPane .tabs li.first {
+	margin-left: 0;
+}
+
+#layerDetailsPane .tabs li.active{
+	background-color: #fff;
+}
+
+#layerDetailsPane .tabs li a:link {
+	color: #fff;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li a:visited {
+	color: #fff;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li a:hover {
+	color: #fff;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li a:active {
+	color: #fff;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li.active a:link {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li.active a:visited {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li.active a:hover {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#layerDetailsPane .tabs li.active a:active {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#layerinfo {
+  background-color: #FFFFFF;
+	margin: 10px;
+	clear: both;
+  padding: 5px;
+}
+
+#layerinfo h3{
+	font-weight: bold;
+	font-size: 12pt;
+}
+
+#layerinfo .summary {
+	background-color: #fff;
+	padding: 10px;
+	border: 1px solid #A5833E;
+}
+
+#layerinfo .summary table {
+	clear: both;
+	width: 100%;
+	margin: 5px;
+	border-top: 1px dotted;
+}
+
+#layerinfo .summary td {
+	padding: 5px;
+	border-bottom: 1px dotted;
+}
+
+#layerinfo .summary .key {
+	text-align: right;
+	border-right: 1px dotted;
+}
+
+#layerinfo .summary .value {
+	font-weight: bold;
+}
+
+#layerinfo .attribution {
+	font-weight: normal;
+	margin: 5px;
+	padding: 0 10px;
+	/*border-bottom: 1px dotted;*/
+}
+
+#layerinfo .license {
+	font-weight: normal;
+	margin: 5px;
+	padding: 0 10px 10px;
+	border-bottom: 1px dotted;
+}
+
+#layerinfo .themegeo {
+	font-weight: normal;
+	margin: 5px;
+	padding: 10px;
+
+}
+
+#layerinfo .columnDescription {
+	border: 1px solid;
+	margin-top: 20px;
+	padding: 10px;
+}
+
+#layerinfo .columnDescription ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+}
+
+#layerinfo .columnDescription li {
+	border-bottom: 1px dotted;
+	padding: 2px;
+}
+
+#layerinfo .linkTables {
+	border: 1px solid;
+	margin-top: 20px;
+	padding: 10px;
+}
+
+#layerinfo .linkTables ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#layerinfo .linkTables li {
+	border-bottom: 1px dotted;
+	padding: 2px;
+  font-weight: bold;
+}
+
+#layerinfo .linkTables .nested li {
+  font-weight: normal;
+}
+
+#layerinfo .resourceTables {
+	border: 1px solid;
+	margin-top: 20px;
+	padding: 10px;
+}
+
+#layerinfo .resourceTables ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#layerinfo .resourceTables li {
+	border-bottom: 1px dotted;
+	padding: 2px;
+}
+
+#layerinfo .resourceTables .nested li {
+  font-weight: normal;
+}
+
+#resourceTables {
+  border:1px solid #725F39;
+}
+
+#layerinfo ul.nested {
+	margin: 10px 20px 20px;
+	font-size: 8pt;
+}
+
+.descriptionShowHide {
+
+}
+
+.control {
+	font-weight: bold;
+	float: left;
+	padding: 5px;
+	border: 1px dotted;
+	margin: 5px;
+}
+
+.control a:link{
+	text-decoration: none;
+}
+
+.control a:visited{
+	text-decoration: none;
+}
+
+.control a:hover{
+	text-decoration: none;
+}
+
+.control a:active{
+	text-decoration: none;
+}
+
