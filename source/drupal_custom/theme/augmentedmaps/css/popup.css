@@ -1,0 +1,415 @@
+#mlocate_popup {
+  height:180px;
+  overflow:auto;
+	padding: 10px;
+	margin-right: 10px;
+}
+
+#mlocate_popup #featureName {
+	font-weight: bold;
+	font-size: 12pt;
+}
+
+#mlocate_popup h3 {
+	border-bottom:1px solid #A5833E;
+	color:#A5833E;
+	padding-bottom: 5px;
+}
+
+#mlocate_popup  .layerName {
+	color: #D1B376;
+}
+
+#mlocate_popup .popupActions {
+	font-size: 8pt;
+	font-weight: bold;
+	height: 22px;
+	border-bottom: 1px dotted #A5833E;
+	border-top: 1px dotted #A5833E;
+}
+
+/*
+#mlocate_popup .popupActions a:link {
+	color: #fff;
+	text-decoration: none;
+}
+
+#mlocate_popup .popupActions a:visited {
+	color: #fff;
+	text-decoration: none;
+}
+
+#mlocate_popup .popupActions a:hover {
+	color: #fff;
+	text-decoration: none;
+}
+
+#mlocate_popup .popupActions a:active {
+	color: #fff;
+	text-decoration: none;
+}*/
+
+#mlocate_popup ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	float: right;
+}
+
+#mlocate_popup li {
+	float: left;
+	border-right: 1px solid #fff;
+	padding: 0px 5px 0px 5px;
+	margin: 5px;
+}
+
+#mlocate_popup li.last {
+	border: 0;
+}
+
+#mlocate_popup .attribution {
+	clear: both;
+	float: right;
+	font-size: 8pt;
+	text-align: right;
+}
+
+#mlocate_popup .attribution p {
+	margin: 0;
+	padding: 2px;
+}
+
+#mlocate_popup .summary {
+	clear: both;
+	font-size: 10pt;
+	/*margin: 20px 0 20px 0;*/
+}
+
+#mlocate_popup .more {
+	float: right;
+	font-size: 8pt;
+	font-weight: bold;
+}
+
+#mlocate_popup .license {
+	float: left;
+	margin: 5px;
+}
+
+#mlocate_popup .validation {
+	float: right;
+	margin: 5px;
+	width: 150px;
+	text-align: right;
+	font-size: 8pt;
+}
+
+#mlocate_popup .validationIcon {
+	float: right;
+}
+
+#mlocate_popup .validated {
+	background: transparent url(../images/validated.png) no-repeat scroll 0 0;
+  width: 30px;
+  height: 30px;
+  float: right;
+}
+
+#mlocate_popup .notvalidated {
+	background: transparent url(../images/not_validated.png) no-repeat scroll 0 0;
+  width: 30px;
+  height: 30px;
+  float: right;
+}
+
+#mlocate_popup .show_validate_control {
+  float: right;
+  clear: both;
+}
+
+#mlocate_popup .hide_validate_control {
+  display: none;
+}
+
+.clear {
+	clear: both;
+}
+
+#mlocate_popup .layerAttribution {
+	clear: both;
+	border-top: 1px solid #A5833E;
+	margin-top: 5px;
+	font-weight: bold;
+	font-size: 8pt;
+}
+
+#mlocate_popup .layerAttribution  p{
+	clear: both;
+	margin-top: 0px;
+	font-weight: normal;
+	font-size: 8pt;
+}
+
+#mlocate_popup .summary table {
+	width: 100%;
+	margin: 5px;
+	border-top: 1px dotted;
+}
+
+#mlocate_popup .summary td {
+	padding: 5px;
+	border-bottom: 1px dotted;
+}
+
+#mlocate_popup .summary .key {
+	text-align: right;
+	border-right: 1px dotted;
+}
+
+#mlocate_popup .summary .value {
+	font-weight: bold;
+}
+
+div.olPopup {
+	opacity: 0.8;
+}
+
+#detailsPane {
+	background-color: #ECE9B7;
+	padding: 10px;
+	overflow: auto;
+}
+
+#detailsPane h3 {
+	border-bottom:1px solid #A5833E;
+	color:#A5833E;
+	padding-bottom: 5px;
+}
+
+#detailsPane h3 .layerName {
+	color: #D1B376;
+}
+
+#detailsPane .pane {
+	background-color: #fff;
+	clear: both;
+	padding: 10px;
+	border: 1px solid #725F39;
+}
+
+#detailsPane .content {
+	clear: both;
+	border-bottom: 1px solid #A5833E;
+
+}
+
+#detailsPane .linkedContent {
+	overflow: auto;
+  font-size:8pt;
+}
+
+
+#detailsPane .attribution {
+	float: right;
+	text-align: right;
+	font-size: 8pt;
+}
+
+#detailsPane .license {
+	/*float: left;*/
+  margin: 5px;
+}
+
+#detailsPane .content table {
+	width: 100%;
+	margin: 5px;
+	border-top: 1px dotted;
+}
+
+#detailsPane .content td {
+	padding: 5px;
+	border-bottom: 1px dotted;
+}
+
+#detailsPane .content .key {
+	text-align: right;
+	border-right: 1px dotted;
+}
+
+#detailsPane .content .value {
+	font-weight: bold;
+}
+
+#detailsPane .layerAttribution {
+	clear: both;
+	margin-top: 5px;
+	font-weight: bold;
+	font-size: 8pt;
+}
+
+#detailsPane .layerAttribution  p{
+	clear: both;
+	margin-top: 0px;
+	font-weight: normal;
+	font-size: 8pt;
+}
+
+#detailsPane .validation {
+	float: right;
+	margin: 5px;
+	width: 150px;
+	text-align: right;
+	font-size: 8pt;
+}
+
+#detailsPane .validationIcon {
+	float: right;
+}
+
+#detailsPane .validated {
+	background: transparent url(../images/validated.png) no-repeat scroll 0 0;
+  width: 30px;
+  height: 30px;
+  float: right;
+}
+
+#detailsPane .notvalidated {
+	background: transparent url(../images/not_validated.png) no-repeat scroll 0 0;
+  width: 30px;
+  height: 30px;
+  float: right;
+}
+
+#detailsPane .linkedDataTable {
+	border: 0;
+}
+
+#detailsPane .linkedDataTable td{
+	border: 1px dotted;
+}
+
+#detailsPane .tabs ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+#detailsPane .tabs li{
+	float: left;
+	padding: 2px 10px 2px 10px;
+	border: 1px solid #725F39;
+	border-bottom: 0;
+	position: relative;
+	bottom: -1px;
+	left: 0;
+	background-color: #725F39;
+	margin-left: 5px;
+	width: 100px;
+	overflow: hidden;
+	height: 18px;
+	text-align: center;
+}
+
+#detailsPane .tabs li.first {
+	margin-left: 0;
+}
+
+#detailsPane .tabs li.active{
+	background-color: #fff;
+}
+
+#detailsPane .tabs li a:link {
+	color: #fff;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li a:visited {
+	color: #fff;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li a:hover {
+	color: #fff;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li a:active {
+	color: #fff;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li.active a:link {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li.active a:visited {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li.active a:hover {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#detailsPane .tabs li.active a:active {
+	color: #725F39;
+	text-decoration: none;
+}
+
+#resource {
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+	min-width: 600px;
+}
+
+#resource .summary table {
+	width: 100%;
+	margin: 5px;
+	border-top: 1px dotted;
+}
+
+#resource .summary td {
+	padding: 5px;
+	border-bottom: 1px dotted;
+}
+
+#resource .summary .key {
+	text-align: right;
+	border-right: 1px dotted;
+}
+
+#resource .summary .value {
+	font-weight: bold;
+}
+
+#resource .validation {
+	float: right;
+	margin: 5px;
+	width: 150px;
+	text-align: right;
+	font-size: 8pt;
+}
+
+#resource .validationIcon {
+	float: right;
+}
+
+#resource #resourceName {
+	font-weight: bold;
+	font-size: 12pt;
+}
+
+#tab_schema {
+	margin: 10px;
+}
+
+#tab_schema td {
+	padding: 4px;
+	border: 1px solid;
+	margin: 0;
+	font-size: 8pt;
+}
+

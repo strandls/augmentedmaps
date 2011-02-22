@@ -1,0 +1,17 @@
+<LayerSelector>
+  <tab>
+    <label>Layers By Theme</label>
+    <type>group</type>
+    <id>1</id>
+  </tab>
+  <tab>
+    <label>Layers By Geography</label>
+    <type>group</type>
+    <id>2</id>
+  </tab>
+  <tab>
+    <label>Participative Layers</label>
+    <type>list</type>
+    <id>3</id>
+  </tab>
+</LayerSelector>
