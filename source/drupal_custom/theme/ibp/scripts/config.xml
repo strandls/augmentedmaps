@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<! Configuration file for map locator applications !>
+<config>
+<! Specify source of base map. Optionally, layer_name tag can be added to specify layer !>
+<! If layer_name tag is present, base map will apply to all layers.                     !>
+<base_map_source>
+	<map_source_name>GOOGLE_PHYSICAL</map_source_name>
+	<layer_name>ALL</layer_name>
+</base_map_source>
+<! Specify database instance name that will be used to save all layer and participatory data !>
+<db_instance_name>CHANGE_ME</db_instance_name>
+<! Specify database administrator login id !>
+<db_login_id>CHANGE_ME</db_login_id>
+<! Specify database administrator password !>
+<db_password>CHANGE_ME</db_password>
+<! Logging level- supported values DEBUG, TRACE, INFO, NONE !>
+<log_level>NONE</log_level>
+<! Location of log file- must be a location with write access !>
+<log_location>CHANGE_ME</log_location>
+<! Default, min, max zoom levels !>
+<zoom_min>1</zoom_min>
+<zoom_max>1000</zoom_max>
+<zoom_default>100</zoom_default>
+<! Add any new config setting here !>
+
+</config>
