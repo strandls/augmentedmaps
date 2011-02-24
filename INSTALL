@@ -1,0 +1,197 @@
+Guide to install Augmented Maps on Ubuntu
+
+REQUIREMENTS
+------------
+
+1. Apache2: Open source web server used for serving MapLocator to client
+    To install apache2 use the following command:
+    $ sudo apt-get install apache2
+
+    To start stop apache2 web server use the following commands: 
+    $ sudo /etc/init.d/apache2 start 
+    $ sudo /etc/init.d/apache2 stop
+
+    To confirm if server is running open web browser on the server machine and go to http://localhost. An ordinary HTML page with “It Works!” displayed should be visible.
+
+    To enable the rewrite module use the following command
+    $ sudo a2enmod rewrite
+
+2. PHP: Server-side HTML embedded scripting language
+    To install PHP use the following command
+    $ sudo apt-get install php5
+
+    To install additional modules use the following command
+    $ sudo apt-get install libapache2-mod-php5 php5-gd php5-pgsql
+
+    To confirm if PHP is installed create test.php file in /var/www with the following PHP code 
+    <?php
+    echo "PHP installed successfully";
+    ?>
+    Later open web browser and got to http://localhost/test.php. “PHP installed successfully” should be displayed
+
+3. PostgreSQL: Sophisticated open-source Object-Relational DBMS
+    To install PostgresSQL use the following command
+    $ sudo apt-get install postgresql-8.4 postgresql-client-8.4 postgresql-contrib-8.4 
+
+    To install pgAdmin GUI application for working with the database
+    $ sudo apt-get install pgadmin3 
+
+    To install PostGIS(spatial database extension for PostgreSQL)
+    $ sudo apt-get install postgresql-8.4-postgis
+
+    To enable database administrative login by any user edit the postgres config as follows
+    $ sudo vim /etc/postgresql/8.4/main/pg_hba.conf 
+
+    Replace the following line,
+    local   all         postgres                          ident sameuser
+    With,
+    local   all         postgres                          trust
+
+    To change PostgresSQL admin user account password to ‘postgres123’ use the following commands in sequence 
+    $ psql -U postgres template1 
+    template1=# ALTER USER postgres WITH PASSWORD ‘postgres123’;
+    template1=# \q
+
+    Do the same for the Unix user ‘postgres’
+    $ sudo passwd -d postgres 
+    $ sudo su postgres -c passwd 
+    Enter ‘postgres123’ after the above command 
+
+    To start/stop/restart PostgresSQL server
+    $ sudo /etc/init.d/postgresql restart 
+    $ sudo /etc/init.d/postgresql start
+    $ sudo /etc/init.d/postgresql stop
+
+4. GDAL: Translator library for raster geospatial data formats
+    To install gdal-bin use the following command 
+    $ sudo apt-get install gdal-bin
+
+5. Postfix: Open source email server
+    To install postfix use the following command 
+    $ sudo apt-get install postfix 
+    during installation select internet site as option of sending/receiving mails 
+    For changing any settings in postfix, edit /etc/postfix/main.cf
+
+6. Map Server: Open Source platform for publishing spatial data and interactive mapping applications to the web
+
+    To install map server and cgi script use the following command
+    $ sudo apt-get install cgi-mapserver mapserver-bin mapserver-doc
+
+    To install additional supporting packages for PHP and Python
+    $ sudo apt-get install php5-mapscript python-mapscript
+
+    Make sure you get MapServer 5.6.5 or higher.
+
+    You can check version of MapServer as,
+    $ /usr/lib/cgi-bin/mapserv -v
+
+7. Python: Interpreted, interactive, object-oriented, extensible programming language
+    To install python use the following command
+    $ sudo apt-get install python
+
+
+
+INSTALLATION
+------------
+
+1. Download
+    You can download the code from https://github.com/strandls/augmentedmaps
+
+    If you have Git, 
+    $ git clone git@github.com:strandls/augmentedmaps.git
+
+2. Configuration
+    Go to the augmentedmaps directory.
+    $ cd augmentedmaps
+
+    Open the 'Makefile' in a text editor and change the following parameters:
+        SOURCE_PATH = location of downloaded augmentedmaps directory
+        DEPLOY_PATH = location where to install augmented  maps
+        BACKUP_PATH = location where backup of the old installation will be made
+        DB_USERNAME = database user name
+        DB_PASSWORD = database password
+        DATABASE_NAME = database name
+
+     Save the 'Makefile' after making the changes.
+
+3. Install
+    After making the apropriate configuration changes in step 2 above.
+
+    To make backup of older installation
+    $ make bakup
+
+    This will create backup of existing installation in the BACKUP_PATH specified in the 'Makefile'
+
+    To setup and populate database for Augumented Maps. This should not be required if the database is already setup for Augmented Maps.
+    $ make setupdb
+
+    To deploy the files,
+    $ make deploy
+
+    After all the troops have been deployed successfully, generate maps.
+    $ make generate_maps
+
+    This will generate map files and place them in MAP_DATA directory (specified in Makefile).
+
+
+POST CONFIGURATION
+------------------
+
+1. Chnages in Apache configuration:   /etc/apache2/apache2.conf
+
+    Add for OpenLayers:
+    -------------------------------------------------------
+        Alias /openlayers "<path to OpenLayers directory>"
+        <Directory "<path to OpenLayers directory>">
+          AllowOverride None
+          Options Indexes FollowSymLinks Multiviews 
+          Order allow,deny
+          Allow from all
+        </Directory>
+     -------------------------------------------------------   
+    <path to OpenLayers directory> will be DEPLOY_PATH/openlayers (replace DEPLOY_PATH with the actual deploy path)
+
+    Add for augmentedmaps:
+    -------------------------------------------------------
+        Alias /augmentedmaps "<path to augmentedmaps directory>"
+        <Directory "<path to augmentedmaps directory>">
+          AllowOverride None
+          Options Indexes FollowSymLinks Multiviews 
+          Order allow,deny
+          Allow from all
+        </Directory>
+     -------------------------------------------------------   
+    <path to augmentedmaps directory> will be DEPLOY_PATH (replace DEPLOY_PATH with the actual deploy path)
+
+
+    Add for OpenLayers:
+    -------------------------------------------------------
+        Alias /openlayers "<path to openlayers directory>"
+        <Directory "<path to openlayers directory>">
+          AllowOverride None
+          Options Indexes FollowSymLinks Multiviews 
+          Order allow,deny
+          Allow from all
+        </Directory>
+     -------------------------------------------------------   
+    <path to openlayers directory> will be DEPLOY_PATH/openlayers (replace DEPLOY_PATH with the actual deploy path)
+
+
+    Save the changes and restart Apache2 webserver.
+    $ sudo /etc/init.d/apache2 restart
+
+2. Changes in .htaccess
+    Open .htaccess file in DEPLOY_PATH for editing.
+    Uncomment and change the RewriteBase / to  RewriteBase /augmentedmaps
+
+    Also, add a new rewrite rule,
+    RewriteRule ^/data.* DEPLOY_PATH/data (replace DEPLOY_PATH with the actual deploy path)
+
+3. Add projection for Google Maps to projection file
+   Append the following line to "/usr/share/proj/epsg"
+
+   #added for google 
+<900913> +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs <>
+
+
+You are now ready to augment the maps!

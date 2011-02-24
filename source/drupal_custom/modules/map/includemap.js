@@ -33,53 +33,8 @@ for (var i = 0; i < BASE_MAP_SOURCE_sp.length; i++) {
       var ip_addr=ip_addr_text[1].split("/");
 	switch (ip_addr[0])
       {
-        case '122.170.127.7':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAw3Qj-ojUhh3B4LwsAUlAUhTu7o7-UJUnyB3YzURdJ2gYh4JdNRTA7qJqPoC7eUk-UlPG8Y2xiPx2FQ'></script>");
-          break;
-        case '122.182.13.232':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAwBgTKnjpGRNzuhRBRbR5mBRv_eRGKz-vkk2dNxNMqISRNXtNFBQiXEf9g1e_FWVebAqLS3vw1xm0YQ' type='text/javascript'></script>");
-          break;
-        case '192.168.8.115':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBTYTM93_E_7UqpDxr5BfB8GGe44CxRdXPyX9a94f6Sm8UuMV9cGi1_qzQ' type='text/javascript'></script>");
-          break;
-        case '172.20.25.207':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAQUKI635zX8tJCYVCPiLGiRSohl-p9KFNptSlT0SLSFK9y3jb4hTxZyyG1wIdrdNDtYH0V440OoEAZA' type='text/javascript'></script>");
-          break;
-        case '172.20.25.54':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBSPPVKbi1V_AdUz_F1_2HN9CiZ7fBQSeOGAG0_0BRQAbm4nldpT0WLFSw' type='text/javascript'></script>");
-          break;
-        case '172.20.25.95':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBQ_vHF9t0zkDnsDMkkbwef8oBKbUBSWoh6T1IfilfNUZt8vwA2N5zGeZA' type='text/javascript'></script>");
-          break;
-        case '172.20.25.31':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAutavo0rTFgmhP0fKCzeyaxSw8eKPswYjnv0OzpWwFE87sgXYXhR6zN005VaYxmPe6EsQb9ae42IITA' type='text/javascript'></script>");
-          break;
-        case '172.20.25.208':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBSQiB6bHPv5gTuYMpmP7oU_Z33OrxQWvI55JAnk2wz3tHR0-hNdLqQMzg' type='text/javascript'></script>");
-          break;
         case 'localhost':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAQUKI635zX8tJCYVCPiLGiRT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTk5f2TB9OdaLZxfoZDgXnD8O16Q' type='text/javascript'></script>");
-          break;
-        case '67.207.130.12':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBQBKtteudfHgfoRVk1ruYMsE6ccZRQ10qSrhPS_VzVhjrz2_XvBltlOHA' type='text/javascript'></script>");
-          break;
-        case 'www.indiabiodiversity.org/' :
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBR1j5t4AhpI-CmlB9EBh0VUO-vRVhSvXbzTChcXDJbxJS6A3zNND1KO-A' type='text/javascript'></script>");
-          break;
-        case '203.199.134.157/':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAgeIZpiKav4awQeLY0wOEuBQI9orPcmw1lUe4NfS-3TWg9PBK0xS9B_oxfL9wjcupKwKYceYamgCI_A' type='text/javascript'></script>");
-          break;
-        case 'www.urbanatlasportal.org/':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAcOuNDyBpFSyt8ooBeOQJDxTeWq6_HegjeqB0W_NL61bovicZzhSxIZnqC9rNwwge4h-pHiwx-cZRNg' type='text/javascript'></script>");
-          break;
-		case 'www.kmap.in' :
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBQ8QeyJklKQFLUA4oWPUhLUV3CEnRQS8MuOor4FlBY_BplRXmMPlzxvuw' type='text/javascript'></script>");
-          break;
-		case '115.113.154.111' :
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBRWiduMI3b5aPjt3DJzMudVchxmUBTxhNX86hGmFb5YmQSIr6w0ZYP65w' type='text/javascript'></script>");
-          break;
-		case 'kmap.in' :
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBQxGioCL3xeCog8mLL4dVGEGnoMhBTeyoy-UkH3PL_ue0haS-NBNQGbTA' type='text/javascript'></script>");
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxRrHVaiU84MOoCV10Bvt7agAC7tbg'></script>");
           break;
       }
       break;
@@ -105,31 +60,8 @@ if(GOOGLE_EARTH_ENABLED){
   document.write("<script type='text/javascript' src='../MapFish/client/mfbase/ext-community-extensions/color-field.js' ></script>");
   document.write("<link rel='stylesheet' type='text/css' href='../MapFish/client/mfbase/ext-community-extensions/color-field.css' />");
   /* Get a seperate key as per the host server ip address */
-  if((document.location.href).indexOf("http://172.20.25.208") > -1) {
-    document.write("<script type='text/javascript' src='http://www.google.com/jsapi?key=ABQIAAAAcOuNDyBpFSyt8ooBeOQJDxSQiB6bHPv5gTuYMpmP7oU_Z33OrxTHEoxjHMEUoQUzPepgREBmDFMxXQ'></script>");
-  } else if((document.location.href).indexOf("http://122.170.127.7") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAAw3Qj-ojUhh3B4LwsAUlAUhTu7o7-UJUnyB3YzURdJ2gYh4JdNRTA7qJqPoC7eUk-UlPG8Y2xiPx2FQ' type='text/javascript'></script>");
-  }
-  else if((document.location.href).indexOf("http://urbanatlasportal.org/") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAAcOuNDyBpFSyt8ooBeOQJDxQZ7in50x-LigmIXeje8LYhaikgtBS0MC1tphrZAPGDBOQsqwog_IxhVQ' type='text/javascript'></script>");
-  }
-  else if((document.location.href).indexOf("http://www.urbanatlasportal.org/") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAAcOuNDyBpFSyt8ooBeOQJDxTeWq6_HegjeqB0W_NL61bovicZzhSxIZnqC9rNwwge4h-pHiwx-cZRNg' type='text/javascript'></script>");
-  }
-  else if((document.location.href).indexOf("http://localhost") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAAQUKI635zX8tJCYVCPiLGiRT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQTk5f2TB9OdaLZxfoZDgXnD8O16Q' type='text/javascript'></script>");
-  }
-  else if((document.location.href).indexOf("http://122.182.13.232") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAAwBgTKnjpGRNzuhRBRbR5mBRv_eRGKz-vkk2dNxNMqISRNXtNFBQiXEf9g1e_FWVebAqLS3vw1xm0YQ' type='text/javascript'></script>");
-  }
-  else if((document.location.href).indexOf("http://www.kmap.in") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBQ8QeyJklKQFLUA4oWPUhLUV3CEnRQS8MuOor4FlBY_BplRXmMPlzxvuw' type='text/javascript'></script>");
-  }
-   else if((document.location.href).indexOf("http://115.113.154.111") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBRWiduMI3b5aPjt3DJzMudVchxmUBTxhNX86hGmFb5YmQSIr6w0ZYP65w' type='text/javascript'></script>");
-  }
-    else if((document.location.href).indexOf("http://kmap.in") > -1) {
-    document.write("<script src='http://maps.google.com/jsapi?key=ABQIAAAA7M3uyJ_1Fz5H-0KOG9bKoBQxGioCL3xeCog8mLL4dVGEGnoMhBTeyoy-UkH3PL_ue0haS-NBNQGbTA' type='text/javascript'></script>");
+  if((document.location.href).indexOf("http://localhost") > -1) {
+    document.write("<script type='text/javascript' src='http://www.google.com/jsapi?key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxRrHVaiU84MOoCV10Bvt7agAC7tbg'></script>");
   }
   document.write("<script type='text/javascript' src='"+ base_path +"Earth.js'> </script>");
 }

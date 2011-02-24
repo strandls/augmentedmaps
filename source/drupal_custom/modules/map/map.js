@@ -26,6 +26,7 @@ please see http://www.gnu.org/licenses/gpl-3.0.html.
 /***** Global variables start here *****/
 var map;
 var MapServerURL = '/cgi-bin/mapserv';
+var MAP_DATA = '@MAP_DATA/'; //@MAP_DATA should be replaced by the directory path containing map files
 var GOOGLE_BASE_URL = 'http://maps.google.com/maps/api/staticmap?';
 var popup;
 var popupMinSize = new OpenLayers.Size(600, 400); // width, height
@@ -1434,7 +1435,7 @@ try{
         }
       }
 
-      var mapfile = layer_tablename + '.map';
+      var mapfile = MAP_DATA + layer_tablename + '.map';
 
       var wmsUrl;
       var maplayer;
