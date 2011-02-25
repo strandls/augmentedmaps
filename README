@@ -1,7 +1,6 @@
 1.0 Summary
 -----------
 
-
 AugmentedMaps is a map-based platform forked from MapLocator. It integrates a webGIS platform, built with OpenLayers and MapServer, with a Content Management System, Drupal. 
 
 Program Name........: AugmentedMaps
