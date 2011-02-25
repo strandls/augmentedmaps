@@ -308,6 +308,7 @@ function clearLayerOrdering() {
 }
 
 function showCharts(layer_tablename, title, infotype, row_id, divid) {
+  //alert('showCharts');
   var flashVars = "";
   flashVars += 'basePath='+base_path;
   flashVars += '&dataFile=ml_data.php';
@@ -476,7 +477,7 @@ function AdjustWidthForSearch(val) {
 	var flashVars = "";
   	flashVars += 'bridgeName=FAB_MultiLayerSearch';
   	flashVars += '&basePath='+base_path;
-  	flashVars += '&dataFile=MultiLayerSearch.php';
+  	flashVars += '&dataFile=ml_orchestrator.php';
   	flashVars += '&layersChecked=' + layersChecked;
   	flashVars += '&bbox=' + getBBOX();
 	var src = base_path + "MultiLayerSearch/MultiLayerSearch.swf";
@@ -673,3 +674,4 @@ function chkBrowserCompatibility(){
     }
 
 }
+
