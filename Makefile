@@ -1,5 +1,5 @@
 
-# Point SOURCE_PATH to the source directory
+# Point SOURCE_PATH to the src directory
 # This is the directory that gets created when you get local copy of 
 # Git repo from GitHub, using, 
 # $ git clone git@github.com:strandls/augmentedmaps.git
@@ -30,12 +30,12 @@ SPATIAL_REF_SYS_SQL = /usr/share/postgresql/8.4/contrib/postgis-1.5/spatial_ref_
 # These parameters need not be changed, unless you know what you are doing.
 DRUPAL = $(SOURCE_PATH)/lib/common/drupal-6.20
 DRUPAL_MODULES = $(SOURCE_PATH)/lib/common/drupal_modules
-DRUPAL_CUSTOM_MODULES = $(SOURCE_PATH)/source/drupal_custom/modules
-DRUPAL_CUSTOM_THEMES = $(SOURCE_PATH)/source/drupal_custom/theme
+DRUPAL_CUSTOM_MODULES = $(SOURCE_PATH)/src/drupal_custom/modules
+DRUPAL_CUSTOM_THEMES = $(SOURCE_PATH)/src/drupal_custom/theme
 CONFIG = $(SOURCE_PATH)/config
-CUSTOM_AJAX = $(SOURCE_PATH)/source/server/ajax
-CUSTOM_FLASH = $(SOURCE_PATH)/source/server/flash
-CUSTOM_STANDALONE_PAGES = $(SOURCE_PATH)/source/server/standalone_pages
+CUSTOM_AJAX = $(SOURCE_PATH)/src/server/ajax
+CUSTOM_FLASH = $(SOURCE_PATH)/src/server/flash
+CUSTOM_STANDALONE_PAGES = $(SOURCE_PATH)/src/server/standalone_pages
 THIRD_PARTY_JS = $(SOURCE_PATH)/lib/common/javascript
 TREEVIEW = $(SOURCE_PATH)/lib/common/treeview
 OPENLAYERS = $(SOURCE_PATH)/lib/common/OpenLayers-2.10
@@ -65,7 +65,7 @@ setupdb:
 	@echo "Setting up Augmented Maps database complete."
 
 # To deploy new augmented maps in DEPLOY_PATH
-# This will copy files from source to the appropriate places
+# This will copy files from src to the appropriate places
 # in the new deployment
 deploy:
 	@echo "Deploying Augmented Maps ..."
