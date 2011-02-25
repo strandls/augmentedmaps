@@ -163,26 +163,13 @@ POST CONFIGURATION
      -------------------------------------------------------   
     <path to augmentedmaps directory> will be DEPLOY_PATH (replace DEPLOY_PATH with the actual deploy path)
 
-
-    Add for OpenLayers:
-    -------------------------------------------------------
-        Alias /openlayers "<path to openlayers directory>"
-        <Directory "<path to openlayers directory>">
-          AllowOverride None
-          Options Indexes FollowSymLinks Multiviews 
-          Order allow,deny
-          Allow from all
-        </Directory>
-     -------------------------------------------------------   
-    <path to openlayers directory> will be DEPLOY_PATH/openlayers (replace DEPLOY_PATH with the actual deploy path)
-
-
     Save the changes and restart Apache2 webserver.
     $ sudo /etc/init.d/apache2 restart
 
 2. Changes in .htaccess
     Open .htaccess file in DEPLOY_PATH for editing.
-    Uncomment and change the RewriteBase / to  RewriteBase /augmentedmaps
+    Uncomment and change the RewriteBase / to,
+    RewriteBase /augmentedmaps
 
     Also, add a new rewrite rule,
     RewriteRule ^/data.* DEPLOY_PATH/data (replace DEPLOY_PATH with the actual deploy path)
@@ -195,3 +182,4 @@ POST CONFIGURATION
 
 
 You are now ready to augment the maps!
+Goto http://localhost/augmentedmaps/ and start exploring.

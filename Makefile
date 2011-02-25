@@ -28,7 +28,7 @@ POSTGIS_SQL = /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql
 SPATIAL_REF_SYS_SQL = /usr/share/postgresql/8.4/contrib/postgis-1.5/spatial_ref_sys.sql
 
 # These parameters need not be changed, unless you know what you are doing.
-DRUPAL = $(SOURCE_PATH)/lib/common/drupal-6.14
+DRUPAL = $(SOURCE_PATH)/lib/common/drupal-6.20
 DRUPAL_MODULES = $(SOURCE_PATH)/lib/common/drupal_modules
 DRUPAL_CUSTOM_MODULES = $(SOURCE_PATH)/source/drupal_custom/modules
 DRUPAL_CUSTOM_THEMES = $(SOURCE_PATH)/source/drupal_custom/theme
