@@ -1,0 +1,91 @@
+<?php
+module_load_include('inc', 'species', 'phpflickr');
+/**
+* Implementation of hook_menu()
+**/
+function species_menu() {
+  $items = array();
+
+  // Species display 
+  $items['species/%/%'] = array(
+    'title' => 'Species Information',
+    'access arguments' => array('access content'),
+    'page callback' => 'species_display',
+    'page arguments' => array(1,2),
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+*  Page callback
+**/
+function species_display($db_table, $ibp_id){
+  global $db_type;
+  $output = '';
+  $output .= '<table class="speciesTable">';
+  $output .= '<tr>';
+  $output .= '<th>Key</th>';
+  $output .= '<th>Value</th>';
+  $output .= '</tr>';
+  $sql = 'select * from '.$db_table.' where ibp_id = %d';
+  $row = db_fetch_array(db_query($sql,array($ibp_id)));
+  $col_num = 1;
+
+  //require_once('phpFlickr/phpFlickr.php');
+  foreach($row as $column=>$value) {
+    $description = '';
+    if($db_type == 'pgsql') {
+      $sql = 'select distinct oid from pg_catalog.pg_class where relname = \'%s\'';
+      $data_array = array(
+        $db_table,
+      );
+      // Get the oid
+      $result = db_query($sql, $data_array);
+      $nrow = db_fetch_object($result);
+      $oid = $nrow->oid;
+      $sql = 'select distinct col_description (%d, %d) from pg_catalog.pg_description';
+      $data_array = array(
+        $oid,
+        $col_num,
+      );
+      $result = db_query($sql, $data_array);
+      $nrow = db_fetch_object($result);
+      $description = $nrow->col_description;
+      $col_num++;
+      //$output .= $description;
+    }
+
+    $output .= '<tr>';
+    if($description) {
+      $output .= '<td class="key">'. $description . '</td><td>' . check_markup($value, 1) . '</td>';
+    }
+    else {
+      $output .= '<td class="key">'. $column. '</td><td>' . check_markup($value, 1) . '</td>';
+    }
+    
+    $output .= '</tr>';
+
+  }
+  $output .= '</table>';
+  $output .= '<span class="disclaimer">Disclaimer: The India Biodiversity Portal is not responsible for the content or reliability of external websites which are linked to from this website</span><br />';
+  $output .= "<h4>Images from Flikr for the species ".$row['ibp_scientific_name']."</h4>";
+  $f = new phpFlickr("40059d14fc8c9915f0621568d61d9023", "41712609f787b238");
+  $flickr_photos = array();
+  $flickr_photos = $f->photos_search(array("tags"=>$row['ibp_scientific_name'], "tag_mode"=>"any"));
+  if(sizeof($flickr_photos['photo']) == 0)
+  {
+    $output .= 'No media found on <a href="http://www.flickr.com">Flickr</a>.';
+  }
+  else
+  {
+  foreach ($flickr_photos['photo'] as $photo)
+  {
+    $url = "http://farm".$photo['farm'].".static.flickr.com/".$photo['server']."/".$photo['id']."_".$photo['secret']."_s.jpg";
+    $link_url = "http://www.flickr.com/photos/".$photo['owner']."/".$photo['id']."/";
+    $output .= "<a href='".$link_url."' target='_blank'><img src='".$url."' border='1' title='".($photo['title']?$photo['title']:$photo['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
+  }
+  }
+  return($output);
+}
