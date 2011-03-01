@@ -29,9 +29,13 @@ $conntype = "postgis";
 $host = "localhost";
 $layer_passed = 0;
 $layername = "";
+$header = "header";
+$footer = "footer";
+$selectlayer = "selectlayer";
+$wfs = "wfs";
 
-if($argc < 5 || $argc > 9){
-  die("Usage: php generateMap.php -u DBUser -d DBName -p password -l layer_tablename");
+if($argc < 5 || $argc > 17){
+  die("Usage: php generateMap.php -u DBUser -d DBName -p password -l layer_tablename -h header -f footer -s selectlayer -w wfs");
 }
 
 while(count($argv) > 0){
@@ -49,6 +53,18 @@ while(count($argv) > 0){
     case '-l':
       $layername = array_shift($argv);
       $layer_passed = 1;
+      break;
+    case '-h':
+      $header = array_shift($argv);
+      break;
+    case '-f':
+      $footer = array_shift($argv);
+      break;
+    case '-s':
+      $selectlayer = array_shift($argv);
+      break;
+    case '-w':
+      $wfs = array_shift($argv);
       break;
   }
 }
@@ -85,8 +101,8 @@ while($res = pg_fetch_assoc($result)){
   echo "\nGenerated map file:".$mapfilename;
   $newmapfile = fopen($mapfilename,"w");
 	//read map file template from a file and write to new file.
-	if(file_exists("header")){
-	  $file_handle = fopen("header","r");
+	if(file_exists($header)){
+	  $file_handle = fopen($header,"r");
 	  while (!feof($file_handle)) {
 		$line = fgets($file_handle);
 		 //write to new file
@@ -109,8 +125,8 @@ while($res = pg_fetch_assoc($result)){
              fwrite($newmapfile,"  type point \n");
              fwrite($newmapfile,"  tolerance 20 \n");
         }
-	if(file_exists("footer")){
-	  $file_handle = fopen("footer","r");
+	if(file_exists($footer)){
+	  $file_handle = fopen($footer,"r");
 	  while (!feof($file_handle)) {
 		$line1 = fgets($file_handle);
 			 //write to new file
@@ -172,8 +188,8 @@ while($res = pg_fetch_assoc($result)){
   else if($layer_type === "POINT" || $layer_type === "MULTIPOINT")
        fwrite($newmapfile,"  type point \n");
 
- if(file_exists("selectlayer")){
-   $file_handle = fopen("selectlayer","r");
+ if(file_exists($selectlayer)){
+   $file_handle = fopen($selectlayer,"r");
 	 while (!feof($file_handle)) {
 	  	$line2 = fgets($file_handle);
 			 //write to new file
@@ -205,8 +221,8 @@ while($res = pg_fetch_assoc($result)){
              fwrite($newmapfile,"  type line \n");
         else if($layer_type === "POINT" || $layer_type === "MULTIPOINT")
              fwrite($newmapfile,"  type point \n");
-		if(file_exists("wfs")){
-		  $file_handle = fopen("wfs","r");
+		if(file_exists($wfs)){
+		  $file_handle = fopen($wfs,"r");
 		  while (!feof($file_handle)) {
 			$line1 = fgets($file_handle);
 				 //write to new file
@@ -214,8 +230,8 @@ while($res = pg_fetch_assoc($result)){
 		  }
 		  fclose($file_handle);
 		}
-        if(file_exists("selectlayer")){
-	   $file_handle = fopen("selectlayer","r");
+        if(file_exists($selectlayer)){
+	   $file_handle = fopen($selectlayer,"r");
 	   while (!feof($file_handle)) {
 		   $line2 = fgets($file_handle);
 			 //write to new file
@@ -260,8 +276,8 @@ while($res = pg_fetch_assoc($result)){
   else if($layer_type === "POINT" || $layer_type === "MULTIPOINT")
        fwrite($newmapfile,"  type point \n");
 
- if(file_exists("selectlayer")){
-   $file_handle = fopen("selectlayer","r");
+ if(file_exists($selectlayer)){
+   $file_handle = fopen($selectlayer,"r");
 	 while (!feof($file_handle)) {
 	  	$line2 = fgets($file_handle);
 			 //write to new file
