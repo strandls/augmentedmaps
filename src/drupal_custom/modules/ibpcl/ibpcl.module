@@ -702,7 +702,7 @@ function ibpcl_autocomplete($type, $names) {
         }
         break;
       case 'taxa':
-        $sql = 'select common_name from {ibpcl_taxa} where lower(name) like lower(\'%%%s%%\') order by name asc';
+        $sql = 'select name from {ibpcl_taxa} where lower(common_name) like lower(\'%%%s%%\') order by name asc';
         $result = db_query($sql, $pattern);
         while($row = db_fetch_object($result)) {
           $n = $row->name;
@@ -757,7 +757,7 @@ function clear_listing_form() {
 **/
 function _get_taxa_id($name) {
   $id = 0;
-  $sql = 'select id from ibpcl_taxa where name = \'%s\'';
+  $sql = 'select id from ibpcl_taxa where common_name = \'%s\'';
   $data_array = array(
     $name,
   );
@@ -824,7 +824,7 @@ function ibpcl_listing() {
     }
     $output .= '<tr class='.$class.'>';
     $output .= '<td class="taxa">'.$node->taxa.'</td>';
-    $output .= '<td class="title"><a href="'.base_path().'node/'.$node->nid.'">'.$node->title.'</a></td>';
+    $output .= '<td class="title"><a href="'.base_path().'node/'.$node->nid.'">'.$node->title."</a></td>";
     $output .= '<td class="license">'. $node->place_name;
     if($node->states) {
       $output .= ' <strong>States</strong>: ' . $node->states;
@@ -997,10 +997,10 @@ function _ibpcl_get($nid, $var) {
         }
         $taxa_names = array();
         foreach($taxa_ids as $taxa_id) {
-          $sql = 'select name from {ibpcl_taxa} where id = %d';
+          $sql = 'select common_name from {ibpcl_taxa} where id = %d';
           $result = db_query($sql, array($taxa_id));
           while($row = db_fetch_object($result)) {
-            $taxa_names[] = $row->name;
+            $taxa_names[] = $row->common_name;
           }
         }
         $value = implode(', ', $taxa_names);
@@ -1071,7 +1071,7 @@ function _insert_ibpcl_ids($node_id, $name_string, $type) {
       case 'taxa':
         foreach($name_array as $name){
           $name = trim($name);
-          $result = db_query('select id from {ibpcl_taxa} where name = \'%s\'',$name);
+          $result = db_query('select id from {ibpcl_taxa} where common_name = \'%s\'',$name);
           $taxa_ids = array();
           while($row = db_fetch_object($result)) {
             $taxa_ids[] = $row->id;
@@ -1322,7 +1322,7 @@ function _ibpcl_get_taxa_names() {
   $sql = 'select name, common_name from ibpcl_taxa ORDER by common_name ASC';
   $result = db_query($sql);
   while($row = db_fetch_object($result)) {
-    $taxa[$row->name] = $row->common_name . ' ('.$row->name.')';
+    $taxa[$row->common_name] = $row->common_name . ' ('.$row->name.')';
   }
   return $taxa;
 }
