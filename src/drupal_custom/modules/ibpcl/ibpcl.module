@@ -235,6 +235,28 @@ function ibpcl_form(&$node, $form_state) {
   return $form;
 }
 
+
+/**
+ * Add new Taxonomy terms during submission of Checklist
+ * Pick the taxonomy terms from taxa, state, district, taluk
+ * Biogeographic region also needs to be picked up and added as a tag
+ * This part of the code is valid only if we have tag cloud flamework in place
+ */
+//adding submit handler
+function ibpcl_form_alter(&$form, $form_state, $form_id) {
+             if($form_id == "ibpcl_node_form")
+                  $form['#submit'][] = 'checklist_submit';
+}
+
+function checklist_submit($form, &$form_state) {
+   //No choice than hard coding the vocabulary id?
+   $vid = 4;
+
+   $terms = $form_state['values']['taxonomy'];
+   $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$form_state['values']['taxa'].','.$form_state['values']['states'].','.$form_state['values']['districts'].','.$form_state['values']['taluks']; //Need to pick this up .','.$form_state['values']['biogeography']));
+}
+
+
 /**
 * Implementation of hook_load
 **/
