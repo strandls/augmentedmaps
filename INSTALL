@@ -1,4 +1,14 @@
-Guide to install Augmented Maps on Ubuntu
+Guide to install Augmented Maps on Ubuntu 
+
+Install on Ubuntu 10.04.2 LTS
+
+Revision Date: 27th Fen 2011
+
+0. Note it may be a good idea to index the latest packages and upgrade
+the installation 
+    $ sudo apt-get update 
+    $ sudo apt-get upgrade
+
 
 REQUIREMENTS
 ------------
@@ -11,7 +21,9 @@ REQUIREMENTS
     $ sudo /etc/init.d/apache2 start 
     $ sudo /etc/init.d/apache2 stop
 
-    To confirm if server is running open web browser on the server machine and go to http://localhost. An ordinary HTML page with “It Works!” displayed should be visible.
+    To confirm if server is running open web browser on the server
+    machine and go to http://localhost. An ordinary HTML page with “It
+    Works!” displayed should be visible.
 
     To enable the rewrite module use the following command
     $ sudo a2enmod rewrite
@@ -42,15 +54,24 @@ REQUIREMENTS
     To enable database administrative login by any user edit the postgres config as follows
     $ sudo vim /etc/postgresql/8.4/main/pg_hba.conf 
 
+Steps to do a more paranoid configuration??
+
     Replace the following line,
     local   all         postgres                          ident sameuser
     With,
     local   all         postgres                          trust
 
+    Restart postgres for the configuration to take effect
+
+    $ sudo /etc/init.d/postgresql restart
+
+
     To change PostgresSQL admin user account password to ‘postgres123’ use the following commands in sequence 
     $ psql -U postgres template1 
-    template1=# ALTER USER postgres WITH PASSWORD ‘postgres123’;
+    template1=# ALTER USER postgres WITH PASSWORD 'postgres123';
     template1=# \q
+
+Why do you need to change the unix password??
 
     Do the same for the Unix user ‘postgres’
     $ sudo passwd -d postgres 
@@ -82,6 +103,18 @@ REQUIREMENTS
 
     Make sure you get MapServer 5.6.5 or higher.
 
+    To get the latest version of MapServer add the following line in
+    your /etc/sources.list
+    deb http://ftp.de.debian.org/debian squeeze main
+
+    You will need to add the public key to allow download from the
+    site. Follow the steps here to register the public key
+
+    gpg --keyserver hkp://subkeys.pgp.net --recv-keys A70DAF536070D3A1
+    gpg --export --armor  A70DAF536070D3A1 | sudo apt-key add -
+
+
+
     You can check version of MapServer as,
     $ /usr/lib/cgi-bin/mapserv -v
 
@@ -93,6 +126,9 @@ REQUIREMENTS
 
 INSTALLATION
 ------------
+
+0. Install git-common if you want to download the respository
+    $ sudo apt-get instal git-core
 
 1. Download
     You can download the code from https://github.com/strandls/augmentedmaps
