@@ -1,0 +1,376 @@
+<?php
+
+module_load_include('inc', 'ibpcl', 'parsecsv');
+module_load_include('inc', 'ibpcl', 'fpdf');
+drupal_add_css(drupal_get_path('module','ibpcl'). '/ibpcl.css');
+drupal_add_js(drupal_get_path('module', 'ibpcl') .'/scripts/jquery.dataTables.js');
+drupal_add_js(drupal_get_path('module', 'ibpcl') .'/scripts/ibpcl.js');
+
+/**
+ * Returns a map of id vs name of the States
+ * Right now these are picked up from the india states layer 
+ */
+function getStatesMap()  {
+  //Get the id, state from the India states layer table
+  $sql = "select __mlocate__id, state from {lyr_116_india_states} order by state asc";
+  $result = db_query($sql);
+
+  $returnMap = array();
+  //iterate over each row and populate the states Map
+  while($row = db_fetch_object($result)) {
+      $returnMap[$row->__mlocate__id] = $row->state;
+  }
+  return $returnMap;
+}
+
+/**
+ * Returns a map of id vs name of the Districts
+ * Right now these are picked up from the india districts layer 
+ */
+function getDistrictsMap()  {
+  //Get the id, district from the districts layer table
+  $sql = "select __mlocate__id, district from {lyr_105_india_districts} order by district asc";
+  $result = db_query($sql);
+
+  $returnMap = array();
+  //iterate over each row and populate the states Map
+  while($row = db_fetch_object($result)) {
+      $returnMap[$row->__mlocate__id] = $row->district;
+  }
+  return $returnMap;
+}
+
+/**
+ * Returns a map of id vs name of the Tahsils
+ * Right now these are picked up from the Tahsils layer 
+ */
+function getTahsilsMap()  {
+  //Get the id, state from the Tahsils layer table
+  $sql = "select __mlocate__id, tahsil from {lyr_115_india_tahsils} order by tahsil asc";
+  $result = db_query($sql);
+
+  $returnMap = array();
+  //iterate over each row and populate the states Map
+  while($row = db_fetch_object($result)) {
+      $returnMap[$row->__mlocate__id] = $row->tahsil;
+  }
+  return $returnMap;
+}
+
+
+/**
+ * Given a raw checklist, return the number of entities present inside it
+ */
+function getNumEntities($raw_checklist)  {
+  $count = isset($raw_checklist)?count(explode("\n", $raw_checklist))-2:-1;
+  return $count;
+}
+
+/**
+* Helper function to get the biogeographic regions
+**/
+function _get_biogeographic_regions(){
+  $regions = array();
+
+  $sql = 'select __mlocate__id, biogeoprov from {lyr_156_india_biogeographic}';
+  $result = db_query($sql);
+  while($row = db_fetch_array($result)) {
+    $regions[$row['__mlocate__id']] = $row['biogeoprov'];
+  }
+
+  return $regions;
+}
+
+/**
+* Helper function to get the CC Licenses
+**/
+function _get_cc_types(){
+  $sql = 'select * from {ibp_cc_types}';
+  $result = db_query($sql);
+  $cc_types = array();
+  while($row = db_fetch_object($result)) {
+    $cc_types[$row->id] = $row->name;
+  }
+  return $cc_types;
+}
+
+/**
+* Helper function to get the resource tables
+**/
+function _get_resource_tables(){
+  $sql = 'select * from {ibp_resource_tables}';
+  $tables = array();
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+    $tables[$row->id] = $row->name;
+  }
+  return $tables;
+}
+
+/**
+* Function to retrieve the human readable names from the taxa table
+**/
+function _ibpcl_get_taxa_names() {
+  // Store a key value pair of scientific name vs human readable name
+  $taxa = array();
+
+  $sql = 'select id, name, common_name from ibpcl_taxa ORDER by common_name ASC';
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+    $taxa[$row->common_name] = $row->common_name . ' ('.$row->name.')';
+  }
+  return $taxa;
+}
+
+/**
+ * Implementation of hook_form_alter
+ */
+function ibpcl_form_alter(&$form, $form_state, $form_id) {
+ if($form["#node"]->type == "checklist") {
+   //Add handlers for validation, submit of form
+   $form['#validate'][] = 'checklist_validate';
+   $form['#submit'][] = 'checklist_submit';
+ }
+}
+
+/*
+ * Handler for Validation
+ * Any rules for validating the checklist can come in here 
+ */
+function checklist_validate($form, &$form_state) {
+  print "Checklist validation";
+}
+
+//Submit handler for Checklist
+function checklist_submit($form, &$form_state) {
+  //print_r($form_state['values']);
+  //get the raw checklist
+  $raw_checklist = $form_state['values']['field_rawchecklist'][0]['value'];
+
+  //create a processed checklist, when user submits the form
+  $form_state['values']['field_processedchecklist'][0] = array(
+	'format' => 2,
+	'value' => content_display_checklist(get_processed_checklist($raw_checklist)),
+  );
+
+  //compute the number of Species during submission of Checklist
+  $form_state['values']['field_numentities'][0] = array(
+        'value' => getNumEntities($raw_checklist),
+  );
+
+  //Start collecting tags
+  $tags = '';
+  
+  $dropdown = $form_state['values']['field_taxa']; 
+  #Tags from the Taxa needs to be handled differently
+  #as we need to capture common names
+  foreach ($dropdown as $key => $value)
+    if(isset($value['value']))
+      $tags .= $value['value'] . ',';
+
+  $tags .= getTags($form_state['values']['field_states'], getStatesMap());
+  $tags .= getTags($form_state['values']['field_districts'], getDistrictsMap());
+  $tags .= getTags($form_state['values']['field_biogeography'], _get_biogeographic_regions());
+
+  print $tags; 
+/**
+ * Add new Taxonomy terms during submission of Checklist
+ * Pick the taxonomy terms from taxa, state, district, taluk
+ * Biogeographic region also needs to be picked up and added as a tag
+ * This part of the code makes sense only if we have a Vocabulary linked with Checklist
+ * and we are expecting some tags to be picked up automatically and shown in the tag cloud
+ */ 
+   $terms = $form_state['values']['taxonomy'];
+   //No choice than hard coding the vocabulary id?
+   $vid = 5;
+   
+   //If empty, handle it
+   if(!isset($terms['tags']) || !isset($terms['tags'][$vid]))
+        $terms = array("tags" => $vid);
+
+   #print_r($form_state['values']);
+   $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$tags)); 
+}
+
+/**
+ * Go over $array1, fetch values from it and considering it as key in $array2,
+ * return values from $array2
+ */
+function getTags($dropdown, $values)   {
+   $resultString = '';
+   foreach ($dropdown as $key => $value)
+     if(isset($value['value']) && isset($values[$value['value']]))
+        $resultString .= $values[$value['value']] . ',';
+   return $resultString;
+}
+
+//Node id is required during creation of csv file, so do this post save
+function ibpcl_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL)     {
+  switch($op) {
+     case 'insert':
+     case 'update':
+ 	createCsvFile($node);
+        break;      
+  }
+}
+
+/**
+* Helper function to insert a checklist
+**/
+function get_processed_checklist($raw_checklist){
+  $csv = new parseCSV();
+  $csv->auto($raw_checklist);
+  $has_scientific_name = FALSE;
+  foreach($csv->titles as $sl=>$values) {
+    if($values == 'scientific_name') {
+      $has_scientific_name = TRUE;
+    }
+  }
+
+  // We parse only if there is a scientific name
+  $new_csv = array();
+  $new_csv[] = $csv->titles;
+  if($has_scientific_name) {
+    foreach($csv->data as $key=>$row) {
+      $values = array();
+      foreach($row as $k=>$value) {
+        if($k == 'scientific_name') {
+          $found = FALSE;
+
+          // Birds
+          if(! $found) {
+            
+            $sql = 'select ibp_id from birdspecies_list where lower(ibp_scientific_name) = lower(\'%s\') or lower(itis_scientific_name) = lower(\'%s\') or lower(iucn_2010_scientific_name) = lower(\'%s\') or lower(wikipedia_nov2010_scientific_name) = lower(\'%s\') or lower(sibley_monroe_1996_scientific_name) = lower(\'%s\') or lower(howardandmoore_3rded_scientific_name) = lower(\'%s\') or lower(clements_5thed_2005_scientific_name) = lower(\'%s\') or lower(clements_6thed_2009_scientific_name) = lower(\'%s\') or lower(ioc_2009_scientific_name) = lower(\'%s\') or lower(ebird_2010_scientific_name) = lower(\'%s\') or lower(obc_2001_scientific_name) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/birdspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+          // Butterflies
+          if(! $found) {
+            $sql = 'select ibp_id from butterflyspecies_list where lower(wikipedia_scientific_name) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/butterflyspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Fish
+          if(! $found) {
+            $sql = 'select ibp_id from fishspecies_list where lower(species) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/fishspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Plants
+          if(! $found) {
+            $sql = 'select ibp_id from plantspecies_list where lower(gbif_species) = lower(\'%s\') or lower(iucn_spcscientificname) = lower(\'%s\') ';
+            $data_array = array(
+              $value,
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/plantspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Still not found? We'll italicize anyway
+          if(! $found) {
+            $value = '<em>'.$value.'</em>';
+          }
+            
+        }
+        $values[] = $value;
+      }
+      $new_csv[] = $values;
+    }
+
+  }
+
+  $processed_checklist = '';
+  $new_output = new parseCSV();
+  if($has_scientific_name) {
+    $processed_checklist = $new_output->output(null,$new_csv,FALSE);
+  }
+  else {
+    $processed_checklist = $raw_checklist;
+  }
+//  print "<script>alert('test');</script>";
+
+  return $processed_checklist;
+}
+
+/**
+ * Helper function to display a raw checklist
+ * If its available, one can pass the processed_checklist directly to this function
+ **/
+function content_display_checklist($processed_checklist = 0) {
+  $csv = new parseCSV();
+  $csv->auto($processed_checklist);
+
+  $content = '<table border="0" cellspacing="1" cellpadding="3" id="checklistTable">';
+  $content .=   '<tr>';
+  foreach ($csv->titles as $value) {
+    $content .= '       <th>' .$value . '</th>';
+        }
+  $content.= '</tr>';
+        foreach ($csv->data as $key => $row) {
+    $content .= '<tr>';
+    foreach ($row as $sl=>$value) {
+      $content .= '<td>'.$value.'</td>';
+    }
+    $content .= '</tr>';
+  }
+  $content .= '</table>';
+  return $content;
+}
+
+/**
+ * Right now we save CSV files on the server, just to be able to provide options to download as CSV, PDF 
+ * Need to check if we can remove creation of csv files on the server,
+ */
+function createCsvFile($node)  {
+  //query for the raw checklist value
+  $rawchecklist = db_result(db_query("select field_rawchecklist_value from {content_type_checklist} where nid = %d",$node->nid));  
+
+  // Check if there is a CSV file, if not, we'll create one
+  if(! file_scan_directory(file_directory_path().'/checklists/csv','checklist_'.$node->nid.'.csv')) {
+    $csv = new parseCSV();
+    $csv->auto($rawchecklist);
+    $csv->save(file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv');
+  }
+  else
+  {
+    unlink(file_directory_path().'/checklists/csv','checklist_'.$node->nid.'.csv');
+    $csv = new parseCSV();
+    $csv->auto($rawchecklist);
+    $csv->save(file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv');
+  }
+}
+

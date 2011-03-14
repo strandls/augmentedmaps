@@ -1,0 +1,3 @@
+name = "IBP Checklist"
+description = "Create and list checklists"
+core = 6.x
