@@ -1,8 +1,7 @@
-
 <?php
  $sql = "Select nid from {node} where type = 'ibpcl'";
  $result = db_query($sql);
- while($row = db_fetch_object($result))  {
+//while($row = db_fetch_object($result))  {
     $row = db_fetch_object($result);
     $nid = $row->nid;
     $node = node_load($nid);
@@ -10,10 +9,6 @@
 /*
     print_r($node->tables); //resource tables?????
     print "Biogeography   ".$node->biogeography."\n";
-    print "From date    ".$node->from_date."\n";
-    print "To date     ".$node->to_date."\n";
-    print "Published date   ".$node->publication."\n";
-    print "Last Updated      ".$node->last_updated."\n"; 
 */
 
     // Create checklist       
@@ -43,7 +38,7 @@
     $newNode->field_source[0]['value'] = $node->link;       //Source
     $newNode->field_cclicense[0]['value'] = $node->license;
 
-    $newNode->field_numentities[0]['value'] = $node->numchecklist;
+    $newNode->field_numentities[0]['value'] = getNumEntities($node->raw_checklist);
     $newNode->field_clinfo[0]['value'] = $node->information;
     $newNode->field_references[0]['value'] = $node->references;
     $newNode->field_rawchecklist[0]['value'] = $node->raw_checklist;
@@ -59,16 +54,27 @@
     //Handle dates
     
     //Auto populate Taxonomy terms 
-  $tags = $node->taxa;
+  $tags = $node->taxa .',';
   $tags .= getTags($newNode->field_states, getStatesMap());
   $tags .= getTags($newNode->field_districts, getDistrictsMap());
   //$tags .= getTags($form_state['values']['field_biogeography'], _get_biogeographic_regions());
   $newNode->taxonomy = array('tags' => array(5 => $tags));
+  
+  //Import data related to date fields
+  if(isset($node->from_date) && !empty($node->from_date))
+      $newNode->field_fromdate[0]['value']  = format_date($node->from_date, 'custom', 'Y-m-d', 0);
+  if(isset($node->to_date) && !empty($node->to_date))
+      $newNode->field_todate[0]['value']  = format_date($node->to_date, 'custom', 'Y-m-d', 0);
+  if(isset($node->publication_date) && !empty($node->publication_date))
+      $newNode->field_publicationdate[0]['value']  = format_date($node->publication, 'custom', 'Y-m-d', 0); 
+  if(isset($node->last_updated) && !empty($node->last_updated))
+      $newNode->field_updateddate[0]['value']  = format_date($node->last_updated, 'custom', 'Y-m-d', 0); 
 
     // save node
     node_save($newNode);
+
     print 'node created';
-}
+//}
 
 ?>
 
