@@ -1,7 +1,7 @@
 <?php
  $sql = "Select nid from {node} where type = 'ibpcl'";
  $result = db_query($sql);
-//while($row = db_fetch_object($result))  {
+ while($row = db_fetch_object($result))  {
     $row = db_fetch_object($result);
     $nid = $row->nid;
     $node = node_load($nid);
@@ -26,10 +26,10 @@
     $newNode->sticky = $node->sticky;
 
     // add CCK field data
-    $newNode->field_taxa[0]['value'] = $node->taxa;
     $newNode->field_place[0]['value'] = $node->place_name;
     $newNode->field_allindia[0]['value'] = $node->all_india;
 
+    $newNode->field_taxa = getIdArray($node->taxa , 'taxa');
     $newNode->field_states = getIdArray($node->states, 'states');
     $newNode->field_districts = getIdArray($node->districts, 'districts');
     $newNode->field_taluks = getIdArray($node->taluks, 'taluks');
@@ -51,16 +51,16 @@
 
     //Need to handle Resource tables 
     //Need to handle biogeography
-    //Handle dates
     
     //Auto populate Taxonomy terms 
-  $tags = $node->taxa .',';
+  $tags = getTags($newNode->field_taxa, getTaxaCommonNames());
   $tags .= getTags($newNode->field_states, getStatesMap());
   $tags .= getTags($newNode->field_districts, getDistrictsMap());
-  //$tags .= getTags($form_state['values']['field_biogeography'], _get_biogeographic_regions());
+  $tags .= getTags($newNode->field_taluks, getTahsilsMap());
+
   $newNode->taxonomy = array('tags' => array(5 => $tags));
-  
-  //Import data related to date fields
+
+    //Handle dates
   if(isset($node->from_date) && !empty($node->from_date))
       $newNode->field_fromdate[0]['value']  = format_date($node->from_date, 'custom', 'Y-m-d', 0);
   if(isset($node->to_date) && !empty($node->to_date))
@@ -72,9 +72,12 @@
 
     // save node
     node_save($newNode);
+    
+    $node = null;
+    $newNode = null;
 
-    print 'node created';
-//}
+      print 'node created';
+}
 
 ?>
 
