@@ -252,7 +252,7 @@ function checklist_submit($form, &$form_state) {
   $tags .= getTags($form_state['values']['field_taxa'], getTaxaCommonNames());
   $tags .= getTags($form_state['values']['field_states'], getStatesMap());
   $tags .= getTags($form_state['values']['field_districts'], getDistrictsMap());
-  // $tags .= getTags($form_state['values']['field_biogeography'], _get_biogeographic_regions());
+  $tags .= getTags($form_state['values']['field_taluks'], getTahsilsMap());
 
   $terms = $form_state['values']['taxonomy'];
   //No choice than hard coding the vocabulary id?

@@ -1,7 +1,7 @@
 <?php
  $sql = "Select nid from {node} where type = 'ibpcl'";
  $result = db_query($sql);
- while($row = db_fetch_object($result))  {
+while($row = db_fetch_object($result))  {
     $row = db_fetch_object($result);
     $nid = $row->nid;
     $node = node_load($nid);
@@ -52,8 +52,10 @@
     //Need to handle Resource tables 
     //Need to handle biogeography
     
-    //Auto populate Taxonomy terms 
-  $tags = getTags($newNode->field_taxa, getTaxaCommonNames());
+  $tags = '';
+  //Auto populate Taxonomy terms 
+  $tags .= tagPlaceName($newNode->field_place[0]['value']);
+  $tags .= getTags($newNode->field_taxa, getTaxaCommonNames());
   $tags .= getTags($newNode->field_states, getStatesMap());
   $tags .= getTags($newNode->field_districts, getDistrictsMap());
   $tags .= getTags($newNode->field_taluks, getTahsilsMap());
