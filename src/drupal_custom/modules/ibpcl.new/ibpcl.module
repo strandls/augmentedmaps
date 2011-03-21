@@ -221,6 +221,7 @@ function checklist_validate($form, &$form_state) {
 function checklist_submit($form, &$form_state) {
 
   //print_r($form_state['values']);
+  //print_r($form);
   //get the raw checklist
   $raw_checklist = $form_state['values']['field_rawchecklist'][0]['value'];
 
@@ -249,13 +250,14 @@ function checklist_submit($form, &$form_state) {
   if(isset($form_state['values']['field_place'][0]['value']))
        $tags .= tagPlaceName($form_state['values']['field_place'][0]['value']);
   //Add tags, picking up Taxa, States, Districts, biogeography
-  $tags .= getTags($form_state['values']['field_taxa'], getTaxaCommonNames());
+  //Tags corresponding to Taxa needs to be stored seperately
+  $tags_taxa = getTags($form_state['values']['field_taxa'], getTaxaCommonNames());
+
   $tags .= getTags($form_state['values']['field_states'], getStatesMap());
   $tags .= getTags($form_state['values']['field_districts'], getDistrictsMap());
   $tags .= getTags($form_state['values']['field_taluks'], getTahsilsMap());
 
   $terms = $form_state['values']['taxonomy'];
-  //No choice than hard coding the vocabulary id?
   $vid = 5;
    
   //If empty, handle it
@@ -263,7 +265,8 @@ function checklist_submit($form, &$form_state) {
      $terms = array("tags" => $vid);
 
   //print_r($form_state['values']['field_place'][0]['value']);
-  $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$tags)); 
+  //No choice than hard coding the vocabulary id?
+  $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$tags,  6 => $tags_taxa)); 
 }
 
 /**
@@ -273,10 +276,12 @@ function checklist_submit($form, &$form_state) {
  */ 
 function tagPlaceName($place_name)  {
    $tag = '';
-   if(strlen(stristr($place_name, 'Wild life Sanctuary'))>0)
+   $pos = stripos($place_name, 'Wild life Sanctuary');
+   if($pos != false)
 	$tag .= 'Wild life Sanctuary' . ',' ;
-
-   if(strlen(stristr($place_name, 'National Park'))>0)
+   
+   $pos = stripos($place_name, 'National Park');
+   if($pos != false)
 	$tag .= 'National Park' . ',';
 
    return $tag;

@@ -1,0 +1,108 @@
+<div class = "clear-block"> </div>
+<?php
+$header = array("No. of Species", "Taxa");
+$rows = array(
+    array(
+      $node->field_numentities[0]['view'], format_output($node->field_taxa)
+    ),
+  );
+print "<h3>General</h3>";
+print theme_table($header, $rows);
+
+$header = array();
+$data = array();
+if(isset($node->field_place[0]['value']) && !empty($node->field_place[0]['value']))       {
+     $header[] = "Place Name";
+     $data[] = $node->field_place[0]['view'];
+}
+if(isset($node->field_biogeography[0]['value']) && !empty($node->field_biogeography[0]['value']))  {
+     $header[] = "Biogeographic Region";
+     $data[] = format_output($node->field_biogeography);
+}
+
+if(isset($node->field_states[0]['value']) && !empty($node->field_states[0]['value']))  {
+     $header[] = "State(s)";
+     $data[] = format_output($node->field_states);
+}
+if(isset($node->field_districts[0]['value']) && !empty($node->field_districts[0]['value']))     {
+     $header[] = "District(s)";
+     $data[] = format_output($node->field_districts);
+}
+if(isset($node->field_taluks[0]['value']) && !empty($node->field_taluks[0]['value']))    {
+     $header[] = "Taluk(s)";
+     $data[] = format_output($node->field_taluks);
+}
+
+if(count($data) > 0)  {
+  print "<h3>Location</h3>";
+  print theme_table($header, array($data));
+}
+
+$header = array();
+$data = array();
+if(isset($node->field_fromdate[0]['value']) && !empty($node->field_fromdate[0]['value']))       {
+     $header[] = "From";
+     $data[] = $node->field_fromdate[0]['view'];
+}
+if(isset($node->field_todate[0]['value']) && !empty($node->field_todate[0]['value']))       {
+     $header[] = "To";
+     $data[] = $node->field_todate[0]['view'];
+}
+if(isset($node->field_publicationdate[0]['value']) && !empty($node->field_publicationdate[0]['value']))       {
+     $header[] = "Publication";
+     $data[] = $node->field_publicationdate[0]['view'];
+}
+if(isset($node->field_updateddate[0]['value']) && !empty($node->field_updateddate[0]['value']))       {
+     $header[] = "Updated";
+     $data[] = $node->field_updateddate[0]['view'];
+}
+
+if(count($data) > 0)  {
+   print '<h3>Dates</h3>';
+   print theme_table($header, array($data));
+}
+?>
+
+<div class="field field-type-text field-field-attribution">
+  <?php if(isset($node->field_attribution[0]['value']) && !empty($node->field_attribution[0]['value'])): ?>
+  <h3 class="field-label">Attribution:</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_attribution[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+</div>
+
+<div class="field field-type-text field-field-clinfo">
+  <?php if(isset($node->field_clinfo[0]['value']) && !empty($node->field_clinfo[0]['value'])): ?>
+  <h3 class="field-label">Checklist Information:</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_clinfo[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+</div>
+
+<div class="field field-type-text field-field-processedchecklist">
+  <h3 class="field-label">Processed Checklist</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_processedchecklist[0]['view'] ?></div>
+  </div>
+</div>
+
+<div class="field field-type-text field-field-references">
+  <?php if(isset($node->field_references[0]['value']) && !empty($node->field_references[0]['value'])): ?>
+  <h3 class="field-label">References</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_references[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+</div>
+
+<div class="field field-type-text field-field-source">
+  <?php if(isset($node->field_source[0]['value']) && !empty($node->field_source[0]['value'])): ?>
+  <h3 class="field-label">Source</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_source[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+</div>
+
