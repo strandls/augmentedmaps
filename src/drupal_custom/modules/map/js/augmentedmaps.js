@@ -55,8 +55,21 @@ jQuery(document).ready(function(){
         $("#layers_drawer").hide();
         $("#search_drawer").hide();
         shift_label("#tools_drawer_handle");
-        $("#tools_drawer").toggle();
-        showMeasurementTool();
+        $("#tools_drawer").toggle(function(){
+        
+            if ($("#tools_drawer").is(":hidden")){
+                closeMeasurementTool();
+            }
+        });
+
+        var $this = $(this),
+        firstClick = $this.data('firstClick');
+
+        if (!firstClick) { 
+            showMeasurementTool();
+            $this.data('firstClick', true);
+        }
+
     });    
 
     $("#legend_drawer_handle").click(function(){
@@ -89,10 +102,6 @@ jQuery(document).ready(function(){
     $( "#tools_accordion" ).accordion({fillSpace: true});
 
     $( "#legend_accordion" ).accordion({fillSpace: true});
-
-    $("#lnkmeasurement").click(function(){
-        showMeasurementTool();
-    });
 
     $("#a-link-to-map").click(function(){
         var url = getCurrentMapURL();
