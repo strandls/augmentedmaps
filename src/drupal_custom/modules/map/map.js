@@ -26,7 +26,7 @@ please see http://www.gnu.org/licenses/gpl-3.0.html.
 /***** Global variables start here *****/
 var map;
 var MapServerURL = '/cgi-bin/mapserv';
-var MAP_DATA = '@MAP_DATA/'; //@MAP_DATA should be replaced by the directory path containing map files
+var MAP_DATA = '/home/rahul/augmentedmaps/data/'; //@MAP_DATA should be replaced by the directory path containing map files
 var GOOGLE_BASE_URL = 'http://maps.google.com/maps/api/staticmap?';
 var popup;
 var popupMinSize = new OpenLayers.Size(600, 400); // width, height
@@ -658,7 +658,7 @@ function onZoom() {
     var layer_tablename = layersChecked[i];
     var SearchIds = "";
     if (CurrentTabOption == SEARCH_OPT || CurrentTabOption == VALIDATION_TAB_OPT) {
-      SearchIds = mls_getSearchIds(layer_tablename);
+      SearchIds = get_search_ids(layer_tablename);
     }
     var layer_type = arr_layers[layer_tablename].layer_type;
     if(layer_type == 'POINT' || layer_type == 'MULTIPOINT' ) {
@@ -1306,7 +1306,7 @@ try{
       return;
     }
   }
-
+    
   switch(layer_type) {
     case 'POINT':
       var url_getLayer, url_layerExtent;
@@ -1829,7 +1829,7 @@ function toggleLayer(layer_tablename) {
   if (jQuery.inArray(layer_tablename, layersChecked) == -1) {
     jQuery("#divThemes").find("input[value='" + layer_tablename + "']").attr("checked", true);
     if (CurrentTabOption == SEARCH_OPT || CurrentTabOption == VALIDATION_TAB_OPT) {
-      getData_Category(layer_tablename, 1, mls_getSearchIds(layer_tablename));
+      getData_Category(layer_tablename, 1, get_search_ids(layer_tablename));
     } else {
       getData_Category(layer_tablename, 1);
     }
@@ -1872,6 +1872,7 @@ function getData_Category(layer_tablename, select, Searchids, inputbox) {
       obj = null;
     }
     arr_layers[layer_tablename] = obj_layerInfo;
+    
 
     /* ----- remove layerinfo popup ----- */
     removeLayerinfoPopup();
@@ -1883,7 +1884,7 @@ function getData_Category(layer_tablename, select, Searchids, inputbox) {
     addToLayersChecked(layer_tablename);
 
     // add the layer to layer ordering
-    addToLayerOrdering(layer_tablename);
+    //addToLayerOrdering(layer_tablename);
 
     // set the OpenLayers control panel based on user permission
     setOLControlPanel(layer_tablename);
@@ -2129,13 +2130,14 @@ function getCategory(lastopt,currentopt) {
           if (jQuery("#ajaxLoader").css("display") == 'block') {
             jQuery("#ajaxLoader").css("display", "none");
           }
-
+            
           if(layersChecked.length>0) {
             jQuery('#li'+layersChecked[0]).css('color','red').css('font-weight','bold');
           }
         }
       }
     });
+
   });
 }
 
@@ -2897,11 +2899,15 @@ function getCurrentMapURL(){
 	var extent = map.getExtent();
 	var BBOX = extent.left + "," + extent.bottom + "," + extent.right + "," + extent.top;
 	mapurl += "&BBOX=" + BBOX;
+        
+        /*
 	jQuery("#divMapUrl").show(400);
 	document.getElementById("txtMapUrl").value = mapurl;
 	jQuery("#closemapurl").click(function(){
     jQuery("#divMapUrl").hide(400);
  	});
+        */
+        return mapurl;
 }
 
 function ShowGE(){
@@ -3505,6 +3511,7 @@ function downloadLayer(layer_tablename){
         var var_data = 'action=getDownloadUrl&layer_tablename='+layer_tablename+'&format='+format;
       else
         var var_data = 'action=getDownloadUrl&layer_tablename='+toplayer+'&format='+format;
+      alert(lnk, layer_tablename);
       jQuery.ajax({
         url: lnk,
         type: 'GET',
@@ -3672,50 +3679,42 @@ function showMeasurementTool(){
   var strMeasurement='';
   var str = '';
 
-  strMeasurement += '<table height="80" width="100%" style="margin-top: 10px; padding-bottom: 10px; "><tr><td>';
-  strMeasurement += '<ul id="controlToggle">';
-  strMeasurement += '</td></tr>';
-  strMeasurement += '<tr><td>';
+  strMeasurement += '<div>';
+  strMeasurement += '<ul id="controlToggle" style="list-style:none;">';
   strMeasurement += '<li>';
-  strMeasurement += '<input type="radio" name="type" value="none" id="noneToggle" onclick="toggleControl(this);"  />';
-  strMeasurement += '<label for="noneToggle">&nbsp;Navigate(change Map view)</label>';
+  strMeasurement += '<input type="radio" name="type" value="none" id="noneToggle" onclick="toggleControl(this);activateNavigationControl();" />';
+  strMeasurement += '<label for="noneToggle">&nbsp; None</label>';
   strMeasurement += '</li>';
-  strMeasurement += '</td></tr>';
-  strMeasurement += '<tr><td>';
   strMeasurement += '<li>';
   strMeasurement += '<input type="radio" name="type" value="line" id="lineToggle" onclick="toggleControl(this);" checked="checked"/>';
-  strMeasurement += '<label for="lineToggle">&nbsp;Measure Distance</label>';
+  strMeasurement += '<label for="lineToggle">&nbsp; Distance</label>';
   strMeasurement += '</li>';
-  strMeasurement += '</td></tr>';
-  strMeasurement += '<tr><td>';
   strMeasurement += '<li>';
   strMeasurement += '<input type="radio" name="type" value="polygon" id="polygonToggle" onclick="toggleControl(this);" />';
-  strMeasurement += '<label for="polygonToggle">&nbsp;Measure Area</label>';
+  strMeasurement += '<label for="polygonToggle">&nbsp; Area</label>';
   strMeasurement += '</li>';
-  strMeasurement += '</td></tr>';
-  strMeasurement += '<tr><td>';
   strMeasurement += '</ul>';
-  strMeasurement += '</td></tr></table>';
+  strMeasurement += '</div>';
+  strMeasurement += '<div style="float:left; padding:5px;">';
+  strMeasurement += '<button type="button" name="type" value="none" id="noneToggle" onclick="toggleControl(this);">Reset</button>';
+  strMeasurement += '</div>';
   var stroutput = '<div  id="output"></div>';
-  str += "<table width='100%'>";
-		str += "<tr>";
-			str += "<td>";
-				str += "<div style='font-size:10px'><I>";
-				str += "To measure distance/area, single click on the map to start the marking and double click to stop, after selecting an appropriate option from the list below";
-				str += "</I></div>";
-			str +="</td>"
-		str += "</tr>";
-		str += "<tr>";
-			str += "<td>";
-				str += strMeasurement;
-			str +="</td>"
-		str += "</tr>";
-		str += "<tr>";
-			str += "<td align='center'>";
-				str += "<hr>";
-				str += stroutput;
-			str +="</td>"
-		str += "</tr>";
+str += "<div style='font-size:10px'><I>";
+str += "To measure distance/area, single click on the map to start the marking and double click to stop, after selecting an appropriate option from the list below";
+str += "</I></div>";
+
+str += "<table width='100%'>";
+str += "<tr>";
+        str += "<td>";
+                str += strMeasurement;
+        str +="</td>"
+str += "</tr>";
+str += "<tr>";
+        str += "<td align='center'>";
+                str += "<hr>";
+                str += stroutput;
+        str +="</td>"
+str += "</tr>";
   str += "</table>";
 
   jQuery("#measurement").html(str);
@@ -3725,6 +3724,7 @@ function showMeasurementTool(){
   jQuery("#measurement").css("display","block");
 	jQuery("#measurement").css("top","20px");
 	jQuery("#measurement").css("left","0px");
+        /*
 	jQuery("#measurement").dialog({
 	    modal: false,
 	    zIndex: 2001,
@@ -3735,7 +3735,7 @@ function showMeasurementTool(){
 	    close: function() {
 	    			closeMeasurementTool();
     	       }
-    });
+    });*/
             var sketchSymbolizers = {
                 "Point": {
                     pointRadius: 4,

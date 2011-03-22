@@ -18,6 +18,11 @@
 		
 			<!-- Main menu -->
 			<div id="menus">
+				<div id="homeMainMenu">
+					<?php if($main_menu): ?>
+					<?php print $main_menu; ?>
+					<?php endif; ?>
+				</div>
 				<div id="homeUserMenu">
 					<ul>
 					<?php global $user; ?>
@@ -32,11 +37,6 @@
 					<li class="last"><a href="<?php print check_url($front_page);?>user/register">Register</a></li>
 					<?php endif; ?>
 					</ul>
-				</div>
-				<div id="homeMainMenu">
-					<?php if($main_menu): ?>
-					<?php print $main_menu; ?>
-					<?php endif; ?>
 				</div>
 			</div>
 			<!-- Main menu ends -->
@@ -102,7 +102,7 @@
 			<!-- Footer -->
 			<div id="pageFooter">
 				<?php if($footer): ?>
-				<?php print $footer;?>
+				<!--?php print $footer;?-->
 				<?php endif; ?>
 			</div>
 			<!-- Footer ends -->
@@ -120,6 +120,7 @@
 
       jQuery(document).ready(function(){
         setMainDivSize();
+        //chkBrowserCompatibility();
         chkFlashVersion();
       });
     </script>

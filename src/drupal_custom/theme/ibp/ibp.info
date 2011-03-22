@@ -1,6 +1,6 @@
 ; $Id: ibp.info,v 1.5 2007/07/01 23:27:32 goba Exp $
 name = ibp
-description = Tableless(Original, with changes)
+description = Tableless
 version = VERSION
 core = 6.x
 engine = phptemplate

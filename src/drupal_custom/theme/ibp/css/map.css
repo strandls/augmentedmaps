@@ -1,5 +1,5 @@
 body#mapPage {
-	background-color: #ECE9B7;
+	background-color: #e5e5e5;
 	margin: 0;
 	font-family: Verdana, Helvetica, Sans-Serif;
 	font-size: 10pt;
@@ -12,12 +12,12 @@ a img {
 
 #mapPage a:link {
 	color: #BF8815;
-	text-decoration: underline;
+	text-decoration: none;
 }
 
 #mapPage a:visited {
 	color: #DBA32E;
-	text-decoration: underline;
+	text-decoration: none;
 }
 
 #mapPage a:hover {
@@ -30,29 +30,21 @@ a img {
 	text-decoration: underline;
 }
 
-#mapPage #wrapper {
-	min-width: 1000px;
-	min-height: 500px;
-}
-
 #mapPage #tools {
 	height: 100px;
 }
 
 #mapPage #mainToolBar .tool {
-	float: left;
+        float: left;
 	margin: 10px 3px 0px 3px;
-	font-size: 14px;
-	font-weight: bold;
+	font-weight: normal;
 }
 
 #mapPage #mainToolBar .tool a:link {
 	display: block;
-	padding: 10px;
+	padding: 5px;
 	width: 80px;
 	height: 16px;
-	background-image: url(../images/button-bg.png);
-	background-repeat: no-repeat;
 	text-align: center;
 	color: #fff;
 	text-decoration: none;
@@ -60,10 +52,8 @@ a img {
 
 #mapPage #mainToolBar .tool a:visited {
 	display: block;
-	padding: 10px;
+	padding: 5px;
 	width: 80px;
-	background-image: url(../images/button-bg.png);
-	background-repeat: no-repeat;
 	text-align: center;
 	color: #fff;
 	text-decoration: none;
@@ -71,10 +61,8 @@ a img {
 
 #mapPage #mainToolBar .tool a:hover {
 	display: block;
-	padding: 10px;
+	padding: 5px;
 	width: 80px;
-	background-image: url(../images/button-bg.png);
-	background-repeat: no-repeat;
 	text-align: center;
 	color: #fff;
 	text-decoration: underline;
@@ -82,20 +70,19 @@ a img {
 
 #mapPage #mainToolBar .tool a:active {
 	display: block;
-	padding: 10px;
+	padding: 5px;
 	width: 80px;
-	background-image: url(../images/button-bg.png);
-	background-repeat: no-repeat;
 	text-align: center;
 	color: #fff;
-	text-decoration: none;
+	text-decoration: underline;
+        font-weight: bold;
 }
 
 #mapPage #activeLayer {
 	font-weight: bold;
 	font-size: 10pt;
 	position: absolute;
-	top: 60px;
+	top: 10px;
 	left: 220px;
 }
 
@@ -109,68 +96,57 @@ a img {
 }
 
 #mapPage #layerTools .tool {
-	float: left;
-	margin: 0 3px 0px 3px;
+	float: right;
+	margin: 3px 3px 0px 3px;
 }
 
 #mapPage #layerTools .tool a:link {
 	display: block;
-	padding: 8px;
+	padding: 5px;
 	text-align: center;
-	background-color: #A5833E;
-	background-image: url(../images/small-button-bg.png);
 	color: #fff;
 	text-decoration: none;
 }
 
 #mapPage #layerTools .tool a:visited {
 	display: block;
-	padding: 8px;
+	padding: 5px;
 	text-align: center;
-	background-color: #A5833E;
-	background-image: url(../images/small-button-bg.png);
 	color: #fff;
 	text-decoration: none;
 }
 
 #mapPage #layerTools .tool a:hover {
 	display: block;
-	padding: 8px;
+	padding: 5px;
 	text-align: center;
-	background-color: #A5833E;
-	background-image: url(../images/small-button-bg.png);
 	color: #fff;
 	text-decoration: underline;
 }
 
 #mapPage #layerTools .tool a:active {
 	display: block;
-	padding: 8px;
+	padding: 5px;
 	text-align: center;
-	background-color: #A5833E;
-	background-image: url(../images/small-button-bg.png);
 	color: #fff;
-	text-decoration: none;
+	text-decoration: underline;
+        font-weight: bold;
 }
 
 #mapPage #advanced {
-	float: right;
+	float: left;
 	margin-top: 10px;
-	margin-right: 20px;
 	position: relative;
-	top: 0;
-	left: 0;
-	z-index: 2001;
 }
 
 #mapPage #advanced .tool {
-	background-color: #A5833E;
+	color: #fff;
 	width: 100px;
 }
 
 #mapPage #advanced .tool a:link {
 	display: block;
-	padding: 8px 3px 8px 3px;
+	padding: 3px 3px 3px 3px;
 	text-align: center;
 	background-color: #A5833E;
 	color: #fff;
@@ -179,7 +155,7 @@ a img {
 
 #mapPage #advanced .tool a:visited {
 	display: block;
-	padding: 8px 3px 8px 3px;
+	padding: 3px 3px 3px 3px;
 	text-align: center;
 	background-color: #A5833E;
 	color: #fff;
@@ -188,7 +164,7 @@ a img {
 
 #mapPage #advanced .tool a:hover {
 	display: block;
-	padding: 8px 3px 8px 3px;
+	padding: 3px 3px 3px 3px;
 	text-align: center;
 	background-color: #A5833E;
 	color: #fff;
@@ -197,11 +173,12 @@ a img {
 
 #mapPage #advanced .tool a:active {
 	display: block;
-	padding: 8px 3px 8px 3px;
+	padding: 3px 3px 3px 3px;
 	text-align: center;
 	background-color: #A5833E;
 	color: #fff;
-	text-decoration: none;
+	text-decoration: underline;
+        font-weight: bold;
 }
 
 #mapPage #advanced .optional {
@@ -214,12 +191,11 @@ a img {
 }
 
 #mapPage #logo {
-	margin: 5px;
 	margin-right: 10px;
 	float: left;
 }
 
-#mapPage #mapBranding #logo a .icon{
+#mapPage #logo a .icon{
 	width: 191px;
 	height: 80px;
 	background-image: url(../images/map-logo.gif);
@@ -230,13 +206,14 @@ a img {
 #layerGroupType {
 	list-style: none;
 	font-size: 8pt;
-	margin: 0;
+	margin: 10px;
 	padding: 0;
-	width: 140px;
-	position: relative;
-	top: 2px;
+	width: 350px;
+	position: absolute;
+	top: 3px;
 	left: 0;
-	z-index: 2501;
+        display: inline;      
+	z-index: 3000;
 }
 
 #layerGroupType li {
@@ -244,156 +221,70 @@ a img {
 	padding: 5px;
 	margin: 2px;
 	border: 1px solid #A5833E;
+        display: inline;
 }
 
 
 #layerGroupType li {
-	border-right: 1px solid #fff;
 	background-color: #A5833E;
 }
 
 #layerGroupType li a:link, #layerGroupType li a:visited, #layerGroupType li a:hover, #layerGroupType li a:active {
 	color: #fff;
-	text-decoration: none;
+	text-decoration: underline;
 }
 
 #layerGroupType li.selected {
-	border-right: 1px solid #fff;
+	border-bottom: 1px solid #fff;
 	background-color: #fff;
+        display: inline;
 }
 
 #layerGroupType li.selected a:link, #layerGroupType li.selected a:visited, #layerGroupType li.selected a:hover, #layerGroupType li.selected a:active {
 	color: #A5833E;
-	text-decoration: none;
+	text-decoration: underline;
+        display: inline;
 }
 
 #layerTree {
-  border:1px solid #A5833E;
+  background-color: #ffffff; 
+  border-top:1px solid #A5833E;
   font-size:11px;
-  height:265px;
-  left:137px;
-  overflow:auto;
   padding:5px;
   position:absolute;
-  top:20px;
-  width:428px;
-  z-index:2500;
-  /*
-	position: absolute;
-	top: 40px;
-	right: 20px;
-	overflow: auto;
-	height: 328px;
-	width: 226px;
-	border: 1px solid #A5833E;
-	padding: 5px;
-	z-index: 2500;
-  font-size: 11px;
-  */
+  left: 0px;         
+  top:31px;
+  width:350px;
+  z-index:3000;
 }
-
-/*
-.tool a .icon{
-	width: 32px;
-	height: 32px;
-}
-
-#layerSelect-1 .icon{
-	background-image: url(../images/icons/layers.png);
-}
-
-#layerOrder-1 .icon{
-	background-image: url(../images/icons/layer-ordering.png);
-}
-
-#resetTreeViewControl .icon{
-	background-image: url(../images/icons/reset.png);
-}
-
-#uploadData .icon{
-	background-image: url(../images/icons/upload.png);
-}
-
-#btn_contribute .icon{
-	background-image: url(../images/icons/contribute-icon.png);
-}
-
-#mapLegend-1 .icon{
-	background-image: url(../images/icons/legend-icon.png);
-}
-
-#anc_LayerInfo .icon{
-	background-image: url(../images/icons/info-icon.png);
-}
-
-#anc_LayerExtent .icon{
-	background-image: url(../images/icons/zoom-to-extent-icon.png);
-}
-
-#layerData-1 .icon{
-	background-image: url(../images/icons/layer-data.png);
-}
-
-#downloadLayer a .icon{
-	background-image: url(../images/icons/download.png);
-}
-
-#mapurl a .icon{
-	background-image: url(../images/icons/link-icon.png);
-}
-*/
-
-/*
-#login ul {
-  list-style-image:none;
-  list-style-position:outside;
-  list-style-type:none;
-  margin:0;
-  padding:0;
-}
-
-#login li {
-  border-right:1px solid #725F39;
-  float:left;
-  list-style-image:none;
-  list-style-position:outside;
-  list-style-type:none;
-  padding:2px 5px;
-}
-
-#login li.last {
-  border-right:medium none;
-}
-*/
 
 #mapPage .baseMap {
 	position: absolute;
-	top: 60px;
-	right: 10px;
-	padding: 10px;
+	top: 100px;
+	right: 50px;
+	padding: 3px;
+        z-index:2000;
 }
 
 #mapPage .loginRegister {
 	position: absolute;
-	top: 60px;
-	right: 220px;
+	top: 0px;
+	right: 20px;
 	padding: 10px;
+        z-index:2000;
 }
 
 #mapPage #mapArea {
 	position: absolute;
-	top: 100px;
+	top: 130px;
 	left: 0;
-	width: 1000px;
-	height: 200px;
-	background-color: #eee;
 }
 
 .mapPane {
 	background-color: #fff;
 	border: 1px solid #A5833E;
-	width: 200px;
-	height: 200px;
+        width:350px;        
+        height:150px;      
 	z-index: 2000;
 	display: none;
 	position: absolute;
@@ -405,38 +296,14 @@ a img {
 	padding: 0;
 }
 
-.mapPane .closePane {
-	position: absolute;
-	top: 4px;
-	right: 12px;
-}
-
-.mapPane .minimizeMaximizePane {
-	position: absolute;
-	top: 5px;
-	right: 30px;
-}
-
-.mapPane .displayPane {
-	overflow: auto;
-	margin: 20px 20px 20px 20px;
-}
-
-.mapPane .dragHandle {
-	background-image: url(../images/icons/draggable-bar.png);
-	background-repeat: no-repeat;
-	/*background-position: 2px 2px;*/
-  cursor: move;
-}
-
 .dragHandle {
 	margin-top: -2px;
 }
 
 #layerSelectPane {
-	width: 590px;
-	height: 310px;
-	top: 100px;
+	width: auto;
+	height: auto;
+	top: 150px;
 	display: block;
   /*left: 120px;*/
   opacity: 0.85;
@@ -453,11 +320,11 @@ a img {
 
 #userLogin {
 	position: absolute;
-	top: 60px;
-	right: 40px;
+	top: 30px;
+	right: 20px;
 	background-color: #fff;
-	z-index: 1111;
-	border: 1px solid #A5833E;
+	z-index: 10000;
+	border: 4px solid #e5e5e5;
 	padding: 30px;
 	display: none;
 }
@@ -474,7 +341,7 @@ a img {
 	right: 400px;
 	width: 300px;
 	background-color: #fff;
-	z-index: 2002;
+	z-index: 10000;
 	border: 1px solid #A5833E;
 	padding: 30px;
 	font-weight: bold;
@@ -485,7 +352,7 @@ a img {
 	top: 70px;
 	right: 215px;
 	background-color: #fff;
-	z-index: 1111;
+	z-index: 3000;
 	border: 1px solid #A5833E;
 	padding: 10px;
 	padding-top: 0px;
@@ -510,9 +377,165 @@ a img {
 }
 
 #layerDataPane {
-	width: 90%;
-	height: 60%;
+	width: 80%;
+	height: 30%;
 	bottom: 10px;
 	right: 10px;
 }
 
+#shadow { 
+background-image: url("../images/shadow.png");
+background-repeat: repeat-x;
+font-size: 0px;
+height: 5px;
+top:80px;        
+position: absolute;
+width: 100%;
+z-index: 2000;       
+}
+
+#right-sidebar {
+background-color: #ECE9B7;    
+opacity: 0.85;
+filter:alpha(opacity=85);
+position:absolute;
+top:80px;
+right:0;    
+width:31px;      
+height:480px;      
+padding:2px;       
+z-index:3000;
+}
+
+#layers_drawer_handle {
+position:absolute;
+top:45px;    
+}
+
+#layers_drawer {
+position:absolute;
+display:none;         
+top:10px;
+height:400px;
+z-index:3000;
+}
+
+#search_drawer_handle {
+position:absolute;
+top:165px;    
+}
+
+#search_drawer {
+position:absolute;
+display:none;         
+top:20px;
+height:380px;    
+z-index:3000;
+}
+
+
+#tools_drawer_handle {
+position:absolute;
+top:285px;    
+}
+
+#tools_drawer {
+position:absolute;
+display:none;         
+top:20px;
+height:380px;    
+z-index:3000;
+}
+
+#legend_drawer_handle {
+position:absolute;
+top:405px;    
+}
+
+#legend_drawer {
+background-color: #ffffff;    
+position:absolute;
+display:none;         
+top:100px;
+z-index:3000;
+}
+
+.drawer {
+right:35px;         
+width: 300px;       
+background-color:#ffffff;        
+}
+
+#measurement {
+padding:3px;
+background-color:#ffffff;        
+}
+
+#link-to-map {
+margin:3px;
+padding:3px;
+}
+
+#link-to-map-refresh {
+clear:both;    
+margin:10px;
+}
+
+.vertical-label-right {
+background-image:url("../images/nav.png");    
+background-position:0 0;
+height:32px;
+width:117px;       
+right:-42px;      
+-webkit-transform: rotate(-90deg);
+-moz-transform: rotate(-90deg);
+-o-transform: rotate(270deg);
+writing-mode: tb-rl;
+text-align:center;
+font-weight: bold;
+text-decoration: none;
+}
+
+.vertical-label-right:hover {
+background-image:url("../images/nav.png");    
+background-position:0 -42px;
+height:32px;
+width:117px;       
+right:-42px;      
+-webkit-transform: rotate(-90deg);
+-moz-transform: rotate(-90deg);
+-o-transform: rotate(270deg);
+writing-mode: tb-rl;
+text-align:center;
+font-weight: bold;
+text-decoration: none;
+}
+
+#mapPage .vertical-label-right a {
+color: #ffffff;
+text-decoration: none;
+}
+
+#mapPage .vertical-label-right a:visited {
+text-align:center;
+color: #ffffff;
+}
+
+#mapPage .visited-label-right a:hover {
+color: #111111;
+}
+
+#mapPage .visited-label-right a:active {
+color: #111111;
+}
+
+.accordion_title {
+border:0px solid #ffffff;
+}
+
+#header {
+background-color:#ECE9B7;    
+width:100%;
+height:80px;      
+z-index:2000;       
+}
