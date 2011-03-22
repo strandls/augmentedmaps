@@ -1,0 +1,226 @@
+/* 
+ * CSS Changes for Checklists
+ */
+.field-field-rawchecklist, #edit-field-processedchecklist-0-value-wrapper, .terms-inline h4, .group-checklist .collapsed, #node-form .menu-item-form, #edit-field-fromdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-todate-0-value-datepicker-popup-0-wrapper .description, #edit-field-publicationdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-updateddate-0-value-datepicker-popup-0-wrapper .description, .field-field-resources{
+	display:none
+}
+
+/* CSS changes for Time fields section */
+.group-timeperiod div {
+	width:300px;
+	clear:none
+}
+
+#edit-field-todate-0-value-wrapper, #edit-field-updateddate-0-value-wrapper {
+	margin-left: 400px; 
+	margin-top: -65px;
+}
+
+#edit-field-todate-0-value-wrapper Label, #edit-field-updateddate-0-value-wrapper Label {
+	width: 200px;
+}
+
+.node-form #edit-field-biogeography-value, .node-form #edit-field-taxa-value  {
+	height: 100px;
+}
+
+/* Reduce the width of tags field and allow other fields to be able to lay adjacent to it */
+#edit-taxonomy-tags-5-wrapper    {
+	width: 650px;
+	clear:none;
+}
+
+/* Code to move number of species, adjacent to Tags */
+#edit-field-numentities-0-value-wrapper  {
+	clear:none;
+	max-width: 300px; 
+	margin-left: 670px;
+	margin-top: -66px;
+}
+#edit-field-resources-value-wrapper     {
+	width: 500px;
+	margin-left:550px;
+	margin-top:-140px
+}
+
+/* To fix issue with IE */
+.group-credit, .group-location     {
+	margin-top:20px;
+}
+
+.group-location div  {
+	max-width: 390px;
+}
+
+#edit-field-place-0-value-wrapper, #edit-field-allindia-value-wrapper { 
+	margin-left:400px;
+}	
+
+#edit-field-biogeography-value-wrapper .div {
+	width:800px;
+}
+
+#edit-field-biogeography-value-wrapper {
+	margin-left: 700px;
+       	margin-top: -120px;
+}
+	
+#field-states-items {
+	margin-top: -150px;
+}
+#field-districts-items {
+	margin-top: 40px;
+}
+#field-taluks-items  {
+	margin-left: 400px; 
+	margin-top: -120px; 
+	margin-bottom: 40px;
+}
+
+.ui-datepicker-next, .ui-datepicker-prev {
+	display:none;
+}
+
+/* CSS changes for Browse Checklists, views in general */
+.views-table {
+	min-width:950px
+}
+.views-table th {
+    font-size: 9pt;
+    font-weight: bold;
+}
+thead th, tbody th {
+    background: none repeat scroll 0 0 #ECE9B7;
+}
+thead th {
+    border: 0 none;
+    border-bottom: 3px solid #CCCCCC;
+    font-weight: bold;
+    padding: 2px 6px;
+    padding-right: 1em;
+    text-align: left;
+}
+thead {
+    color: black;
+    text-shadow: none;
+}
+.views-table td {
+    background-color: #FFFFFF;
+    border-style: solid;
+    border-width: 0.5px;
+    font-size: 8pt;
+    overflow: hidden;
+    border-color: #ECE9B7;
+}
+.view-content {
+    margin-top: 20px;
+}
+
+.grippie  {
+	display:none;
+}
+
+.field-field-cclicense {
+  width: 300px; 
+  margin-left: 600px;
+}
+
+/* Handle the Classes printed by Checklist contemplate */
+.general {
+  width: 600px; 
+  margin-top: -85px;
+  }
+
+.general table {
+  min-width: 400px;
+}
+
+.singlecolumn {
+  min-width : 160px;
+}
+
+.twocolumns  {
+  min-width : 400px;
+}
+
+.threecolumns {
+  min-width : 600px;
+}
+
+.fourcolumns  {
+  min-width : 700px;
+}
+
+.fivecolumns  {
+  min-width : 800px;
+} 
+
+.views-widget .form-autocomplete {
+    width: 250px;
+}
+
+.edit-term, .edit-field-numentities-value  {
+	clear: left;
+}
+
+.edit-term, .edit-taxa, .edit-field-numentities-value  {
+  margin-top:20px;
+}
+.edit-field-numentities-value {
+  margin-bottom:20px
+}
+#edit-submit-browse-checklists, #edit-reset {
+  margin-top:35px;
+}
+.views-exposed-widgets {
+	background-color:  #ECE9B7;
+}
+
+/** Colors for Tag cloud */
+/* Tagadelic default example stylesheet **/
+
+.wrapper.tagadelic {
+  text-align : justify;
+  margin-right: 1em;
+}
+
+.tagadelic.level1 {
+  font-size : 1em;
+  color: black;
+}
+.tagadelic.level2 {
+  font-size : 1.4em;
+  color: pink;
+}
+.tagadelic.level3 {
+  font-size : 1.8em;
+  color: silver;
+}
+.tagadelic.level4 {
+  font-size : 2.2em;
+  color:orange;
+}
+.tagadelic.level5 {
+  font-size : 2.6em;
+  color: blue;
+}
+.tagadelic.level6 {
+  font-size : 3em;
+  color: green;
+}
+.tagadelic.level7 {
+  font-size : 2.2em;
+}
+.tagadelic.level8 {
+  font-size : 2.4em;
+}
+.tagadelic.level9 {
+  font-size : 2.6em;
+}
+.tagadelic.level10 {
+  font-size : 2.8em;
+}
+
+.tagadelic {
+       color:blue;
+
