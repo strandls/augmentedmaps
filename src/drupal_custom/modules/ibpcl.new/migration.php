@@ -1,9 +1,15 @@
 <?php
- $sql = "Select nid from {node} where type = 'ibpcl'";
+ /* All the preexisting node ids are between 0 and 650
+ * Migration script is ran 4 times
+ * for nodes less than nid 350, nid between 350-450, nid between 450-550, nid between 550-650
+ */ 
+ $sql = "Select id from {ibp_checklist} where id >= 0 and id < 350 ORDER by id DESC";
  $result = db_query($sql);
 while($row = db_fetch_object($result))  {
-    $row = db_fetch_object($result);
-    $nid = $row->nid;
+    //$row = db_fetch_object($result);
+    $nid = $row->id;
+    print 'NID '.$nid.' NID'."<br/>";
+    try {
     $node = node_load($nid);
     
 /*
@@ -55,12 +61,12 @@ while($row = db_fetch_object($result))  {
   $tags = '';
   //Auto populate Taxonomy terms 
   $tags .= tagPlaceName($newNode->field_place[0]['value']);
-  $tags .= getTags($newNode->field_taxa, getTaxaCommonNames());
   $tags .= getTags($newNode->field_states, getStatesMap());
   $tags .= getTags($newNode->field_districts, getDistrictsMap());
   $tags .= getTags($newNode->field_taluks, getTahsilsMap());
 
-  $newNode->taxonomy = array('tags' => array(5 => $tags));
+  $tags_taxa .= getTags($newNode->field_taxa, getTaxaCommonNames());
+  $newNode->taxonomy = array('tags' => array(5 => $tags, 6 => $tags_taxa));
 
     //Handle dates
   if(isset($node->from_date) && !empty($node->from_date))
@@ -78,7 +84,11 @@ while($row = db_fetch_object($result))  {
     $node = null;
     $newNode = null;
 
-      print 'node created';
+    print 'node created';
+   }
+catch (Exception $e) {
+    var_dump($e->getMessage());
+   }
 }
 
 ?>
