@@ -3682,10 +3682,6 @@ function showMeasurementTool(){
   strMeasurement += '<div>';
   strMeasurement += '<ul id="controlToggle" style="list-style:none;">';
   strMeasurement += '<li>';
-  strMeasurement += '<input type="radio" name="type" value="none" id="noneToggle" onclick="toggleControl(this);activateNavigationControl();" />';
-  strMeasurement += '<label for="noneToggle">&nbsp; None</label>';
-  strMeasurement += '</li>';
-  strMeasurement += '<li>';
   strMeasurement += '<input type="radio" name="type" value="line" id="lineToggle" onclick="toggleControl(this);" checked="checked"/>';
   strMeasurement += '<label for="lineToggle">&nbsp; Distance</label>';
   strMeasurement += '</li>';
@@ -3802,9 +3798,10 @@ str += "</tr>";
 }
 
 function closeMeasurementTool(){
-	jQuery("#measurement").css("display","none");
+	//jQuery("#measurement").css("display","none");
 	 for(key in measureControls) {
        var control = measureControls[key];
+
 	   control.deactivate();
 
      }
