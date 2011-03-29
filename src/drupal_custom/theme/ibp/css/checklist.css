@@ -31,6 +31,9 @@
 }
 
 /* Code to move number of species, adjacent to Tags */
+.views-field-field-numentities-value  {
+min-width:110px;
+}
 #edit-field-numentities-0-value-wrapper  {
 	clear:none;
 	max-width: 300px; 
@@ -51,7 +54,9 @@
 .group-location div  {
 	max-width: 390px;
 }
-
+.location {
+margin-top:10px;
+}
 #edit-field-place-0-value-wrapper, #edit-field-allindia-value-wrapper { 
 	margin-left:400px;
 }	
@@ -85,7 +90,7 @@
 .views-table {
 }
 .views-table th {
-    font-size: 9pt;
+    font-size: 10pt;
     font-weight: bold;
 }
 thead th, tbody th {
@@ -110,7 +115,7 @@ thead {
     background-color: #FFFFFF;
     border-style: solid;
     border-width: 0.5px;
-    font-size: 8pt;
+    font-size: 10pt;
     overflow: hidden;
     border-color: #ECE9B7;
 }
@@ -124,17 +129,15 @@ thead {
 
 .field-field-cclicense {
   width: 300px; 
-  margin-left: 500px;
 }
 
 /* Handle the Classes printed by Checklist contemplate */
 .general {
-  width: 600px; 
-  margin-top: -85px;
+  width: 100%; 
   }
 
 .general table {
-  min-width: 400px;
+  width: 100%;
 }
 
 .singlecolumn {
@@ -157,16 +160,8 @@ thead {
   min-width : 800px;
 } 
 
-.location {
-  max-width: 700px;
-}
-
 .printpdf {
-  margin-left: 700px;
-}
-
-.printpdf img {
-  margin-top:-100px;
+  margin:5px;
 }
 
 .views-widget .form-autocomplete {
@@ -183,12 +178,20 @@ thead {
 .edit-field-numentities-value {
   margin-bottom:20px
 }
+#ibp_credits {
+  margin-top:5px;
+}
 #edit-submit-browse-checklists, #edit-reset {
   margin-top:35px;
 }
 .views-exposed-widgets {
 }
-
+/*
+#ibp_credits {
+ border:1px solid #DDDDDD; 
+ margin-top: 5px;
+}
+*/
 /** Colors for Tag cloud */
 /* Tagadelic default example stylesheet **/
 
@@ -198,42 +201,39 @@ thead {
 }
 
 .tagadelic.level1 {
-  font-size : 1em;
-  color: black;
+/*  font-size : 1em; */
+  color: #C7C7FF;
 }
 .tagadelic.level2 {
-  font-size : 1.4em;
-  color: pink;
+/*  font-size : 1.4em; */
+  color: #ADADFF;
 }
 .tagadelic.level3 {
-  font-size : 1.8em;
-  color: silver;
+  /* font-size : 1.8em; */
+  color: #9494FF;
 }
 .tagadelic.level4 {
-  font-size : 2.2em;
-  color:orange;
+/*   font-size : 2.2em; */
+  color: #7A7AFF;
 }
 .tagadelic.level5 {
-  font-size : 2.6em;
-  color: blue;
+  /* font-size : 2.6em; */
+  color: #6161FF;
 }
 .tagadelic.level6 {
-  font-size : 3em;
-  color: green;
+/*   font-size : 3em; */
+  color: #4747FF;
 }
 .tagadelic.level7 {
-  font-size : 2.2em;
+  /* font-size : 2.2em; */
 }
 .tagadelic.level8 {
-  font-size : 2.4em;
+/*  font-size : 2.4em; */
 }
 .tagadelic.level9 {
-  font-size : 2.6em;
+  /* font-size : 2.6em; */
 }
 .tagadelic.level10 {
-  font-size : 2.8em;
+/*   font-size : 2.8em; */
 }
-
-.tagadelic {
-       color:blue;
 
