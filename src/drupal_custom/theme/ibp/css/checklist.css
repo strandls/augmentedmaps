@@ -1,7 +1,7 @@
 /* 
  * CSS Changes for Checklists
  */
-.field-field-rawchecklist, #edit-field-processedchecklist-0-value-wrapper, .terms-inline h4, .group-checklist .collapsed, #node-form .menu-item-form, #edit-field-fromdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-todate-0-value-datepicker-popup-0-wrapper .description, #edit-field-publicationdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-updateddate-0-value-datepicker-popup-0-wrapper .description, .field-field-resources{
+.field-field-rawchecklist, #edit-field-processedchecklist-0-value-wrapper, .terms-inline h4, .group-checklist .collapsed, #node-form .menu-item-form, #edit-field-fromdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-todate-0-value-datepicker-popup-0-wrapper .description, #edit-field-publicationdate-0-value-datepicker-popup-0-wrapper .description, #edit-field-updateddate-0-value-datepicker-popup-0-wrapper .description, .field-field-resources,.group-credit .collapsed{
 	display:none
 }
 

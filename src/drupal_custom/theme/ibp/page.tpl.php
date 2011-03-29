@@ -4,8 +4,8 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php print $language->language ?>" lang="<?php print $language->language ?>" dir="<?php print $language->dir ?>">
 	<head>
-		<title><?php print $head_title ?></title>
 		<?php print $head ?>
+		<title><?php print $head_title ?></title>
 		<?php print $styles ?>
 		<?php print $scripts ?>
 	</head>
@@ -84,7 +84,7 @@
 						</div>
 						
 						<?php if ($tabs): print '<div id="tabs-wrapper" class="clear-block">'; endif; ?>
-						<?php if ($title): print '<h2'. ($tabs ? ' class="with-tabs"' : '') .'>'. $title .'</h2>'; endif; ?>
+						<?php if ($title): print '<h2'. ($tabs ? ' class="with-tabs"' : '') .'>'. $node->title .'</h2>'; endif; ?>
 						<?php if ($tabs): print '<ul class="tabs primary">'. $tabs .'</ul></div>'; endif; ?>
 						<?php if ($tabs2): print '<ul class="tabs secondary">'. $tabs2 .'</ul>'; endif; ?>
 						<?php if ($show_messages && $messages): print $messages; endif; ?>
@@ -94,9 +94,6 @@
 						
 						<?php print $content;?>
 						
-						<div class="return">
-							<a href="<?php print check_url($front_page);?>map">&larr; Back to map</a>
-						</div>
 					</div>
 				</div>
 				<!-- Content ends -->
