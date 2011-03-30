@@ -1,5 +1,5 @@
 body {
-	background-color: #ffffff;
+	background-color: #ECE9B7;
 	margin: 0;
 	font-family: Verdana, Helvetica, Sans-Serif;
 	font-size: 10pt;
@@ -139,9 +139,9 @@ body#home #pageFooter {
 }
 
 #pageFooter {
-	background-color:  #777777;
+	background-color:  #ECE9B7;
 	text-align: center;
-	border-top: 1px solid #237237;
+	border-top: 1px solid #A5833E;
 	padding: 10px;
 }
 
@@ -150,11 +150,11 @@ body#home #pageFooter {
 }
 
 #main {
-	background-color: #fff;
+	background-color: transparent;
 	position: absolute;
 	top: 40px;
 	left: 260px;
-	border: 1px solid #237237;
+	border: 1px solid #A5833E;
 	z-index: 1;
 }
 
@@ -224,16 +224,11 @@ body#home #pageFooter {
 
 #searchPane {
 	margin: 5px;
-	background-color: #ACA087;
 	padding: 5px;
-	background-color: #ACA087;
-	background-image: url(../images/gray-brown-gradient.jpg);
-	background-repeat: repeat-x;
-	background-position: top;
 }
 
 #mapSearch {
-	border: 1px solid #237237;
+	border: 1px solid #A5833E;
 }
 
 #content {
@@ -241,7 +236,8 @@ body#home #pageFooter {
 }
 
 #contentDiv {
-	margin: 10px;
+	padding: 10px;
+	background-color: #ffffff;
 }
 
 #contentDiv h2 {
@@ -258,7 +254,6 @@ body#home #pageFooter {
 	background-color: #fff;
 	padding: 5px;
 	clear: both;
-	overflow: auto;
 }
 
 #dataOnDemand {
@@ -1431,3 +1426,4 @@ img.ui-datepicker-trigger {
 		font-size:10px;
 		background-color:#ffffff;
 	}
+

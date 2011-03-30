@@ -26,7 +26,8 @@ scripts[] = scripts/jquery-linkize.js
 ;stylesheets[all][] = css/dialog.css
 ;stylesheets[all][] = css/popup.css
 ;stylesheets[all][] = css/layerinfo.css
-;stylesheets[print][] = css/print.css
+stylesheets[all][] = css/checklist.css
+stylesheets[all][] = css/ibp.css
 
 ; Custom regions
 regions[home_left] = Home Left
