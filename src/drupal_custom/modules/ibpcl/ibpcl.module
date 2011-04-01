@@ -7,6 +7,518 @@ drupal_add_js(drupal_get_path('module', 'ibpcl') .'/scripts/jquery.dataTables.js
 drupal_add_js(drupal_get_path('module', 'ibpcl') .'/scripts/ibpcl.js');
 
 /**
+ * implementing hook_user
+ * This is a temporary implementation to disallow users to login to the staging
+ */
+function ibpcl_user($op, &$edit, &$account, $category = NULL) {
+   switch($op) {
+      //Only allow the dev team to login
+      case 'login':
+           global $user;
+           $roles = $user->roles;
+           if(array_key_exists(841, $user->roles))
+                 $_REQUEST['destination'] = 'user';
+           else
+                 $_REQUEST['destination'] = 'logout';
+           break;
+      default:
+           //$_REQUEST['destination'] = 'logout';
+           break;
+     }    
+}
+
+/**
+ * Function for formatting the output of CCK fields
+ * taxa, states, districts, taluks
+ * Can be called directly from Contemplate, views related to Checklists
+ */
+function format_output($field_data)  {
+  $output = '';
+  $count = count((array)$field_data);
+  $index = 0;
+
+  foreach ((array)$field_data as $item) { 
+    $pos = strpos($item['view'], ' (');
+    if($pos == false)
+       $output .= ucwords(strtolower($item['view']));
+    else
+       $output .= substr($item['view'], 0, $pos);
+    $index += 1;
+    if($index != $count)
+      $output .= ', '; 
+  }
+  return $output;   
+}
+
+/**
+ * Returns a map of id vs name of the States
+ * Right now these are picked up from the india states layer 
+ */
+function getStatesMap()  {
+  static $states;
+  
+  if(!isset($states))  {
+    //Get the id, state from the India states layer table
+    $sql = "select __mlocate__id, state from {lyr_116_india_states} order by state asc";
+    $result = db_query($sql);
+
+    $states = array();
+    //iterate over each row and populate the states Map
+    while($row = db_fetch_object($result)) {
+      $states[$row->__mlocate__id] = $row->state;
+    }
+  }  
+
+  return $states;
+}
+
+/**
+ * Returns a map of id vs name of the Districts
+ * Right now these are picked up from the india districts layer 
+ */
+function getDistrictsMap()  {
+  static $districts;
+
+  if(!isset($districts))  {
+    //Get the id, district from the districts layer table
+    $sql = "select __mlocate__id, district from {lyr_105_india_districts} order by district asc";
+    $result = db_query($sql);
+
+    $districts = array();
+    //iterate over each row and populate the districts Map
+    while($row = db_fetch_object($result)) {
+      $districts[$row->__mlocate__id] = $row->district;
+    }
+  }
+  return $districts;
+}
+
+/**
+ * Returns a map of id vs name of the Tahsils
+ * Right now these are picked up from the Tahsils layer 
+ */
+function getTahsilsMap()  {
+  static $tahsils;
+  
+  if(!isset($tahsils))  {
+    //Get the id, state from the Tahsils layer table
+    $sql = "select __mlocate__id, tahsil from {lyr_115_india_tahsils} order by tahsil asc";
+    $result = db_query($sql);
+
+    $tahsils = array();
+    //iterate over each row and populate the states Map
+    while($row = db_fetch_object($result)) {
+      $tahsils[$row->__mlocate__id] = $row->tahsil;
+    }
+  }
+
+  return $tahsils;
+}
+
+
+/**
+ * Given a raw checklist, return the number of entities present inside it
+ */
+function getNumEntities($raw_checklist)  {
+  $count = isset($raw_checklist)?count(explode("\n", $raw_checklist))-2:-1;
+  return $count;
+}
+
+/**
+* Helper function to get the biogeographic regions
+**/
+function _get_biogeographic_regions(){
+  $regions = array();
+
+  $sql = 'select __mlocate__id, biogeoprov from {lyr_156_india_biogeographic}';
+  $result = db_query($sql);
+  while($row = db_fetch_array($result)) {
+    $regions[$row['__mlocate__id']] = $row['biogeoprov'];
+  }
+
+  return $regions;
+}
+
+/**
+* Helper function to get the CC Licenses
+**/
+function _get_cc_types(){
+  $sql = 'select * from {ibp_cc_types}';
+  $result = db_query($sql);
+  $cc_types = array();
+  while($row = db_fetch_object($result)) {
+    $cc_types[$row->id] = $row->name;
+  }
+  return $cc_types;
+}
+
+/**
+* Helper function to get the resource tables
+**/
+function _get_resource_tables(){
+  $sql = 'select * from {ibp_resource_tables}';
+  $tables = array();
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+    $tables[$row->id] = $row->name;
+  }
+  return $tables;
+}
+
+/**
+* Function to retrieve names to display in the Taxa drop down
+**/
+function _ibpcl_get_taxa_names() {
+  // Store a key value pair of scientific name vs human readable name
+  $taxa = array();
+
+  $sql = 'select id, name, common_name from ibpcl_taxa ORDER by common_name ASC';
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+    $taxa[$row->id] = $row->common_name . ' ('.$row->name.')';
+  }
+  return $taxa;
+}
+
+/*
+ * Function to retrieve the human readable names from the taxa table
+ */
+function getTaxaCommonNames()  {
+  // Store a key value pair of scientific name vs human readable name
+  static $taxa;
+
+  /* Read taxa, if its not already set */
+  if(!isset($taxa))		{ 
+    $taxa = array();
+    
+    $sql = 'select id, common_name from ibpcl_taxa';
+    $result = db_query($sql);
+    while($row = db_fetch_object($result)) {
+       $taxa[$row->id] = $row->common_name;
+    }
+  }
+
+  return $taxa;
+}
+
+
+/**
+ * Implementation of hook_form_alter
+ */
+function ibpcl_form_alter(&$form, $form_state, $form_id) {
+ if($form["#node"]->type == "checklist") {
+   //Add handlers for validation, submit of form
+   $form['#validate'][] = 'checklist_validate';
+   $form['#submit'][] = 'checklist_submit';
+ }
+}
+
+/**
+ * hook views_exposed_form_alter
+ * Unset the extra fields
+ */
+/*
+function ibpcl_form_views_exposed_form_alter(&$form, $form_state) {
+   if($form_state['view']->name == "checklists")		{
+        print_r($form['#info']);
+	unset($form['#info']['filter-field_districts_value']);
+	unset($form['#info']['filter-field_states_value']);
+	unset($form['#info']['filter-field_taluks_value']);
+        print $form['submit']['#value'];
+   }
+ 
+}
+*/
+
+/*
+ * Handler for Validation
+ * Any rules for validating the checklist can come in here 
+ */
+function checklist_validate($form, &$form_state) {
+  print "Checklist validation";
+}
+
+//Submit handler for Checklist
+function checklist_submit($form, &$form_state) {
+
+  //print_r($form_state['values']);
+  //print_r($form);
+  //get the raw checklist
+  $raw_checklist = $form_state['values']['field_rawchecklist'][0]['value'];
+
+  //create a processed checklist, when user submits the form
+  $form_state['values']['field_processedchecklist'][0] = array(
+	'format' => 2,
+	'value' => content_display_checklist(get_processed_checklist($raw_checklist)),
+  );
+
+  //compute the number of Species during submission of Checklist
+  $form_state['values']['field_numentities'][0] = array(
+        'value' => getNumEntities($raw_checklist),
+  );
+
+
+ /**
+  * Add new Taxonomy terms during submission of Checklist
+  * Pick the taxonomy terms from taxa, state, district, taluk
+  * Biogeographic region also needs to be picked up and added as a tag
+  * This part of the code makes sense only if we have a Vocabulary linked with Checklist
+  * and we are expecting some tags to be picked up automatically and shown in the tag cloud
+  */ 
+  //Start collecting tags
+  $tags = '';
+  
+  if(isset($form_state['values']['field_place'][0]['value']))
+       $tags .= tagPlaceName($form_state['values']['field_place'][0]['value']);
+  //Add tags, picking up Taxa, States, Districts, biogeography
+  //Tags corresponding to Taxa needs to be stored seperately
+  $tags_taxa = getTags($form_state['values']['field_taxa'], getTaxaCommonNames());
+
+  $tags .= getTags($form_state['values']['field_states'], getStatesMap());
+  $tags .= getTags($form_state['values']['field_districts'], getDistrictsMap());
+  $tags .= getTags($form_state['values']['field_taluks'], getTahsilsMap());
+
+  $terms = $form_state['values']['taxonomy'];
+  $vid = 5;
+   
+  //If empty, handle it
+  if(!isset($terms['tags']) || !isset($terms['tags'][$vid]))
+     $terms = array("tags" => $vid);
+
+  //print_r($form_state['values']['field_place'][0]['value']);
+  //No choice than hard coding the vocabulary id?
+  $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$tags,  6 => $tags_taxa)); 
+}
+
+/**
+ * Tags to add for Place Names
+ * No need of adding complete Place name as a Tag
+ * If place name contains 'Wild life Sanctuary' or 'National Park', then add these tags
+ */ 
+function tagPlaceName($place_name)  {
+   $tag = '';
+   $pos = stripos($place_name, 'Wildlife Sanctuary');
+   if($pos != false)
+	$tag .= 'Wildlife Sanctuary' . ',' ;
+   
+   $pos = stripos($place_name, 'National Park');
+   if($pos != false)
+	$tag .= 'National Park' . ',';
+
+   return $tag;
+}
+
+/**
+ * Go over $array1, fetch values from it and considering it as key in $array2,
+ * return values from $array2
+ */
+function getTags($dropdown, $values)   {
+   $resultString = '';
+   foreach ($dropdown as $key => $value)
+     if(isset($value['value']) && isset($values[$value['value']]))
+        $resultString .= ucwords(strtolower($values[$value['value']])) . ',';
+   return $resultString;
+}
+
+//Node id is required during creation of csv file, so do this post save
+function ibpcl_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL)     {
+  switch($op) {
+     case 'insert':
+     case 'update':
+        //print_r($node);
+ 	createCsvFile($node);
+        break;      
+  }
+}
+
+/**
+* Helper function to insert a checklist
+**/
+function get_processed_checklist($raw_checklist){
+  $csv = new parseCSV();
+  $csv->auto($raw_checklist);
+  $has_scientific_name = FALSE;
+  foreach($csv->titles as $sl=>$values) {
+    if($values == 'scientific_name') {
+      $has_scientific_name = TRUE;
+    }
+  }
+
+  // We parse only if there is a scientific name
+  $new_csv = array();
+  $new_csv[] = $csv->titles;
+  if($has_scientific_name) {
+    foreach($csv->data as $key=>$row) {
+      $values = array();
+      foreach($row as $k=>$value) {
+        if($k == 'scientific_name') {
+          $found = FALSE;
+
+          // Birds
+          if(! $found) {
+            
+            $sql = 'select ibp_id from birdspecies_list where lower(ibp_scientific_name) = lower(\'%s\') or lower(itis_scientific_name) = lower(\'%s\') or lower(iucn_2010_scientific_name) = lower(\'%s\') or lower(wikipedia_nov2010_scientific_name) = lower(\'%s\') or lower(sibley_monroe_1996_scientific_name) = lower(\'%s\') or lower(howardandmoore_3rded_scientific_name) = lower(\'%s\') or lower(clements_5thed_2005_scientific_name) = lower(\'%s\') or lower(clements_6thed_2009_scientific_name) = lower(\'%s\') or lower(ioc_2009_scientific_name) = lower(\'%s\') or lower(ebird_2010_scientific_name) = lower(\'%s\') or lower(obc_2001_scientific_name) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/birdspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+          // Butterflies
+          if(! $found) {
+            $sql = 'select ibp_id from butterflyspecies_list where lower(wikipedia_scientific_name) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/butterflyspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Fish
+          if(! $found) {
+            $sql = 'select ibp_id from fishspecies_list where lower(species) = lower(\'%s\')';
+            $data_array = array(
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/fishspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Plants
+          if(! $found) {
+            $sql = 'select ibp_id from plantspecies_list where lower(gbif_species) = lower(\'%s\') or lower(iucn_spcscientificname) = lower(\'%s\') ';
+            $data_array = array(
+              $value,
+              $value,
+            );
+            $result = db_query($sql, $data_array);
+            while($row = db_fetch_object($result)) {
+              $found = TRUE;
+              $value = '<em><a href="'.base_path().'species/plantspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
+            }
+          }
+
+          // Still not found? We'll italicize anyway
+          if(! $found) {
+            $value = '<em>'.$value.'</em>';
+          }
+            
+        }
+        $values[] = $value;
+      }
+      $new_csv[] = $values;
+    }
+
+  }
+
+  $processed_checklist = '';
+  $new_output = new parseCSV();
+  if($has_scientific_name) {
+    $processed_checklist = $new_output->output(null,$new_csv,FALSE);
+  }
+  else {
+    $processed_checklist = $raw_checklist;
+  }
+//  print "<script>alert('test');</script>";
+
+  return $processed_checklist;
+}
+
+/**
+ * Helper function to display a raw checklist
+ * If its available, one can pass the processed_checklist directly to this function
+ **/
+function content_display_checklist($processed_checklist = 0) {
+  $csv = new parseCSV();
+  $csv->auto($processed_checklist);
+
+  $content = '<table border="0" cellspacing="1" cellpadding="3" id="checklistTable">';
+  $content .=   '<tr>';
+  foreach ($csv->titles as $value) {
+    $content .= '       <th>' .$value . '</th>';
+        }
+  $content.= '</tr>';
+        foreach ($csv->data as $key => $row) {
+    $content .= '<tr>';
+    foreach ($row as $sl=>$value) {
+      $content .= '<td>'.$value.'</td>';
+    }
+    $content .= '</tr>';
+  }
+  $content .= '</table>';
+  return $content;
+}
+
+/**
+ * Right now we save CSV files on the server, just to be able to provide options to download as CSV, PDF 
+ * Need to check if we can remove creation of csv files on the server,
+ */
+function createCsvFile($node)  {
+  //query for the raw checklist value
+  $rawchecklist = db_result(db_query("select field_rawchecklist_value from {content_type_checklist} where nid = %d",$node->nid));  
+
+  // Check if there is a CSV file, if not, we'll create one
+  if(! file_scan_directory(file_directory_path().'/checklists/csv','checklist_'.$node->nid.'.csv')) {
+    $csv = new parseCSV();
+    $csv->auto($rawchecklist);
+    $csv->save(file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv');
+  }
+  else
+  {
+    unlink(file_directory_path().'/checklists/csv','checklist_'.$node->nid.'.csv');
+    $csv = new parseCSV();
+    $csv->auto($rawchecklist);
+    $csv->save(file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv');
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
 * Implementation of hook_node_info()
 **/
 function ibpcl_node_info() {
@@ -20,14 +532,6 @@ function ibpcl_node_info() {
 }
 
 /**
- * Given a raw checklist, return the number of entities present inside it
- */
-function getNumEntities($raw_checklist)  {
-  $count = isset($raw_checklist)?count(explode("\n", $raw_checklist))-2:-1;
-  return $count;
-}
-
-/**
 * Implementation for hook_form()
 **/
 function ibpcl_form(&$node, $form_state) {
@@ -36,7 +540,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => check_plain($type->title_label),
-    '#description' => 'The name of this checklist',
+    '#description' => 'Example - \'The checklist of birds of Nagpur\'. Include the name of species you are listing and the location in the title',
     '#required' => TRUE,
     '#default_value' => $node->title,
   );
@@ -44,7 +548,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['taxa'] = array(
     '#type' => 'select',
     '#title' => t('Taxa'),
-    '#description' => 'The Taxa in this checklist',
+    '#description' => 'Choose the taxa group from the dropdown',
     '#required' => TRUE,
     '#options' => $taxa_names,
     '#default_value' => isset($node->taxa) ? $node->taxa:'',
@@ -53,7 +557,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['tables'] = array(
     '#type' => 'select',
     '#title' => 'Resource Tables',
-    '#description' => 'The Resource tables to use for this checklist',
+    '#description' => 'Select one of the taxa group if any your checklist taxa falls in these groups',
     '#required' => FALSE,
     '#multiple' => TRUE,
     '#size' => 5,
@@ -63,14 +567,14 @@ function ibpcl_form(&$node, $form_state) {
 
   $form['geography'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Geography',
+    '#title' => 'Location',
     '#collapsible' => TRUE,
   );
 
   $form['geography']['place_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Place Name',
-    '#description' => 'Ex: Dandeli Wild Life Sanctuary, or Bangalore North',
+    '#description' => 'The name of the location/region ',
     '#required' => TRUE,
     '#default_value' => isset($node->place_name) ? $node->place_name:'',
   );
@@ -87,7 +591,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['geography']['biogeography'] = array(
     '#type' => 'select',
     '#title' => 'Biogeographic Region',
-    '#description' => 'The type of region this checklist describes',
+    '#description' => 'Choose a bio-geographic region in which your location falls in (more than one can be chosen using CTRL) ',
     '#required' => FALSE,
     '#multiple' => TRUE,
     '#size' => 5,
@@ -98,7 +602,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['geography']['states'] = array(
     '#type' => 'textfield',
     '#title' => t('State(s)'),
-    '#description' => 'The states / UTs that this list describes. Separate multiple states with commas (\',\')',
+    '#description' => 'The name of the State your location falls into (more than one state can be entered using a \'comma\' in between them)',
     '#autocomplete_path' => 'ibpcl/autocomplete/states',
     '#required' => FALSE,
     '#default_value' => isset($node->states) ? $node->states : '',
@@ -107,7 +611,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['geography']['districts'] = array(
     '#type' => 'textfield',
     '#title' => t('District(s)'),
-    '#description' => 'The districts that this list describes. Separate multiple districts with commas (\',\')',
+    '#description' => 'The name of the District your location falls into (more than one district can be entered using a \'comma\' in between them)',
     '#autocomplete_path' => 'ibpcl/autocomplete/districts',
     '#required' => FALSE,
     '#default_value' => isset($node->districts) ? $node->districts : '',
@@ -116,7 +620,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['geography']['taluks'] = array(
     '#type' => 'textfield',
     '#title' => t('Taluk(s)'),
-    '#description' => 'The taluks that this list describes. Separate multiple taluks with commas (\',\')',
+    '#description' => 'The name of the Taluk your location falls into (more than one taluk can be entered using a \'comma\' in between them)',
     '#autocomplete_path' => 'ibpcl/autocomplete/taluks',
     '#required' => FALSE,
     '#default_value' => isset($node->taluks) ? $node->taluks : '',
@@ -131,7 +635,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['temporal']['from_date'] = array(
     '#type' => 'textfield',
     '#title' => t('From Date'),
-    '#description' => 'The date from which data has been collected. Format: YYYY-MM-DD',
+    '#description' => 'The start of the time period of checklist survey',
     '#required' => FALSE,
     '#default_value' => isset($node->from_date) ? $node->from_date : '',
   );
@@ -139,7 +643,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['temporal']['to_date'] = array(
     '#type' => 'textfield',
     '#title' => t('To Date'),
-    '#description' => 'The date until which data has been collected. Format: YYYY-MM-DD',
+    '#description' => 'The end of the time period of checklist survey',
     '#required' => FALSE,
     '#default_value' => isset($node->to_date) ? $node->to_date : '',
   );
@@ -147,7 +651,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['temporal']['publication'] = array(
     '#type' => 'textfield',
     '#title' => t('Date of Publication'),
-    '#description' => 'The date on which this checklist was published. Format: YYYY-MM-DD',
+    '#description' => 'The date when this checklist was published',
     '#required' => FALSE,
     '#default_value' => isset($node->publication) ? $node->publication : '',
   );
@@ -155,7 +659,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['temporal']['last_updated'] = array(
     '#type' => 'textfield',
     '#title' => t('Date Updated'),
-    '#description' => 'The date on which this was last updated. Format: YYYY-MM-DD',
+    '#description' => 'The date when this checklist was last updated',
     '#required' => FALSE,
     '#default_value' => isset($node->last_updated) ? $node->last_updated : '',
   );
@@ -169,7 +673,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['credits']['attribution'] = array(
     '#type' => 'textarea',
     '#title' => 'Attribution',
-    '#description' => 'Attribution for this checklist',
+    '#description' => 'The name of the author/organization OR write the citation if the checklist is from a book or a paper',
     '#required' => FALSE,
     '#default_value' => isset($node->attribution) ? $node->attribution : '',
   );
@@ -177,7 +681,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['credits']['link'] = array(
     '#type' => 'textarea',
     '#title' => t('Source'),
-    '#description' => 'The link to the checklist, or to the uploaded file',
+    '#description' => 'The name of the source from which the checklist is taken or web-links to it. ',
     '#required' => FALSE,
     '#default_value' => isset($node->link) ? $node->link : '',
   );
@@ -185,7 +689,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['credits']['license'] = array(
     '#type' => 'select',
     '#title' => t('Creative Commons License'),
-    '#description' => 'The Creative Commons License, this work is licensed under',
+    '#description' => 'Choose conditions for sharing checklist. For details: CC weblink (CC logo)',
     '#required' => TRUE,
     '#options' => _get_cc_types(),
     '#default_value' => isset($node->license) ? $node->license: array(),
@@ -194,7 +698,7 @@ function ibpcl_form(&$node, $form_state) {
  $form['numchecklist'] = array(
     '#type' => 'textfield',
     '#title' => 'Number of entries in the Checklist',
-    '#description' => 'Shows the number of entries in this checklist, as identified by the system',
+    '#description' => 'Automatic (if your checklist follows the recommended format)',
     '#required' => TRUE,
     '#default_value' => getNumEntities($node->raw_checklist),
     '#value' => getNumEntities($node->raw_checklist),
@@ -210,7 +714,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['checklist']['information'] = array(
     '#type' => 'textarea',
     '#title' => t('Checklist Information'),
-    '#description' => 'Any information about this checklist',
+    '#description' => 'This box can be used to give extra information about the checklist, location, biodiversity and climate. Please include the key to symbols you may have used in the checklist',
     '#required' => FALSE,
     '#default_value' => isset($node->information) ? $node->information : '',
   );
@@ -218,7 +722,7 @@ function ibpcl_form(&$node, $form_state) {
   $form['checklist']['raw_checklist'] = array(
     '#type' => 'textarea',
     '#title' => t('Raw checklist'),
-    '#description' => 'Tab separated values for the checklist with optional columns. please use the format specified.',
+    '#description' => 'The checklist in csv format can be pasted here from a note pad. For more details on format: raw checklist format.',
     '#required' => true,
     '#rows' => 15,
     '#default_value' => isset($node->raw_checklist) ? $node->raw_checklist : '',
@@ -227,40 +731,13 @@ function ibpcl_form(&$node, $form_state) {
   $form['checklist']['references'] = array(
     '#type' => 'textarea',
     '#title' => t('References'),
-    '#description' => 'References for this checklist',
+    '#description' => 'Some reference material (books, papers or web-links) of relevance to the checklist can be listed here.',
     '#required' => FALSE,
     '#default_value' => isset($node->references) ? $node->references : '',
   );
 
   return $form;
 }
-
-
-/**
- * Add new Taxonomy terms during submission of Checklist
- * Pick the taxonomy terms from taxa, state, district, taluk
- * Biogeographic region also needs to be picked up and added as a tag
- * This part of the code makes sense only if we have a Vocabulary linked with Checklist
- * and we are expecting some tags to be picked up automatically and shown in the tag cloud
- */
-//adding submit handler
-function ibpcl_form_alter(&$form, $form_state, $form_id) {
-             if($form_id == "ibpcl_node_form")
-                  $form['#submit'][] = 'checklist_submit';
-}
-
-function checklist_submit($form, &$form_state) {
-   $terms = $form_state['values']['taxonomy'];
-   //No choice than hard coding the vocabulary id?
-   $vid = 4;
-   
-   //If empty, handle it
-   if(!isset($terms['tags']) || !isset($terms['tags'][$vid]))
-        $terms = array("tags" => $vid);
-
-   $form_state['values']['taxonomy'] = array('tags' => array($vid => $terms['tags'][$vid].','.$form_state['values']['taxa'].','.$form_state['values']['states'].','.$form_state['values']['districts'].','.$form_state['values']['taluks'])); 
-}
-
 
 /**
 * Implementation of hook_load
@@ -310,568 +787,6 @@ function ibpcl_load($node){
   return $checklist;
 }
 
-/**
-* Implementation of hook_view
-**/
-function ibpcl_view($node, $teaser = FALSE, $page = FALSE) {
-  $node = node_prepare($node, $teaser);
-  $node->content['checklist_display'] = array(
-    '#value' => theme('ibpcl_checklist_info', $node),
-  );
-  return $node;
-}
-
-/**
-* Imnplementation of hook_theme
-**/
-function ibpcl_theme() {
-  return array(
-    'ibpcl_checklist_info' => array(
-      'arguments' => array('node'),
-    ),
-  );
-}
-
-/**
-* Custom theme function
-**/
-function theme_ibpcl_checklist_info($node) {
-  $output = '<div id="ibpcl_body">';
-
-  // Attribution
-  $output .= '<div id="ibp_credits" class="ibp_part">';
-
-  if($node->attribution){
-    $output .= '<div class="label">Attribution</div>';
-    $output .= '<div class="value">'.$node->attribution.'</div>';
-  }
-  $output .= '<div class="label licenseLabel">License</div>';
-  $output .= '<div class="value">'.$node->cc_license.'</div>';
-
-
-  $output .= '</div>';
-
-
-  // Geography and Taxa
-  $output .= '<div id="ibp_taxa" class="ibp_part">';
-  $output .= '<h3>Taxa</h3>';
-  $output .= '<div class="value">'.$node->taxa.'</div>';
-  $output .= '</div>';
-  $output .= '<div id="ibp_geography" class="ibp_part">';
-  $output .= '<h3>Geography</h3>';
-  $output .= '<div class="label">Place Name</div>';
-  $output .= '<div class="value">'.check_plain($node->place_name).'</div>';
-  if($node->all_india != 'yes') {
-    if($node->states != '') {
-      $output .= '<div class="label">State(s)</div>';
-      $output .= '<div class="value">'.check_plain($node->states).'</div>';
-    }
-    if($node->districts != '') {
-      $output .= '<div class="label">District(s)</div>';
-      $output .= '<div class="value">'.$node->districts.'</div>';
-    }
-    if($node->taluks != '') {
-      $output .= '<div class="label">Taluk(s)</div>';
-      $output .= '<div class="value">'.$node->taluks.'</div>';
-    }
-    if($node->biogeography != '') {
-      $output .= '<div class="label">Biogeographic Zones</div>';
-      $output .= '<div class="value">'.$node->biogeography.'</div>';
-    }
-  }
-  else {
-    $output .= '<div class="label">Region</div>';
-    $output .= '<div class="value">All India</div>';
-  }
-  $output .= '</div>';
-
-  $output .= '<table class="checklistMetadata">';
-  // Time period
-  if(isset($node->from_date) && !empty($node->from_date)) {
-    $output .= '<tr>';
-    $output .= '<td class="key">From Date</td>';
-    $output .= '<td class="value">'.$node->from_date.'</td>';
-    $output .= '</tr>';
-  }
-  if(isset($node->to_date) && !empty($node->to_date)) {
-    $output .= '<tr>';
-    $output .= '<td class="key">To Date</td>';
-    $output .= '<td class="value">'.$node->to_date.'</td>';
-    $output .= '</tr>';
-  }
-  if(isset($node->publication_date) && !empty($node->publication_date)) {
-    $output .= '<tr>';
-    $output .= '<td class="key">Publication Date</td>';
-    $output .= '<td class="value">'.$node->publication_date .'</td>';
-    $output .= '</tr>';
-  }
-  if(isset($node->last_updated) && !empty($node->last_updated)) {
-    $output .= '<tr>';
-    $output .= '<td class="key">Date Updated</td>';
-    $output .= '<td class="value">'.$node->last_updated.'</td>';
-    $output .= '</tr>';
-  }
-  // Source and contributed by
-  if($node->contributed_by) {
-    $output .= '<tr>';
-    $output .= '<td class="key">Contributed by</td>';
-    $user = user_load($node->contributed_by);
-    $output .= '<td class="value"><a href="'.base_path().'user/'.$node->contributed_by.'">'.$user->name.'</a></td>';
-    $output .= '</tr>';
-  }
-  if($node->link){
-    $output .= '<tr>';
-    $output .= '<td class="key">Source</td>';
-    $output .= '<td class="value">'.check_markup($node->link,1).'</td>';
-    $output .= '</tr>';
-  }
-  $output .= '</table>';
-
-
-  // Checklist
-   $output .= '<div id="ibp_checklist" class="ibp_part">';
-   $output .= '<h3>Checklist</h3>';
-
-  // Info
-  $output .= '<div id="ibp_checklist_info" class="ibp_part">';
-  if($node->information) {
-    $output .= '<div>';
-    $output .= '<div class="label"><a href="#" class="toggle">+</a><a href="#" class="toggle" style="display:none">-</a> Checklist Information</div>';
-    $output .= '<div class="value" style="display:none">'.check_markup($node->information,1).'</div>';
-    $output .= '</div>';
-  }
-  $output .= '</div>';
-
-
-
-  
-  if($node->raw_checklist) {
-    $output .= '<div class="label">&nbsp;</div>';
-    $output .= '<div class="value">'.$node->checklist.'<br/><br/></div>';
-  }
-
-  $output .= '<div class="label">Download</div>';
-
-  $output .= '<a href="'.base_path().file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv">';
-  $output .= '<img src="'.base_path().drupal_get_path('module','ibpcl').'/images/csv.png" alt="CSV"/>';
-  $output .= '</a>';
-
- // $output .= '<a href="'.base_path().'printpdf/'.$node->nid.'">';
-  $output .= '<a href="'.base_path().'make_pdf/'.$node->nid.'">';
-  $output .= '<img src="'.base_path().drupal_get_path('module','ibpcl').'/images/pdf.png" alt="PDF"/>';
-  $output .= '</a>';
-
-
-  $output .= '</div>';
-
-  // References
-  $output .= '<div id="ibp_checklist_references" class="ibp_part">';
-  if($node->checklist_references) {
-    $output .= '<div>';
-    $output .= '<div class="label"><a href="#" class="toggle">+</a><a href="#" class="toggle" style="display:none">-</a> References</div>';
-    $output .= '<div class="value" style="display:none">'.check_markup($node->checklist_references,1).'</div>';
-    $output .= '</div>';
-  }
-
-  $output .= '</div>';
-
-
-  $output .= '</div>';
-
-  return $output;
-}
-
-/**
-* Helper function to get the biogeographic regions
-**/
-function _get_biogeographic_regions(){
-  $regions = array();
-
-  $sql = 'select __mlocate__id, biogeoprov from {lyr_156_india_biogeographic}';
-  $result = db_query($sql);
-  while($row = db_fetch_array($result)) {
-    $regions[$row['__mlocate__id']] = $row['biogeoprov'];
-  }
-
-  return $regions;
-}
-
-/**
-* Helper function to get the CC Licenses
-**/
-function _get_cc_types(){
-  $sql = 'select * from {ibp_cc_types}';
-  $result = db_query($sql);
-  $cc_types = array();
-  while($row = db_fetch_object($result)) {
-    $cc_types[$row->id] = $row->name;
-  }
-  return $cc_types;
-}
-
-/**
-* Implementation of hook_insert()
-**/
-function ibpcl_insert($node) {
-  if($node->type == 'ibpcl') {
-    $sql = 'insert into {ibp_checklist}(id,title, info, all_india, geography_given_name,from_date, to_date, publication_date, last_updated, attribution, raw_checklist, link, checklist_references, license, processed_checklist, contributed_by) values(%d,\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\', \'%s\', %d)';
-    global $user;
-    $data_array = array($node->nid, 
-    $node->title, 
-    $node->information, 
-    $node->all_india, 
-    $node->place_name, 
-    $node->from_date, 
-    $node->to_date, 
-    $node->publication, 
-    $node->last_updated, 
-    $node->attribution, 
-    $node->raw_checklist, 
-    $node->link, 
-    $node->references, 
-    $node->license, 
-    _ibpcl_insert_checklist($node, $node->raw_checklist),
-    $user->uid,
-    );
-    db_query($sql,$data_array);
-    // States
-    _insert_ibpcl_ids($node->nid, $node->states, 'states');
-    // Districts
-    _insert_ibpcl_ids($node->nid, $node->districts,'districts');
-    // Taluks
-    _insert_ibpcl_ids($node->nid, $node->taluks,'taluks');
-    // Taxa
-    _insert_ibpcl_ids($node->nid, $node->taxa, 'taxa');
-    // Biogeographic regions
-    _ibpcl_insert_biogeography($node->nid, $node->biogeography);
-    // Resource tables
-    _ibpcl_insert_tables($node->nid, $node->tables);
-  }
-}
-
-
-
-/**
-* Implementation of hook_update
-**/
-function ibpcl_update($node) {
-  // Update the ibp_checklists
-  $sql = 'update {ibp_checklist} set title = \'%s\', info = \'%s\', all_india = \'%s\', geography_given_name = \'%s\', from_date = \'%s\', to_date = \'%s\', publication_date = \'%s\', last_updated = \'%s\', attribution = \'%s\', raw_checklist = \'%s\', link = \'%s\', checklist_references = \'%s\', license = %d, processed_checklist = \'%s\' where id = %d';
-
-  $data = array(
-    $node->title,
-    $node->information,
-    $node->all_india,
-    $node->place_name,
-    $node->from_date,
-    $node->to_date,
-    $node->publicaton,
-    $node->last_updated,
-    $node->attribution,
-    $node->raw_checklist,
-    $node->link,
-    $node->references,
-    $node->license,
-    _ibpcl_insert_checklist($node->nid, $node->raw_checklist),
-    $node->nid,
-  );
-  db_query($sql, $data);
-
-  // Delete old values for state, district, taluk and taxa
-  $sql = 'delete from {ibp_checklist_states} where checklist_id = %d';
-  $data = array(
-    $node->nid,
-  );
-  db_query($sql, $data);
-
-  $sql = 'delete from {ibp_checklist_districts} where checklist_id = %d';
-  $data = array(
-    $node->nid,
-  );
-  db_query($sql, $data);
-
-  $sql = 'delete from {ibp_checklist_taluks} where checklist_id = %d';
-  $data = array(
-    $node->nid,
-  );
-  db_query($sql, $data);
-
-  $sql = 'delete from {checklist_taxa} where checklist_id = %d';
-  $data = array(
-    $node->nid,
-  );
-  db_query($sql, $data);
-
-  $sql = 'delete from {checklist_regions} where checklist_id = %d';
-  $data = array(
-    $node->nid,
-  );
-  db_query($sql, $data);
-  
-
-  // Insert new values for state, district, taluk and taxa
-  _insert_ibpcl_ids($node->nid, $node->states, 'states');
-  _insert_ibpcl_ids($node->nid, $node->districts , 'districts');
-  _insert_ibpcl_ids($node->nid, $node->taluks, 'taluks');
-  _insert_ibpcl_ids($node->nid, $node->taxa, 'taxa');
-
-  _ibpcl_insert_biogeography($node->nid, $node->biogeography);
-
-}
-
-/**
-* Implementation of hook_delete
-**/
-function ibpcl_delete(&$node) {
-  // Delete taluk, district, state, biogeographic regions
-  $sql = 'delete from {ibp_checklist_districts} where checklist_id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-
-  $sql = 'delete from {ibp_checklist_states} where checklist_id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-
-  $sql = 'delete from {ibp_checklist_taluks} where checklist_id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-
-  $sql = 'delete from {checklist_regions} where checklist_id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-
-  $sql = 'delete from {checklist_taxa} where checklist_id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-
-  // Delete the checklist itself
-  $sql = 'delete from {ibp_checklist} where id = %d';
-  $data_array = array(
-    $node->nid,
-  );
-  db_query($sql, $data_array);
-}
-
-/**
-* Implementation of hook_menu()
-**/
-function ibpcl_menu(){
-  $items = array();
-  // Autocomplete 
-  $items['ibpcl/autocomplete'] = array(
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('access content'),
-    'page callback' => 'ibpcl_autocomplete',
-  );
-  // Listing
-  $items['ibpcl/list'] = array(
-    'title' => 'Checklists',
-    'access arguments' => array('access content'),
-    'page callback' => 'ibpcl_listing',
-    'type' => MENU_SUGGESTED_ITEM,
-  );
-  // Clear listing
-  $items['ibpcl/list/clear'] = array(
-    'title' => 'Checklists',
-    'access arguments' => array('access content'),
-    'page callback' => 'clear_listing_form',
-    'type' => MENU_SUGGESTED_ITEM,
-  );
-
-
-  return $items;
-}
-
-/**
-* Helper function for autocomplete
-**/
-function ibpcl_autocomplete($type, $names) {
-  //We need to autocomplete only the last state name
-  $temp_array = drupal_explode_tags($names);
-  $pattern = trim(array_pop($temp_array));
-  $matches = array();
-  if($pattern != '') {
-    $prefix = count($temp_array) ? implode(', ', $temp_array) .', ' : '';
-    $sql = '';
-    switch($type) {
-      case 'states':
-        $sql = 'select state from {lyr_116_india_states} where lower(state) like lower(\'%%%s%%\') order by state asc';
-        $result = db_query($sql, $pattern);
-        while($row = db_fetch_object($result)) {
-          $n = $row->state;
-          $matches[$prefix . $n ] = $row->state;
-        }
-        break;
-      case 'districts':
-        $sql = 'select district from {lyr_105_india_districts} where lower(district) like lower(\'%%%s%%\') order by district asc';
-        $result = db_query($sql, $pattern);
-        while($row = db_fetch_object($result)) {
-          $n = $row->district;
-          $matches[$prefix . $n ] = $row->district;
-        }
-        break;
-      case 'taluks':
-        $sql = 'select tahsil from {lyr_115_india_tahsils} where lower(tahsil) like lower(\'%%%s%%\') order by tahsil asc';
-        $result = db_query($sql, $pattern);
-        while($row = db_fetch_object($result)) {
-          $n = $row->tahsil;
-          $matches[$prefix . $n ] = $row->tahsil;
-        }
-        break;
-      case 'taxa':
-        $sql = 'select name from {ibpcl_taxa} where lower(common_name) like lower(\'%%%s%%\') order by name asc';
-        $result = db_query($sql, $pattern);
-        while($row = db_fetch_object($result)) {
-          $n = $row->name;
-          $matches[$prefix . $n ] = $row->common_name;
-        }
-        break;
-      default:
-        break;
-    }
-
-  }
-  drupal_json($matches);
-}
-
-/**
-* Filter form
-**/
-function ibpcl_filter_form($form_state) {
-  $form['filters'] = array(
-    '#title' => 'Filters',
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-  );
-  $form['filters']['species_search'] = array(
-    '#title' => 'Species Search',
-    '#type' => 'textfield',
-    '#description' => 'Search for species',
-    '#default_value' => $_SESSION['filter_species'],
-  );
-  $form['filters']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Filter',
-  );
-
-  $form['filters']['clear'] = array(
-    '#value' => '<p><a href="'.base_path().'ibpcl/list/clear">Clear Filters</a></p>',
-  );
-
-  return $form;
-}
-
-/**
-* Function to clear the filter form
-**/
-function clear_listing_form() {
-  $_SESSION['filter_species'] = '';
-  drupal_goto('ibpcl/list');
-}
-
-/**
-* Helper function to get the id of a taxon, given its name
-**/
-function _get_taxa_id($name) {
-  $id = 0;
-  $sql = 'select id from ibpcl_taxa where common_name = \'%s\'';
-  $data_array = array(
-    $name,
-  );
-  $result = db_query($sql, $data_array);
-  while($row = db_fetch_object($result)) {
-    $id = $row->id;
-  }
-  return $id;
-}
-
-/**
-* Handler for filter form
-**/
-function ibpcl_filter_form_submit($form, &$form_state) {
-  $_SESSION['filter_species'] = $form_state['values']['species_search'];
-}
-
-/**
-* Function to list checklists
-**/
-function ibpcl_listing() {
-
-  // Filter form
-  $output = '';
-  $output .= drupal_get_form('ibpcl_filter_form');
-
-  $selected_ids = array();
-  $sql = 'select id from ibp_checklist ';
-  $species = $_SESSION['filter_species'];
-  if($species != '') {
-    $sql .= ' where lower(raw_checklist) like lower(\'%'.$species.'%\')';
-  }
-  else {
-
-  }
-  $sql .= ' order by id desc';
-  $result = db_query($sql);
-  $raw_ids = array();
-  while($row = db_fetch_object($result)) {
-    $raw_ids[] = $row->id;
-  }
-  $nodes = array();
-  foreach($raw_ids as $raw_id) {
-    $node = node_load($raw_id);
-    $nodes[] = $node;
-  }
-
-
-  $output .= '<table class="checklistListing" id="listingTable">';
-  $output .= '<thead>';
-  $output .= '<th class="taxa">Taxa</th>';
-  $output .= '<th class="title">Title</th>';
-  $output .= '<th class="license">Geography</th>';
-  $output .= '</thead>';
-  $output .= '</tbody>';
-
-  $count = 0;
-
-  foreach($nodes as $node) {
-    $count++;
-    $class = 'odd';
-    if($count % 2 == 0) {
-      $class='even';
-    }
-    $output .= '<tr class='.$class.'>';
-    $output .= '<td class="taxa">'.$node->taxa.'</td>';
-    $output .= '<td class="title"><a href="'.base_path().'node/'.$node->nid.'">'.$node->title."</a></td>";
-    $output .= '<td class="license">'. $node->place_name;
-    if($node->states) {
-      $output .= ' <strong>States</strong>: ' . $node->states;
-    }
-    if($node->districts) {
-      $output .= ' <strong>Districts</strong>: '.$node->districts;
-    }
-    if($node->taluks) {
-      $output .= ' <strong>Taluks</strong>: '.$node->taluks;
-    }
-    $output .= '</td>';
-    $output .= '</tr>';
-  }
-
-  $output .= '</tbody>';
-  $output .= '</table>';
-
-  return $output;
-
-}
 
 /**
 * Helper function to get various ibpcl values
@@ -1047,183 +962,29 @@ function _ibpcl_get($nid, $var) {
 }
 
 /**
-* Function to insert ids of things like states, districts, taluks, etc into the checklist table
+* Helper function to get the global resource tables for a node
 **/
-function _insert_ibpcl_ids($node_id, $name_string, $type) {
-  $name_array = explode(',',$name_string);
-  if(trim($name_string) != '') {
-    switch($type) {
-      case 'states':
-        foreach($name_array as $name){
-          $name = trim($name);
-          $result = db_query('select __mlocate__id from {lyr_116_india_states} where state = \'%s\'',$name);
-          $state_ids = array();
-          while($row = db_fetch_object($result)) {
-            $state_ids[] = $row->__mlocate__id;
-          }
-          foreach($state_ids as $state_id) {
-            $sql = 'insert into ibp_checklist_states(checklist_id, state_id) values(%d,%d)';
-            db_query($sql, array($node_id, $state_id));
-          }
-        }
-        break;
-      case 'districts':
-        foreach($name_array as $name){
-          $name = trim($name);
-          $result = db_query('select __mlocate__id from {lyr_105_india_districts} where district = \'%s\'',$name);
-          $district_ids = array();
-          while($row = db_fetch_object($result)) {
-            $district_ids[] = $row->__mlocate__id;
-          }
-          foreach($district_ids as $district_id) {
-            $sql = 'insert into ibp_checklist_districts(checklist_id, district_id) values(%d,%d)';
-            db_query($sql, array($node_id, $district_id));
-          }
-        }
-        break;
-      case 'taluks':
-        foreach($name_array as $name){
-          $name = trim($name);
-          $result = db_query('select __mlocate__id from {lyr_115_india_tahsils} where tahsil = \'%s\'',$name);
-          $taluk_ids = array();
-          while($row = db_fetch_object($result)) {
-            $taluk_ids[] = $row->__mlocate__id;
-          }
-          foreach($taluk_ids as $taluk_id) {
-            $sql = 'insert into ibp_checklist_taluks(checklist_id, taluk_id) values(%d,%d)';
-            db_query($sql, array($node_id, $taluk_id));
-          }
-        }
-        break;
-      case 'taxa':
-        foreach($name_array as $name){
-          $name = trim($name);
-          $result = db_query('select id from {ibpcl_taxa} where common_name = \'%s\'',$name);
-          $taxa_ids = array();
-          while($row = db_fetch_object($result)) {
-            $taxa_ids[] = $row->id;
-          }
-          foreach($taxa_ids as $taxa_id) {
-            $sql = 'insert into checklist_taxa(checklist_id, taxa_id) values(%d,%d)';
-            db_query($sql, array($node_id, $taxa_id));
-          }
-        }
-        break;
-      default:
-        break;
+function _ibpcl_get_tables_for_node($nid) {
+  $table_ids = array();
+  $tables = array();
+  $sql = 'select * from {ibp_checklist_tables} where checklist_id = %d';
+  $data_array = array(
+    $nid,
+  );
+  $result = db_query($sql, $data_array);
+  while($row = db_fetch_object($result)){
+    $table_ids[] = $row->table_id;
+  }
+  foreach($table_ids as $table_id) {
+    $sql = 'select name from {ibp_resource_tables} where id = %d';
+    $data_array = array(
+      $table_id,
+    );
+    while($row = db_fetch_object($result)) {
+      $tables[$table_id] = $row->name;
     }
   }
-
-}
-
-/**
-* Helper function to insert a checklist
-**/
-function _ibpcl_insert_checklist($node, $raw_checklist){
-  $csv = new parseCSV();
-  $csv->auto($raw_checklist);
-  $has_scientific_name = FALSE;
-  foreach($csv->titles as $sl=>$values) {
-    if($values == 'scientific_name') {
-      $has_scientific_name = TRUE;
-    }
-  }
-
-  // We parse only if there is a scientific name
-  $new_csv = array();
-  $new_csv[] = $csv->titles;
-  if($has_scientific_name) {
-    foreach($csv->data as $key=>$row) {
-      $values = array();
-      foreach($row as $k=>$value) {
-        if($k == 'scientific_name') {
-          $found = FALSE;
-
-          // Birds
-          if(! $found) {
-            
-            $sql = 'select ibp_id from birdspecies_list where lower(ibp_scientific_name) = lower(\'%s\') or lower(itis_scientific_name) = lower(\'%s\') or lower(iucn_2010_scientific_name) = lower(\'%s\') or lower(wikipedia_nov2010_scientific_name) = lower(\'%s\') or lower(sibley_monroe_1996_scientific_name) = lower(\'%s\') or lower(howardandmoore_3rded_scientific_name) = lower(\'%s\') or lower(clements_5thed_2005_scientific_name) = lower(\'%s\') or lower(clements_6thed_2009_scientific_name) = lower(\'%s\') or lower(ioc_2009_scientific_name) = lower(\'%s\') or lower(ebird_2010_scientific_name) = lower(\'%s\') or lower(obc_2001_scientific_name) = lower(\'%s\')';
-            $data_array = array(
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-              $value,
-            );
-            $result = db_query($sql, $data_array);
-            while($row = db_fetch_object($result)) {
-              $found = TRUE;
-              $value = '<em><a href="'.base_path().'species/birdspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
-            }
-          }
-          // Butterflies
-          if(! $found) {
-            $sql = 'select ibp_id from butterflyspecies_list where lower(wikipedia_scientific_name) = lower(\'%s\')';
-            $data_array = array(
-              $value,
-            );
-            $result = db_query($sql, $data_array);
-            while($row = db_fetch_object($result)) {
-              $found = TRUE;
-              $value = '<em><a href="'.base_path().'species/butterflyspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
-            }
-          }
-
-          // Fish
-          if(! $found) {
-            $sql = 'select ibp_id from fishspecies_list where lower(species) = lower(\'%s\')';
-            $data_array = array(
-              $value,
-            );
-            $result = db_query($sql, $data_array);
-            while($row = db_fetch_object($result)) {
-              $found = TRUE;
-              $value = '<em><a href="'.base_path().'species/fishspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
-            }
-          }
-
-          // Plants
-          if(! $found) {
-            $sql = 'select ibp_id from plantspecies_list where lower(gbif_species) = lower(\'%s\') or lower(iucn_spcscientificname) = lower(\'%s\') ';
-            $data_array = array(
-              $value,
-              $value,
-            );
-            $result = db_query($sql, $data_array);
-            while($row = db_fetch_object($result)) {
-              $found = TRUE;
-              $value = '<em><a href="'.base_path().'species/plantspecies_list/'.$row->ibp_id.'">'.$value.'</a></em>';
-            }
-          }
-
-          // Still not found? We'll italicize anyway
-          if(! $found) {
-            $value = '<em>'.$value.'</em>';
-          }
-            
-        }
-        $values[] = $value;
-      }
-      $new_csv[] = $values;
-    }
-
-  }
-  $save = '';
-  $new_output = new parseCSV();
-  if($has_scientific_name) {
-    $save = $new_output->output(null,$new_csv,FALSE);
-  }
-  else {
-    $save = $raw_checklist;
-  }
-
-  return $save;
+  return $tables;
 }
 
 /**
@@ -1259,118 +1020,6 @@ function _ibpcl_raw_checklist($nid) {
 
 
 /**
-* Helper function to insert biogeographic regions
-**/
-function _ibpcl_insert_biogeography($node_id, $biogeography) {
-  foreach($biogeography as $key=>$value){
-    $sql = 'insert into {checklist_regions} (checklist_id, region_id) values(%d, %d)';
-    $data_array = array(
-      $node_id,
-      $key,
-    );
-    db_query($sql, $data_array);
-  }
-}
-
-/**
-* Helper function to get a cc license name, given the id
-**/
-function _get_license_name($cid, $image = FALSE){
-  $sql = 'select name from ibp_cc_types where id = %d';
-  $data_array = array(
-    $cid,
-  );
-  $result = db_query($sql, $data_array);
-  while($row = db_fetch_object($result)) {
-    $name = $row->name;
-  }
-  return $name;
-}
-
-/**
-* Helper function to get the resource tables
-**/
-function _get_resource_tables(){
-  $sql = 'select * from {ibp_resource_tables}';
-  $tables = array();
-  $result = db_query($sql);
-  while($row = db_fetch_object($result)) {
-    $tables[$row->id] = $row->name;
-  }
-  return $tables;
-}
-
-/**
-* Helper function to insert table ids
-**/
-function _ibpcl_insert_tables($nid, $tables){
-  foreach($tables as $table) {
-    $sql = 'insert into {ibp_checklist_tables}(checklist_id, table_id) values(%d, %d)';
-    $data_array = array(
-      $nid,
-      $table,
-    );
-    db_query($sql, $data_array);
-  }
-}
-
-/**
-* Helper function to get the global resource tables for a node
-**/
-function _ibpcl_get_tables_for_node($nid) {
-  $table_ids = array();
-  $tables = array();
-  $sql = 'select * from {ibp_checklist_tables} where checklist_id = %d';
-  $data_array = array(
-    $nid,
-  );
-  $result = db_query($sql, $data_array);
-  while($row = db_fetch_object($result)){
-    $table_ids[] = $row->table_id;
-  }
-  foreach($table_ids as $table_id) {
-    $sql = 'select name from {ibp_resource_tables} where id = %d';
-    $data_array = array(
-      $table_id,
-    );
-    while($row = db_fetch_object($result)) {
-      $tables[$table_id] = $row->name;
-    }
-  }
-  return $tables;
-}
-/**
-* Function to retrieve the human readable names from the taxa table
-**/
-function _ibpcl_get_taxa_names() {
-  // Store a key value pair of scientific name vs human readable name
-  $taxa = array();
-
-  $sql = 'select name, common_name from ibpcl_taxa ORDER by common_name ASC';
-  $result = db_query($sql);
-  while($row = db_fetch_object($result)) {
-    $taxa[$row->common_name] = $row->common_name . ' ('.$row->name.')';
-  }
-  return $taxa;
-}
-
-/**
-* Function to retrieve the image from the taxa table
-**/
-function _ibpcl_get_taxa_icon($taxa_id) {
-  $taxa = '';
-  $sql = 'select id, name, common_name, image from ibpcl_taxa where id = %d';
-  $data_array = array(
-    $taxa_id,
-  );
-  $result = db_query($sql, $data_array);
-  while($row = db_fetch_object($result)) {
-    $taxa = '<img src="'.base_path().drupal_get_path('module','ibpcl').'/images/taxa/'.$row->image.'" alt="'.$row->common_name.'"/>';
-  }
-  return $taxa;
-}
-
-/**
 * Function to show a license given its id
 **/
 function _show_license($license_id) {
@@ -1399,4 +1048,249 @@ function _show_license($license_id) {
   }
   return $display;
 }
+
+/**
+* Implementation of hook_view
+**/
+function ibpcl_view($node, $teaser = FALSE, $page = FALSE) {
+  $node = node_prepare($node, $teaser);
+  $node->content['checklist_display'] = array(
+    '#value' => theme('ibpcl_checklist_info', $node),
+  );
+  return $node;
+}
+
+/**
+* Imnplementation of hook_theme
+**/
+function ibpcl_theme() {
+  return array(
+    'ibpcl_checklist_info' => array(
+      'arguments' => array('node'),
+    ),
+  );
+}
+
+/**
+* Custom theme function
+**/
+function theme_ibpcl_checklist_info($node) {
+  $output = '<div id="ibpcl_body">';
+
+  // Attribution
+  $output .= '<div id="ibp_credits" class="ibp_part">';
+
+  if($node->attribution){
+    $output .= '<div class="label">Attribution</div>';
+    $output .= '<div class="value">'.$node->attribution.'</div>';
+  }
+  $output .= '<div class="label licenseLabel">License</div>';
+  $output .= '<div class="value">'.$node->cc_license.'</div>';
+
+
+  $output .= '</div>';
+
+
+  // Location and Taxa
+  $output .= '<div id="ibp_taxa" class="ibp_part">';
+  $output .= '<h3>Taxa</h3>';
+  $output .= '<div class="value">'.$node->taxa.'</div>';
+  $output .= '</div>';
+  $output .= '<div id="ibp_geography" class="ibp_part">';
+  $output .= '<h3>Location</h3>';
+  $output .= '<div class="label">Place Name</div>';
+  $output .= '<div class="value">'.check_plain($node->place_name).'</div>';
+  if($node->all_india != 'yes') {
+    if($node->states != '') {
+      $output .= '<div class="label">State(s)</div>';
+      $output .= '<div class="value">'.check_plain($node->states).'</div>';
+    }
+    if($node->districts != '') {
+      $output .= '<div class="label">District(s)</div>';
+      $output .= '<div class="value">'.$node->districts.'</div>';
+    }
+    if($node->taluks != '') {
+      $output .= '<div class="label">Taluk(s)</div>';
+      $output .= '<div class="value">'.$node->taluks.'</div>';
+    }
+    if($node->biogeography != '') {
+      $output .= '<div class="label">Biogeographic Zones</div>';
+      $output .= '<div class="value">'.$node->biogeography.'</div>';
+    }
+  }
+  else {
+    $output .= '<div class="label">Region</div>';
+    $output .= '<div class="value">All India</div>';
+  }
+  $output .= '</div>';
+
+  $output .= '<table class="checklistMetadata">';
+  // Time period
+  if(isset($node->from_date) && !empty($node->from_date)) {
+    $output .= '<tr>';
+    $output .= '<td class="key">From Date</td>';
+    $output .= '<td class="value">'.$node->from_date.'</td>';
+    $output .= '</tr>';
+  }
+  if(isset($node->to_date) && !empty($node->to_date)) {
+    $output .= '<tr>';
+    $output .= '<td class="key">To Date</td>';
+    $output .= '<td class="value">'.$node->to_date.'</td>';
+    $output .= '</tr>';
+  }
+  if(isset($node->publication_date) && !empty($node->publication_date)) {
+    $output .= '<tr>';
+    $output .= '<td class="key">Publication Date</td>';
+    $output .= '<td class="value">'.$node->publication_date .'</td>';
+    $output .= '</tr>';
+  }
+  if(isset($node->last_updated) && !empty($node->last_updated)) {
+    $output .= '<tr>';
+    $output .= '<td class="key">Date Updated</td>';
+    $output .= '<td class="value">'.$node->last_updated.'</td>';
+    $output .= '</tr>';
+  }
+  // Source and contributed by
+  if($node->contributed_by) {
+    $output .= '<tr>';
+    $output .= '<td class="key">Contributed by</td>';
+    $user = user_load($node->contributed_by);
+    $output .= '<td class="value"><a href="'.base_path().'user/'.$node->contributed_by.'">'.$user->name.'</a></td>';
+    $output .= '</tr>';
+  }
+  if($node->link){
+    $output .= '<tr>';
+    $output .= '<td class="key">Source</td>';
+    $output .= '<td class="value">'.check_markup($node->link,1).'</td>';
+    $output .= '</tr>';
+  }
+  $output .= '</table>';
+
+
+  // Checklist
+   $output .= '<div id="ibp_checklist" class="ibp_part">';
+   $output .= '<h3>Checklist</h3>';
+
+  // Info
+  $output .= '<div id="ibp_checklist_info" class="ibp_part">';
+  if($node->information) {
+    $output .= '<div>';
+    $output .= '<div class="label"><a href="#" class="toggle">+</a><a href="#" class="toggle" style="display:none">-</a> Checklist Information</div>';
+    $output .= '<div class="value" style="display:none">'.check_markup($node->information,1).'</div>';
+    $output .= '</div>';
+  }
+  $output .= '</div>';
+
+
+
+  
+  if($node->raw_checklist) {
+    $output .= '<div class="label">&nbsp;</div>';
+    $output .= '<div class="value">'.$node->checklist.'<br/><br/></div>';
+  }
+
+  $output .= '<div class="label">Download</div>';
+
+  $output .= '<a href="'.base_path().file_directory_path().'/checklists/csv/checklist_'.$node->nid.'.csv">';
+  $output .= '<img src="'.base_path().drupal_get_path('module','ibpcl').'/images/csv.png" alt="CSV"/>';
+  $output .= '</a>';
+
+ // $output .= '<a href="'.base_path().'printpdf/'.$node->nid.'">';
+  $output .= '<a href="'.base_path().'make_pdf/'.$node->nid.'">';
+  $output .= '<img src="'.base_path().drupal_get_path('module','ibpcl').'/images/pdf.png" alt="PDF"/>';
+  $output .= '</a>';
+
+
+  $output .= '</div>';
+
+  // References
+  $output .= '<div id="ibp_checklist_references" class="ibp_part">';
+  if($node->checklist_references) {
+    $output .= '<div>';
+    $output .= '<div class="label"><a href="#" class="toggle">+</a><a href="#" class="toggle" style="display:none">-</a> References</div>';
+    $output .= '<div class="value" style="display:none">'.check_markup($node->checklist_references,1).'</div>';
+    $output .= '</div>';
+  }
+
+  $output .= '</div>';
+
+
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Function to return an array of ids, based on the Parameters passed
+ */
+function getIdArray($name_string, $type) {
+  $ids = array();
+
+  $name_array = explode(',',$name_string);
+  if(trim($name_string) != '') {
+    switch($type) {
+      case 'states':
+        foreach($name_array as $name){
+          $name = trim($name);
+          $result = db_query('select __mlocate__id from {lyr_116_india_states} where state = \'%s\'',$name);
+          $state_ids = array();
+          while($row = db_fetch_object($result)) {
+            $state_ids[] = $row->__mlocate__id;
+          }
+          foreach($state_ids as $state_id) {
+            array_push($ids, array('value' => $state_id));
+          }
+        }
+        break;
+      case 'districts':
+        foreach($name_array as $name){
+          $name = trim($name);
+          $result = db_query('select __mlocate__id from {lyr_105_india_districts} where district = \'%s\'',$name);
+          $district_ids = array();
+          while($row = db_fetch_object($result)) {
+            $district_ids[] = $row->__mlocate__id;
+          }
+          foreach($district_ids as $district_id) {
+            array_push($ids, array('value' => $district_id));
+          }
+        }
+        break;
+      case 'taluks':
+        foreach($name_array as $name){
+          $name = trim($name);
+          $result = db_query('select __mlocate__id from {lyr_115_india_tahsils} where tahsil = \'%s\'',$name);
+          $taluk_ids = array();
+          while($row = db_fetch_object($result)) {
+            $taluk_ids[] = $row->__mlocate__id;
+          }
+          foreach($taluk_ids as $taluk_id) {
+            array_push($ids, array('value' => $taluk_id));
+          }
+        }
+        break;
+      case 'taxa':
+        foreach($name_array as $name){
+          $name = trim($name);
+          $result = db_query('select id from {ibpcl_taxa} where common_name = \'%s\'',$name);
+          $taxa_ids = array();
+          while($row = db_fetch_object($result)) {
+            $taxa_ids[] = $row->id;
+          }
+          foreach($taxa_ids as $taxa_id) {
+            array_push($ids, array('value' => $taxa_id));
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  return $ids;
+}
+
+
+
+
+
+
 

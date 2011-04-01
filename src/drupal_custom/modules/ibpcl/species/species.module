@@ -46,7 +46,7 @@ function species_display($db_table, $ibp_id){
   {
     	$url = "http://farm".$flickr_photos['photo'][$i]['farm'].".static.flickr.com/".$flickr_photos['photo'][$i]['server']."/".$flickr_photos['photo'][$i]['id']."_".$flickr_photos['photo'][$i]['secret']."_s.jpg";
     	$link_url = "http://www.flickr.com/photos/".$flickr_photos['photo'][$i]['owner']."/".$flickr_photos['photo'][$i]['id']."/";
-    	$output .= "<a href='".$link_url."' target='_blank'><img src='".$url."' border='1' title='".($flickr_photos['photo'][$i]['title']?$flickr_photos['photo'][$i]['title']:$flickr_photos['photo'][$i]['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
+    	$output .= "<a href='".$link_url."'><img src='".$url."' border='1' title='".($flickr_photos['photo'][$i]['title']?$flickr_photos['photo'][$i]['title']:$flickr_photos['photo'][$i]['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
 //$output .= $flickr_photos['photo'][$i]['title'];
   }
   $output .= '<br /><span class=\'flickr_more\'><a href=\'#flickr_photos\'>more...</a></span>';
@@ -119,7 +119,7 @@ function species_display($db_table, $ibp_id){
   {
     $url = "http://farm".$photo['farm'].".static.flickr.com/".$photo['server']."/".$photo['id']."_".$photo['secret']."_s.jpg";
     $link_url = "http://www.flickr.com/photos/".$photo['owner']."/".$photo['id']."/";
-    $output .= "<a href='".$link_url."' target='_blank'><img src='".$url."' border='1' title='".($photo['title']?$photo['title']:$photo['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
+    $output .= "<a href='".$link_url."'><img src='".$url."' border='1' title='".($photo['title']?$photo['title']:$photo['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
   }
   }
   return($output);
