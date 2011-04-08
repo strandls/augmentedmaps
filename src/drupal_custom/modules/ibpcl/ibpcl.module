@@ -10,6 +10,7 @@ drupal_add_js(drupal_get_path('module', 'ibpcl') .'/scripts/ibpcl.js');
  * implementing hook_user
  * This is a temporary implementation to disallow users to login to the staging
  */
+/*
 function ibpcl_user($op, &$edit, &$account, $category = NULL) {
    switch($op) {
       //Only allow the dev team to login
@@ -26,6 +27,7 @@ function ibpcl_user($op, &$edit, &$account, $category = NULL) {
            break;
      }    
 }
+*/
 
 /**
  * Function for formatting the output of CCK fields
@@ -1288,7 +1290,14 @@ function getIdArray($name_string, $type) {
   return $ids;
 }
 
-
+function no_of_cl()
+{
+  $sql = 'select count(id) as clcount from {ibp_checklist}';
+  $result = db_query($sql);
+  $row = db_fetch_object($result);
+  $ret_str = '<strong>Checklists: </strong><a href=\'ibpcl/list\'>'.$row->clcount.'</a>';
+  return $ret_str;
+} 
 
 
 
