@@ -143,7 +143,7 @@ POST CONFIGURATION
     -------------------------------------------------------
         Alias /openlayers "<path to OpenLayers directory>"
         <Directory "<path to OpenLayers directory>">
-          AllowOverride None
+          AllowOverride all
           Options Indexes FollowSymLinks Multiviews 
           Order allow,deny
           Allow from all
@@ -155,7 +155,7 @@ POST CONFIGURATION
     -------------------------------------------------------
         Alias /augmentedmaps "<path to augmentedmaps directory>"
         <Directory "<path to augmentedmaps directory>">
-          AllowOverride None
+          AllowOverride all
           Options Indexes FollowSymLinks Multiviews 
           Order allow,deny
           Allow from all
