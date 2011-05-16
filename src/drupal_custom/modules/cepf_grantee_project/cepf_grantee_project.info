@@ -1,0 +1,3 @@
+name = "CEPF Grantee Projects"
+description = "Create and list CEPF Grantee Projects"
+core = 6.x

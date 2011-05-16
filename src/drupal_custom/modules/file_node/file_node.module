@@ -1,0 +1,158 @@
+<?php
+/* Given node id, return node type
+ */
+function get_node_type($nid)  {
+ $type = db_result(db_query("SELECT name from {node_type}, {node} where nid = %d and node.type = node_type.type", $nid));
+
+return $type;
+}
+/* Given a fid, return its nid */
+function get_nid($fid)  {
+   $file = array('fid'=>$fid);
+   return array_pop(array_keys(filefield_get_file_references($file)));
+}
+
+/**
+ * Implementation of hook_form_alter
+ */
+function file_node_form_alter(&$form, $form_state, $form_id) {
+
+  if ($form_id == 'project_node_form') {
+    $form['#submit'][] = 'test_submit';
+  }
+}
+
+/* Given Form state values, returns all the fids 
+ * This method can be used to get all the fids to delete during delete on node
+ */
+function getFids($data)    {
+  /* If used only for delete, this can be modified to be a simple sql query */
+  $fids = array();
+  foreach ($data as $key => $value) {
+    if(is_array($value))   {
+      $fids = array_merge((array)$fids, (array)getFids($value));
+    }
+    else if($key == 'fid')   {	
+      $fids[] = $value;	  
+    }
+  }
+  return $fids;
+}
+
+/* Method to call during submit 
+ * Recursively iterate over the values and determine values submitted by filefield elements
+ * Process those values seperately
+ */
+function process_values($data)    {
+  $fids = array();
+  foreach ($data as $key => $value) {
+    if(is_array($value))   {	  
+      $fids = process_values($value);
+    }
+    else if($key == 'fid')   {	
+      process_filefield($data);	  
+    }
+  }
+  return $fids;
+}
+
+/* Call process_values during submission of Node
+ * Ideally this submit can handle any file fields during node submissions
+ */
+function test_submit($form, &$form_state) {
+   //print_r($form_state['values']);
+   
+   //print "<br/><br/><br/><br/><br/><br/><br/><br/>";
+   process_values($form_state['values']);
+   //print_r($form_state['values']['field_file']);
+   
+
+}
+/*
+ * Implement hook_delete/nodeapi delete here using this method
+ * print_r(getFids($form_state['values']));
+ */
+ function file_node_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    /* While deleting a Node, Cleanup nodes related to the File fields */
+    case 'delete':
+	     $fids = getFids($node);
+		 delete_nodes_of($fids);
+	}
+}
+/* Given fids, delete all the nodes corresponding to the fids */
+function delete_nodes_of($fids)  {
+   /* Iterate over all the fids passed, delete the corresponding nodes */
+   foreach($fids as $fid)    {
+       $nid = db_result(db_query("SELECT nid from {content_type_file} where field_file_id_value = %d", $fid));
+	   if($nid != '' && $nid > 0)
+             node_delete($nid);
+   }
+}
+
+/* Values submitted for the file fields needs to be handled here
+ * Any deletions, creation of new file nodes will be done here
+ */
+function process_filefield($data)  {
+//print "<br/><br/><br/><br/><br/><br/><br/><br/>";
+//print_r($data);
+
+$fid = check_plain($data['fid']);
+/* Check to ensure that only file fields are processed 
+ * HARDCODED, canbe modified further
+ */
+if($fid == 0 || $data['filemime'] != 'application/pdf')
+   return;
+$title = check_plain($data['data']['description']);
+$short_note = check_plain($data['data']['shortnote']['body']);
+$tags = check_plain($data['data']['tags']['body']);
+$filepath = check_plain($data['filepath']);
+$filename = check_plain($data['filename']);
+$remove = $data['_remove'];
+
+//print "<br/><br/><br/><br/><br/><br/>";
+//print $fid."<br/>".$title."<br/>".$short_note."<br/>".$tags."<br/>".$filepath."<br/>".$filename."<br/>".$remove;
+//print "<br/><br/><br/><br/><br/><br/>";
+
+global $user;
+
+//Check if a node already exists for this fid
+$node_id = db_result(db_query("SELECT nid from {content_type_file} where field_file_id_value = %d", $data['fid']));
+
+if($remove == 1)       {
+   //print "delete node corresponding to $fid";
+   node_delete($node_id);
+}
+else   {   
+   /* If a node exists for this fid, then modify data according to the new values */
+   if($node_id)                   {
+     $new_node = node_load($node_id);
+	 $new_node->changed = time();
+	 //Rest of the values will be modified at a common code below if loop
+   }
+   else       { /* If a node doesn't exist for this fid, then create a new node with the details entered by user */
+     //print "need to create a new node for $fid";
+     $new_node = (object) NULL;
+     $new_node->type = 'file';
+     $new_node->title = $filename;
+     $new_node->uid = $user->uid ;
+     $new_node->created = time();
+     $new_node->changed = time();
+     $new_node->status = 1;	
+   }
+
+   /* Populate file path and file id */
+   $new_node->field_file_id[0]['value'] = $fid;
+   $new_node->field_path[0]['value'] = $filepath;
+   
+   /*If user has specified a different title, then use it */
+   if(isset($title) && $title != '')
+       $new_node->title = $title;   
+   /*Add short note to the File here */	   
+   $new_node->body = $short_note;   
+   
+   $new_node->taxonomy = array('tags' => array(8 => $tags));/*For us this will be 8*/
+   node_save($new_node);
+}
+}
+
