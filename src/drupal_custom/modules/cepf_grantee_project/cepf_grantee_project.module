@@ -5,6 +5,15 @@
  */
 function cepf_grantee_project_form_alter(&$form, $form_state, $form_id) {
  if($form["#node"]->type == "project") {
+   global $user;
+   $role = cepf_grantee_project_get_role($user);
+   
+   //remove some fields if user is not admin
+   if($role != 0)      { 
+     unset($form['field_project_grantee']);
+     unset($form['field_project_subgrantee']);
+   }
+
    $form['#after_build'][] = 'cepf_grantee_project_after_build'; 
    $form['#submit'][] = 'project_submit';
  }
@@ -40,10 +49,15 @@ function cepf_grantee_project_after_build($form, &$form_state) {
   // Use this one if the field is placed inside a fieldgroup.
   cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_email']);
   cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_name']);
+  cepf_grantee_project_disable($form['group_grantee_details']['field_project_grantee_org']);
   
   //When using a field
   cepf_grantee_project_disable($form['field_strategic_direction']);  
   cepf_grantee_project_disable($form['field_project_amount']);
+  cepf_grantee_project_disable($form['field_project_summary']);
+  cepf_grantee_project_disable($form['field_grantterm']);
+  cepf_grantee_project_disable($form['title']);
+
   }
   return $form;
 }
