@@ -9,11 +9,11 @@ function cepf_grantee_project_form_alter(&$form, $form_state, $form_id) {
    $role = cepf_grantee_project_get_role($user);
    
    //remove some fields if user is not admin
-   if($role != 0)      { 
+/*   if($role != 0)      { 
      unset($form['field_project_grantee']);
      unset($form['field_project_subgrantee']);
    }
-
+*/
    $form['#after_build'][] = 'cepf_grantee_project_after_build'; 
    $form['#submit'][] = 'project_submit';
  }
@@ -45,7 +45,15 @@ function cepf_grantee_project_after_build($form, &$form_state) {
   global $user;
   $role = cepf_grantee_project_get_role($user);
 
+//disable some fields if user is not admin
+   if($role != 0)      {
+     cepf_grantee_project_disable($form['group_grantee_details']['field_project_grantee']);
+     cepf_grantee_project_disable($form['group_project_members']['field_project_subgrantee']);
+   }
+
   if($role !=0 && $role != 1)        {
+  //print_r($form);
+  //print_r($form_state['values']);
   // Use this one if the field is placed inside a fieldgroup.
   cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_email']);
   cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_name']);
@@ -57,6 +65,8 @@ function cepf_grantee_project_after_build($form, &$form_state) {
   cepf_grantee_project_disable($form['field_project_summary']);
   cepf_grantee_project_disable($form['field_grantterm']);
   cepf_grantee_project_disable($form['title']);
+  $form['title']['#value'] = $form['title']['#default_value'];
+  $form_state['values']['title'] = $form['title']['#default_value'];
 
   }
   return $form;
