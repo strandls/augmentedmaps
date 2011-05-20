@@ -6,6 +6,15 @@ function get_node_type($nid)  {
 
 return $type;
 }
+/*
+ * Given a node id, return node title
+ * This is just to save complete node reload
+ */
+function get_node_title($nid)  {
+ $title = db_result(db_query("SELECT title from {node} where nid = %d", $nid));
+return $title;
+}
+
 /* Given a fid, return its nid */
 function get_nid($fid)  {
    $file = array('fid'=>$fid);
@@ -60,14 +69,33 @@ function process_values($data)    {
  * Ideally this submit can handle any file fields during node submissions
  */
 function test_submit($form, &$form_state) {
-   //print_r($form_state['values']);
-   
+   $existing_filenodes = filefield_get_node_files($form['#node']);
+   $submitted_filenodes = getFids($form_state['values']);
+   delete_extra_filenodes($existing_filenodes, $submitted_filenodes);
+ 
    //print "<br/><br/><br/><br/><br/><br/><br/><br/>";
    process_values($form_state['values']);
    //print_r($form_state['values']['field_file']);
    
 
 }
+/*
+ * Deletes if any extra nodes are present in the database
+ */
+function delete_extra_filenodes($old, $new) {
+  $fids = array();
+  foreach($old as $key => $value)  {
+      /* Dirty check, needs to modify later*/
+      $exists = 0;
+      foreach($new as $key1 => $value1)
+         if($key == $value1)
+              $exists = 1;
+      if($exists == 0)
+         $fids[] = $key;
+  }
+  delete_nodes_of($fids);
+}
+
 /*
  * Implement hook_delete/nodeapi delete here using this method
  * print_r(getFids($form_state['values']));
@@ -103,6 +131,7 @@ $fid = check_plain($data['fid']);
  */
 if($fid == 0 || $data['filemime'] != 'application/pdf')
    return;
+
 $title = check_plain($data['data']['description']);
 $short_note = check_plain($data['data']['shortnote']['body']);
 $tags = check_plain($data['data']['tags']['body']);
@@ -151,7 +180,7 @@ else   {
    /*Add short note to the File here */	   
    $new_node->body = $short_note;   
    
-   $new_node->taxonomy = array('tags' => array(8 => $tags));/*For us this will be 8*/
+   $new_node->taxonomy = array('tags' => array(7 => $tags));/*For us this will be 8*/
    node_save($new_node);
 }
 }
