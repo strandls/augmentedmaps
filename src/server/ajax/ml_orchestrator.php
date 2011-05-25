@@ -665,9 +665,11 @@ switch ($action) {
     break;
 
   case 'getLinkTableEntries':
-    if (isset($_REQUEST['layer_tablename'], $_REQUEST['row_id'], $_REQUEST['link_tablename'])) {
+    //if (isset($_REQUEST['layer_tablename'], $_REQUEST['row_id'], $_REQUEST['link_tablename'])) {
+    if (isset($_REQUEST['layer_tablename'], $_REQUEST['layerdata_id'], $_REQUEST['link_tablename'])) {
       $layer_tablename=$_REQUEST['layer_tablename'];
-      $row_id=$_REQUEST['row_id'];
+      //$row_id=$_REQUEST['row_id'];
+      $row_id=$_REQUEST['layerdata_id'];
       $link_tablename=$_REQUEST['link_tablename'];
     }
     else {
@@ -747,7 +749,8 @@ switch ($action) {
     break;
 
   case 'getResourceTableEntry':
-    if (isset($_REQUEST['link_tablename'], $_REQUEST['linked_column'], $_REQUEST['linked_value'])) {
+    //if (isset($_REQUEST['link_tablename'], $_REQUEST['linked_column'], $_REQUEST['linked_value'])) {
+    if (isset($_REQUEST['resource_tablename'], $_REQUEST['resource_column'], $_REQUEST['value'])) {
       $resource_tablename=$_REQUEST['resource_tablename'];
       $resource_column=$_REQUEST['resource_column'];
       $value=str_replace("'", "''", $_REQUEST['value']);

@@ -39,9 +39,25 @@
             <?php endif; ?>
             | <a href="<?php print check_url($front_page);?>logout">Logout</a>
           <?php else: ?>
-            <a href="<?php print check_url($front_page);?>user/register">Register</a> | <a id="login_btn" href="#">Login</a>          <?php endif; ?>
-        </div>
+              <a href = "/user?destination=map"> Login </a> | <a href = "/user/register?destination=map"> Register </a>
+          <?php endif; ?>        
+</div>
         <!-- login ends }}} -->
+
+<!-- activeLayer -->
+<div id="activeLayer" class="toolbar">
+<div class="tool first last">
+<a href="#" title="Show layer information"></a>
+</div>
+</div>
+<!-- activeLayer end -->
+
+
+<div id="controls-bar">
+<ul>
+<li class="controls_label" id="resetTreeViewControl" title="Remove all added layers">Reset</li>
+</ul>
+</div>
 
 </div>
 
@@ -71,6 +87,7 @@
 
 <!-- {{{ Layers drawer -->
 <div id="layers_drawer" class="drawer"> 
+<div class="close_drawer"></div>
 
     <!-- {{{ accordion -->    
 
@@ -104,6 +121,7 @@
 <!-- {{{ Search drawer -->
 <div id="search_drawer" class="drawer"> 
 
+<div class="close_drawer"></div>
     <!-- {{{ accordion -->    
 
     <div id="search_accordion">
@@ -128,6 +146,7 @@
 <!-- {{{ Tools drawer -->
 <div id="tools_drawer" class="drawer"> 
 
+<div class="close_drawer"></div>
     <!-- {{{ accordion -->    
 
     <div id="tools_accordion">
@@ -148,6 +167,7 @@
 <!-- {{{ Legend -->
 <div id="legend_drawer" class="drawer">
 
+<div class="close_drawer"></div>
     <!-- {{{ accordion -->    
 
     <div id="legend_accordion">

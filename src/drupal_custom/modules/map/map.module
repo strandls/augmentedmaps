@@ -93,3 +93,16 @@ function map_user($op, &$edit, &$user, $category = NULL) {
     setcookie ("themeTree2", "", time() - 3600);
   }
 }
+
+/**
+ * function to return the number of maps available in the portal
+ */
+function no_of_maps()
+{
+  $sql = 'select count(layer_id) as mapcount from "Meta_Layer"';
+  $result = db_query($sql);
+  $row = db_fetch_object($result);
+  $ret_str = '<strong>Maps: </strong><a href=\'map\'>'.$row->mapcount.'</a>';
+  return $ret_str;
+}
+

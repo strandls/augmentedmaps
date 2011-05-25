@@ -15,9 +15,11 @@
 			<!-- Main menu -->
 			<div id="menus">
 				<div id="mainMenu">
-					<?php if($main_menu): ?>
-					<?php print $main_menu?>
-					<?php endif; ?>
+                                    <?php if(isset($primary_links)): ?>
+                                           <?php print theme('links', $primary_links, array('class' => 'links p
+rimary-links')) ?>
+                                     <?php endif;?>
+
 				</div>
 				<div id="userMenu">
 					<ul>
