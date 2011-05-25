@@ -149,7 +149,7 @@ function get_layer_data_summary($layer_tablename, $row_id, $point) {
     die('Error fetching layer info. ' . $errmsgstr);
   }
   else {
-    $col_info=getDBColDesc($layer_tablename, $layer_summary_columns);
+    $col_info=getDBColDesc($layer_tablename, str_replace('"', "'", $layer_summary_columns));
 
     $table_info=GetTableColsOfType($layer_tablename, 'layer', 'italics');
     $italics_columns=$table_info['italics_columns'];
@@ -1285,7 +1285,7 @@ function get_layer_metadata($layer_tablename, $hasmenu) {
 
   $html.=<<<EOF
 
-        <script type="javascript">
+        <script type="text/javascript">
 
       jQuery(document).ready(function(){
 
@@ -1890,6 +1890,7 @@ function get_download_url($layer_tablename, $format) {
         $file=str_replace(' ', '_', $file) . "_" . date(Ymd);
         $dir_name=str_replace(' ', '_', $layer_name);
 
+	global $db_url;
         $dbuser=preg_replace('/pgsql:\/\/([^:@][^:@]*).*/', '$1', $db_url);
         $dbname=substr(strrchr($db_url, '/'), 1);
 
@@ -2042,6 +2043,7 @@ function get_download_url($layer_tablename, $format) {
         $length=count($link_tablename);
         if($length > 0) {
           for($i=0; $i < $length; $i++) {
+            $link_cols = NULL;
             $query="select column_name from information_schema.columns where table_name='%s' AND column_name not like '" . AUTO_DBCOL_PREFIX . "%'";
             $result=db_query($query, $link_tablename[$i]);
             if(!$result) {

@@ -1,0 +1,312 @@
+a:link {
+  color: #726033;
+}
+
+a:visited {
+  color: #726033;
+}
+
+a:hover {
+  color: #BF8815;
+}
+
+a:active {
+  color: #BF8815;
+}
+
+body {
+  color: #000;
+}
+
+#content {
+  color: #000;
+}
+
+.terms {
+  font-size: 8pt;
+  padding: 10px;
+}
+
+.terms ul {
+  list-style: none;
+}
+
+.terms ul li {
+  list-style: none;
+}
+
+.submitted {
+  font-size: 8pt;
+  padding: 10px;
+  display: none;
+}
+
+.post-links {
+  font-weight: bold;
+  padding: 20px 10px;
+}
+
+#contentDiv h2 {
+  color: #000;
+  border-bottom: 1px solid #A5833E;
+}
+
+h2.title a {
+  text-decoration: none;
+}
+
+.block {
+  color: #000;
+  clear: both;
+}
+
+#branding {
+  margin-top: 0;
+  height: 80px;
+}
+
+#contentMenu .block {
+  background-color: #fff;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #A5833E;
+}
+
+#homeLeft .block, #homeRight .block {
+  border: 1px solid #A5833E;
+}
+
+#homeRight #block-block-15 {
+ background-color: #ECE9B7;
+ border: 0;
+ margin: 0;
+ padding: 0;
+}
+
+#homeContent .content {
+  border: 1px solid #A5833E;
+  padding: 0 10px;
+  background-color: #fff;
+  clear: both;
+}
+
+#homeContent .block {
+  border: 1px solid #A5833E;
+}
+
+#homeContent .block .content {
+  border: 0;
+}
+
+#homeContent .block h2 {
+  border-bottom: 1px solid #000;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+ul.homeMenu {
+  padding: 0;
+  margin: 0 0 10px 0;
+  list-style: none;
+  float: right;
+}
+
+ul.homeMenu li {
+  display: inline;
+  margin: 0;
+  padding: 2px 10px;
+  font-weight: bold;
+}
+
+#homeContent {
+  color: #000;
+  padding-top: 0;
+}
+
+.mainItem {
+  width: 50%;
+  float: left;
+}
+
+.mainItem .inner {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #A5833E;
+}
+
+.mainItem .mainImage {
+  oveflow: hidden;
+}
+
+.field-label {
+  margin-top: 20px;
+}
+
+.field-item {
+
+} 
+
+.field-item p {
+  margin-top: 0;
+}
+
+a.tagadelic {
+  text-decoration: none;
+}
+
+.block h2 {
+  margin: 0 -10px 10px -10px;
+  color: #000;
+  font-size: 12pt;
+  font-weight: bold;
+  padding: 4px 10px;
+}
+
+.block a {
+  text-decoration: none;
+}
+
+.block .view-content ul {
+  margin: 0;
+  padding: 0;
+  font-size: 10pt;
+}
+
+h2 a:link, h2 a:visited, h2 a:hover, h2 a:active {
+  text-decoration: none;
+}
+
+#mainMenu {
+  font-size: 12pt;
+  padding: 5px;
+  margin-top: 15px;
+  clear: both;
+}
+
+#mainMenu ul.links li {
+  list-style: none;
+  margin: 0 5px;
+  padding: 0;
+  float: left;
+}
+
+#mainMenu ul.links li a:link, #mainMenu ul li a:visited, #mainMenu ul li a:hover, #mainMenu ul li a:active {
+  color: #ECE9B7;
+  text-decoration: none;
+  background-color: #726033;
+  padding: 5px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  text-align: center;
+  min-width: 100px;
+  display: block;
+}
+
+#mainMenu ul.links li a.active:link, #mainMenu ul li a.active:visited, #mainMenu ul li a.active:hover, #mainMenu ul li a.active:active {
+  color: #fff;
+}
+
+#mainMenu li.leaf {
+  border: 0;
+}
+
+li.fake-leaf {
+  display: none;
+}
+
+#userMenu {
+  clear: both;
+}
+
+#mainMenu {
+  float: right;
+  margin-top: 0;
+}
+
+#main {
+  top: 90px;
+}
+
+.block ul.menu {
+  margin: 0;
+  padding: 0;
+}
+
+.block ul.menu li.leaf, .block ul.menu li.collapsed, .block ul.menu li.expanded {
+  font-weight: bold;
+  border-bottom: 1px dotted #999;
+}
+
+#pageFooter .block ul.menu li.leaf,#pageFooter .block ul.menu li.collapsed,#pageFooter .block ul.menu li.expanded {
+  font-weight: normal;
+  list-style: none;
+  float: left;
+}
+
+#pageFooter .block {
+  float: right;
+  margin-bottom: 10px;
+}
+
+#homeLeft .block ul.menu li a, #contentMenu .block ul.menu li a {
+  display: block;
+  padding: 4px;
+}
+
+#homeLeft .block ul.menu li a:link, #contentMenu .block ul.menu li a:link {
+
+}
+
+#homeLeft .block ul.menu li a:visited, #contentMenu .block ul.menu li a:visited {
+
+}
+
+#homeLeft .block ul.menu li a:hover, #contentMenu .block ul.menu li a:hover {
+
+}
+
+#homeLeft .block ul.menu li a:active, #contentMenu .block ul.menu li a:active {
+
+}
+
+#homeRight #block-block-16 {
+  background-color: #ECE9B7;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#block-block-9 {
+  font-size: 8pt;
+}
+
+#block-menu-menu-site-navigation ul {
+  font-size: 12pt;
+  margin-left: 0.8em;
+}
+
+#block-menu-menu-site-navigation ul ul {
+  font-size: 10pt;
+}
+
+/*#pageFooter #block-block-17 {
+  float: left;
+}
+
+#block-menu-menu-footer-menu {
+  clear: none;
+}*/
+
+#homeRight {
+  padding-left: 0;
+}
+
+/* For the biodiversity news */
+.view-id-biodiversity_news {
+  font-size: 9pt;
+}
+
+.view-id-biodiversity_news .view-header {
+  font-size: 12pt;
+}

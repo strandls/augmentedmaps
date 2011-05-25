@@ -1,0 +1,202 @@
+<?php drupal_add_js('misc/collapse.js'); ?>
+
+<?php
+  $node_str = node_load($node->field_strategic_direction[0]['nid']);
+?>
+<div class="field field-type-nodereference field-field-strategic-direction">
+  <h3 class="field-label">Strategic direction</h3>
+  <div class="field-items">
+      <div class="field-item"> 
+<?php 
+$title = $node->field_strategic_direction[0]['safe']['title'];
+$body = strip_tags($node_str->body);
+print "$title - $body";
+?>
+</div>
+
+  </div>
+</div>
+
+<?php 
+  // Field Permissions are not accessible from Contemplate, defines visiblity rules based on role
+  global $user;
+  $role = cepf_grantee_project_get_role($user);
+?>
+<?php if($node->field_updates[0]['view'] !=''): ?>
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Project Updates'); ?></a></legend>
+<div class="field field-field-updates">
+      <table>
+<?php
+function format_display($data)       {
+  $parts = explode('::', $data);
+  $updater = user_load(array('uid' => $parts[0]));
+  $output = "<div class=update_message>".$parts[2]."</div>";
+  $output = $output ."<div class=details>"."<a href=$base_url/user/$parts[0]>$updater->name</a>"." on ".format_date($parts[1], 'short', 0)."</div>";
+  return $output;
+}
+for($i=0;$i<5;$i=$i+1)   {
+  if($node->field_updates[$i]['view'] !='')
+    print "<tr><td>".format_display($node->field_updates[$i]['view'])."</td></tr>";
+  else
+    break;
+}
+?>
+      </table>
+</div>
+</fieldset>
+<?php endif; ?>
+
+<div class="field field-type-text field-field-project-summary">
+  <h3 class="field-label">Project Summary</h3>
+
+<div class="field field-type-image field-field-logo">
+      <div class="field-item"><?php print $node->field_logo[0]['view'] ?></div>
+</div>
+
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_project_summary[0]['view'] ?></div>
+  </div>
+</div>
+
+<?php
+   $header = array('Sitename', 'Corridor');
+   $data = array();
+   $count = count((array)$node->field_project_sitename);
+
+   if($count > 0 && $node->field_project_sitename[0]['value'] != '') {
+   for($counter = 0; $counter < $count; $counter += 1) {
+      $row = array();
+      $row[] = $node->field_project_sitename[$counter]['value'];
+      $row[] = $node->field_project_corridor[$counter]['value'];      
+      $data[] = $row;
+   }
+   if(count($data) >0 ) {
+       print "<fieldset class=\"collapsible\">";
+       print "<legend><a href=\"#\"> Project Sites </a></legend>";
+       print "<div class = \"sitename_corridors\">";
+       print theme_table($header, $data);
+       print '</div>';
+       print '</fieldset>';
+   }
+   }
+?>
+<fieldset class="collapsible">
+<legend><a href="#">Grantee</a></legend>
+
+<div class="field field-type-text field-field-grantee">
+  <!--h3 class="field-label">Grantee</h3-->
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_project_grantee_org[0]['view']; ?></div>
+  </div>
+</div>
+
+<?php
+$header = array("Name", "Email", "Type");
+$data = array();
+$row = array($node->field_grantee_name[0]['view'], $node->field_grantee_email[0]['view'], "Primary Contact");
+$data[] = $row;
+
+$count = count((array)$node->field_project_subgrantee);
+if($node->field_member_emails[0]['view'] != '') {
+  for($i=0;$i<$count;$i=$i+1)   {
+     $row = array($node->field_project_subgrantee[$i]['view'], $node->field_member_emails[$i]['view'], "Member");
+     $data[] = $row;
+  }
+}
+if($role==0 || $role==1 || $role==2)              {
+    print '<div class = "grantee_details">';
+    print theme_table($header, $data);
+    print '</div>';
+}
+?>
+</fieldset>
+
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Project Details'); ?></a></legend>
+<div class="field field-type-text field-field-grant-term">
+  <h3 class="field-label">Grant Term</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_grantterm[0]['view']; ?></div>
+  </div>
+</div>
+<div class="field field-type-text field-field-amount">
+  <h3 class="field-label">Amount</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_project_amount[0]['view']; ?></div>
+  </div>
+</div>
+</fieldset>
+
+<?php if(($node->field_project_proposal[0]['view']!='') || ($node->field_project_proposal_files[0]['view']!='')): ?>		
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Project Proposal'); ?></a></legend>
+<div class="field-items">
+  <div class="field-item"><?php print $node->field_project_proposal[0]['view'] ?></div>
+  <?php foreach ((array)$node->field_project_proposal_files as $item) { ?>
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $item['view'] ?></div>
+  <?php } ?>
+</div>
+</fieldset>
+<?php endif; ?>
+
+<?php if(($node->field_midterm_assessment[0]['view']!='') || ($node->field_midterm_assessment_files[0]['view']!='')): ?>		
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Project Reports'); ?></a></legend>
+<div class="field-items">
+    <div class="field-item"><?php print $node->field_midterm_assessment[0]['view'] ?></div>
+    <?php foreach ((array)$node->field_midterm_assessment_files as $item) { ?>
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $item['view'] ?></div>
+    <?php } ?>
+</div>
+</fieldset>
+<?php endif; ?>
+
+<?php if(($node->field_data_contribution[0]['view']!='') || ($node->field_data_contribution_files[0]['view']!='') || ($node->field_intensity_sample[0]['view']!='')): ?>	
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Data Contribution'); ?></a></legend>
+<div class="field field-type-text field-field-intensity-sample">
+  <h3 class="field-label">Method and Intensity of Samples</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $node->field_intensity_sample[0]['view'] ?></div>
+  </div>
+</div>
+
+<div class="field-items">
+    <div class="field-item"> <?php print $node->field_data_contribution[0]['view'] ?> </div>
+    <?php foreach ((array)$node->field_data_contribution_files as $item) { ?>
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $item['view'] ?></div>
+    <?php } ?>
+</div>
+</fieldset>
+<?php endif; ?>
+
+<?php if(($node->field_analysis_results[0]['view']!='') || ($node->field_analysis_results_files[0]['view']!='')): ?>
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Analysis and Results'); ?></a></legend>
+<div class="field-items">
+    <div class="field-item"> <?php print $node->field_analysis_results[0]['view'] ?></div>
+    <?php foreach ((array)$node->field_analysis_results_files as $item) { ?>
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $item['view'] ?></div>
+    <?php } ?></div>
+</fieldset>
+<?php endif; ?>
+
+<?php if(($node->field_miscellaneous[0]['view']!='') || ($node->field_miscellaneous_files[0]['view']!='')): ?>
+<fieldset class="collapsible collapsed">
+<legend><a href="#"><?php print t('Miscellaneous'); ?></a></legend>
+<div class="field-items">
+    <div class="field-item"> <?php print $node->field_miscellaneous[0]['view'] ?> </div>
+    <?php foreach ((array)$node->field_miscellaneous_files as $item) { ?>            
+      <div class="field-item"><?php print $item['data']['short_note']['body'] ?></div>
+      <div class="field-item"><?php print $item['view'] ?></div>
+    <?php } ?>
+</div>
+</fieldset>
+<?php endif; ?>
+

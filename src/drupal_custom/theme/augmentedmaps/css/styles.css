@@ -1,5 +1,5 @@
 body {
-	background-color: #ECE9B7;
+	background-color: #ffffff;
 	margin: 0;
 	font-family: Verdana, Helvetica, Sans-Serif;
 	font-size: 10pt;
@@ -139,9 +139,9 @@ body#home #pageFooter {
 }
 
 #pageFooter {
-	background-color:  #ECE9B7;
+	background-color:  #777777;
 	text-align: center;
-	border-top: 1px solid #A5833E;
+	border-top: 1px solid #237237;
 	padding: 10px;
 }
 
@@ -154,7 +154,7 @@ body#home #pageFooter {
 	position: absolute;
 	top: 40px;
 	left: 260px;
-	border: 1px solid #A5833E;
+	border: 1px solid #237237;
 	z-index: 1;
 }
 
@@ -233,7 +233,7 @@ body#home #pageFooter {
 }
 
 #mapSearch {
-	border: 1px solid #A5833E;
+	border: 1px solid #237237;
 }
 
 #content {

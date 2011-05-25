@@ -1,0 +1,151 @@
+<?php
+function get_tableclass($num) {
+  static $classes = NULL;
+  if($classes == NULL)
+      $classes = array(1 => 'singlecolumn', 2 => 'twocolumns', 3 => 'threecolumns', 4 => 'fourcolumns', 5 => 'fivecolumns');
+   return $classes[$num];
+}
+
+$header = array("Taxa", "No. of Species");
+$data = array(
+       format_output($node->field_taxa), $node->field_numentities[0]['view']    
+  );
+
+$header[] = "Place Name"; //mandatory display
+if(isset($node->field_place[0]['value']) && !empty($node->field_place[0]['value']))       {
+     $data[] = $node->field_place[0]['view'];
+}
+else  {
+     $data[] = '-';
+}
+if(isset($node->field_biogeography[0]['value']) && !empty($node->field_biogeography[0]['value']))  {
+     $header[] = "Biogeographic Region";
+     $data[] = format_output($node->field_biogeography);
+}
+
+$header[] = "State(s)"; //Mandatory display
+if(isset($node->field_states[0]['value']) && !empty($node->field_states[0]['value']))  {
+     $data[] = format_output($node->field_states);
+}
+else  {
+     $data[] = '-';
+}
+
+if(isset($node->field_districts[0]['value']) && !empty($node->field_districts[0]['value']))     {
+     $header[] = "District(s)";
+     $data[] = format_output($node->field_districts);
+}
+if(isset($node->field_taluks[0]['value']) && !empty($node->field_taluks[0]['value']))    {
+     $header[] = "Taluk(s)";
+     $data[] = format_output($node->field_taluks);
+}
+
+if(count($data) > 0)  {
+  $attributes = array('class' => 'general');
+  print '<div class = "location">';
+  print "<h3>Taxa and Location</h3>";
+  print theme_table($header, array($data), $attributes);
+  print '</div>';
+}
+
+$header = array();
+$data = array();
+if(isset($node->field_fromdate[0]['value']) && !empty($node->field_fromdate[0]['value']))       {
+     $header[] = "From";
+     $data[] = $node->field_fromdate[0]['view'];
+}
+if(isset($node->field_todate[0]['value']) && !empty($node->field_todate[0]['value']))       {
+     $header[] = "To";
+     $data[] = $node->field_todate[0]['view'];
+}
+if(isset($node->field_publicationdate[0]['value']) && !empty($node->field_publicationdate[0]['value']))       {
+     $header[] = "Publication";
+     $data[] = $node->field_publicationdate[0]['view'];
+}
+if(isset($node->field_updateddate[0]['value']) && !empty($node->field_updateddate[0]['value']))       {
+     $header[] = "Updated";
+     $data[] = $node->field_updateddate[0]['view'];
+}
+
+if(count($data) > 0)  {
+   $attributes = array('class' => get_tableclass(count($data)));
+   print '<div class = "dates">';
+   print '<h3>Dates</h3>';
+   print theme_table($header, array($data), $attributes);
+   print '</div>';
+}
+?>
+<div id = "ibp_credits">
+<fieldset class="collapsible">
+<legend><a href="#"><?php print t('License information'); ?></a></legend>
+<div class="field field-type-text field-field-attribution">
+  <?php if(isset($node->field_attribution[0]['value']) && !empty($node->field_attribution[0]['value'])): ?>
+  <h3 class="field-label">Attribution:</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_attribution[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+</div>
+<div class="field field-type-text field-field-cclicense">
+  <?php if(isset($node->field_cclicense[0]['value']) && !empty($node->field_cclicense[0]['value'])): ?>
+  <h3 class="field-label">License </h3>
+  <div class="field-items">
+      <div class="field-item">
+<?php 
+global $base_url;
+$path = "$base_url/sites/all/modules/ibpcl/images/";
+$path .= $node->field_cclicense[0]['value'] . '.png';
+print "<img alt=$node->field_cclicense[0]['view'] src=$path />"; 
+?>
+       </div>
+  </div>
+  <?php endif; ?> 
+</div>
+</fieldset>
+</div>
+
+
+<div class="field field-type-text field-field-source">
+  <?php if(isset($node->field_source[0]['value']) && !empty($node->field_source[0]['value'])): ?>
+  <fieldset class="collapsible">
+  <legend><a href="#"><?php print t('Source'); ?></a></legend>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_source[0]['view'] ?></div>
+  </div>
+  <?php endif; ?> 
+  </fieldset>
+</div>
+
+<div class="field field-type-text field-field-clinfo">
+  <?php if(isset($node->field_clinfo[0]['value']) && !empty($node->field_clinfo[0]['value'])): ?>
+  <fieldset class="collapsible">
+  <legend><a href="#"><?php print t('Checklist Information'); ?></a></legend>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_clinfo[0]['view'] ?></div>
+  </div>
+  </fieldset>
+  <?php endif; ?> 
+</div>
+
+<div class="field field-type-text field-field-processedchecklist">
+  <h3 class="field-label">Checklist</h3>
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_processedchecklist[0]['view'] ?></div>
+  </div>
+</div>
+
+<div class="field field-type-text field-field-references">
+  <?php if(isset($node->field_references[0]['value']) && !empty($node->field_references[0]['value'])): ?>
+  <fieldset class="collapsible">
+  <legend><a href="#"><?php print t('References'); ?></a></legend>  
+  <div class="field-items">
+      <div class="field-item"><?php print $node->field_references[0]['view'] ?></div>
+  </div>
+  </fieldset>
+  <?php endif; ?> 
+</div>
+
+<?php
+print "<a class='printpdf' href = \"$base_url/printpdf/$node->nid\"><img src = \"$base_url/sites/all/modules/print/pdf.png\"/> </a>";
+?>
+

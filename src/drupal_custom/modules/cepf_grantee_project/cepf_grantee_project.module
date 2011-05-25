@@ -1,0 +1,249 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter
+ */
+function cepf_grantee_project_form_alter(&$form, $form_state, $form_id) {
+ if($form["#node"]->type == "project") {
+   global $user;
+   $role = cepf_grantee_project_get_role($user);
+   
+   //remove some fields if user is not admin
+/*   if($role != 0)      { 
+     unset($form['field_project_grantee']);
+     unset($form['field_project_subgrantee']);
+   }
+*/
+   $form['#after_build'][] = 'cepf_grantee_project_after_build'; 
+   $form['#submit'][] = 'project_submit';
+ }
+}
+
+/*
+ * Given user object, return role
+ */
+function cepf_grantee_project_get_role($user)   {
+  $role = -1;
+  // Check to see if $user has the administrator role.
+  if ($user->uid == 1 || in_array('administrator', array_values($user->roles)) || in_array('editorial team', array_values($user->roles))) {
+    $role = 0;
+  }
+  else if(in_array('CEPF RIT', array_values($user->roles)))   {
+    $role = 1;
+  }
+  else if(in_array('Grantee', array_values($user->roles))) {
+    $role = 2;
+  }
+  return $role;
+}
+
+/**
+* Custom after_build callback handler.
+*/
+function cepf_grantee_project_after_build($form, &$form_state) {
+  // Field Permissions will hide the fields from editable mode, we need to disable and display those field in edit mode, based on role
+  global $user;
+  $role = cepf_grantee_project_get_role($user);
+
+//disable some fields if user is not admin
+   if($role != 0)      {
+     cepf_grantee_project_disable($form['group_grantee_details']['field_project_grantee']);
+     cepf_grantee_project_disable($form['group_project_members']['field_project_subgrantee']);
+   }
+
+  if($role !=0 && $role != 1)        {
+  //print_r($form);
+  //print_r($form_state['values']);
+  // Use this one if the field is placed inside a fieldgroup.
+  cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_email']);
+  cepf_grantee_project_disable($form['group_grantee_details']['field_grantee_name']);
+  cepf_grantee_project_disable($form['group_grantee_details']['field_project_grantee_org']);
+  
+  //When using a field
+  cepf_grantee_project_disable($form['field_strategic_direction']);  
+  cepf_grantee_project_disable($form['field_project_amount']);
+  cepf_grantee_project_disable($form['field_project_summary']);
+  cepf_grantee_project_disable($form['field_grantterm']);
+  cepf_grantee_project_disable($form['title']);
+  $form['title']['#value'] = $form['title']['#default_value'];
+  $form_state['values']['title'] = $form['title']['#default_value'];
+  }
+  //disable for members
+  if($role !=0 && $role != 1 && $role != 2)   {
+           cepf_grantee_project_disable($form['group_project_members']);
+   }
+  return $form;
+}
+
+/**
+* Recursively set the disabled attribute of a CCK field
+* and all its dependent FAPI elements.
+*/
+function cepf_grantee_project_disable(&$elements) {
+  foreach (element_children($elements) as $key) {
+    if (isset($elements[$key]) && $elements[$key]) {
+
+      // Recurse through all children elements.
+      cepf_grantee_project_disable($elements[$key]);
+    }
+  }
+
+  if (!isset($elements['#attributes'])) {
+    $elements['#attributes'] = array();
+  }
+  $elements['#attributes']['disabled'] = 'disabled';
+}
+
+//unique name generation from email
+function getUniqueName($email)          {
+        // Default implementation of name generation
+        $namenew = preg_replace('/@.*$/', '', $email);
+        // Remove unwanted characters
+        $namenew = preg_replace('/[^a-zA-Z0-9.-]/', '', $namenew);
+        // if username generated from email record already exists, append underscore and number eg:(chris_123)
+        if (db_result(db_query("SELECT count(*) FROM {users} WHERE LOWER(name) = LOWER('%s')", $namenew)) > 0) {
+          // find the next number available to append to the name
+          $sql = "SELECT SUBSTRING_INDEX(name,'_',-1) FROM {users} WHERE name REGEXP '%s' ORDER BY CAST(SUBSTRING_INDEX(name,'_',-1) AS UNSIGNED) DESC LIMIT 1";
+          $nameidx = db_result(db_query($sql, '^'. $namenew .'_[0-9]+$'));
+          $namenew .= '_'. ($nameidx + 1);
+        }
+        return $namenew;
+}
+
+/*
+ * returns true if the String is not empty
+ */
+function check_not_empty($s, $include_whitespace = false)
+{
+    if ($include_whitespace) {
+        // make it so strings containing white space are treated as empty too
+        $s = trim($s);
+    }
+    return (isset($s) && strlen($s)); // var is set and not an empty string ''
+}
+
+/**
+ *   //This is an example of how to call createUser
+ *   //This part of the code is kept as an action to create members
+ *   $member_emails = $node->field_member_emails;
+ *   $member_names = $node->field_member_name;
+ *   $subgrantees = Array();
+ *   $counter = 0;
+ *   foreach ($member_emails as $key => $value)     {
+ *      $subgrantees[] =  Array( 'uid' => createUser($value[email],  $member_names[$counter][value], 918),  '_remove' => $value[_remove]);
+ *      $counter = $counter + 1;
+ *    }
+ *  $node->field_project_subgrantee = $subgrantees;
+ *   return array("node" => $node);
+ *
+ **/
+/**
+ * Wherever there is a requirmeent to create a user with a specific role, then this method can be called
+ * If a user exists, then just assign him the role, else create the user, using the details passed and then assign him the role
+ * User will be notified, only if he is a new user, trigger for user notification message will be fired,  after assigning the role
+ */
+function createUser($email, $name, $rid)            {
+  //generate password
+  $password = user_password();
+  global $_domain;
+  $new_user = TRUE;
+  if (!db_result(db_query("SELECT COUNT(*) FROM {users} WHERE mail = '%s';", $email))) {
+       if(!check_not_empty($name))
+              $name = getUniqueName($email);
+       //create user
+       $newUser = array(
+           'name' => getUniqueName($email),
+           'profile_fullname' => $name,
+           'pass' => $password, // note: do not md5 the password
+           'password' => $password, // note: do not md5 the password
+           'mail' => $email,
+           'status' => 1,
+           'init' => $email
+        );           
+       user_save(null, $newUser);
+
+       if($newUser == FALSE)  {
+            drupal_set_message('User creation failed');
+       }
+       else       {
+            //set the password to the one generated through code
+       $newUser->password = $password;
+
+       drupal_set_message('User creation successful');
+       }
+   }
+   else
+       $new_user = FALSE;
+
+   $uid = db_result(db_query("SELECT uid FROM {users} WHERE mail = '%s';", $email));
+   
+   //Assign role $rid sutomatically to created/existing user
+   $u = user_load($uid);
+   if(!user_already_has_role($u, $rid))        {       //Check if user already has a role
+       
+       //add role to user
+       user_multiple_role_edit($u, 'add_role', $rid);
+   
+       //assign domain, only if its new user,
+       //right now, send mail also only if its a new user getting created
+       if($new_user)         {
+           /* Right now the assumption is that user will be created from WGP domain only, 
+            * Later if required, need to pass this parameter also from outside
+            */
+            $edit = array('domain_user'=>array(2=>2));
+            domain_user('update', $edit, $u);
+       
+            //send an email to the user
+            //$op = 'register_no_approval_required';
+            $op = 'register_admin_created';
+             _user_mail_notify($op, $u);
+       }
+   }
+   return $uid;
+}
+
+/**
+ * Check if user has the role passed
+ */
+function user_already_has_role($u, $rid)      {
+      $new = $u->roles;
+      /* Dirty check, needs to modify later*/
+      $exists = 0;
+      foreach($new as $key => $value)
+         if($rid == $key)
+              $exists = 1;
+      return ($exists==1);
+}
+
+function get_last_updated_user($nid)  {
+  $update_author_uid = db_result(db_query('SELECT nr.uid FROM {node_revisions} nr INNER JOIN {node} n ON n.vid = nr.vid WHERE n.nid = %d', $nid));
+  $update_author = '';
+  $update_author_output = '';
+  if ($update_author_uid == '0') { // Check if author is anonymous
+    $update_author_output = variable_get('anonymous', t('Anonymous'));
+  }
+  else {
+    $update_author = user_load(array('uid' => $update_author_uid));
+    $update_author_output = l($update_author->name, 'user/'. $update_author_uid);
+  }
+  return $update_author_output;
+}
+
+function get_last_updated_time($nid)  {
+  $updated_time = db_result(db_query('SELECT nr.timestamp FROM {node_revisions} nr INNER JOIN {node} n ON n.vid = nr.vid WHERE n.nid = %d', $nid));
+  return format_date($updated_time, 'short', 0);
+}
+
+//Submit handler for Cepf Project
+function project_submit($form, &$form_state) {
+  //print_r($form_state['values']);
+  $update = $form_state['values']['field_project_update'][0]['value'];
+
+  if($update != '')  {
+    $count = count((array)$form_state['values']['field_updates']);
+    global $user;
+    $form_state['values']['field_updates'][$count]['value'] =  $user->uid."::".time()."::".$update;
+  }  
+  $form_state['values']['field_project_update'][0]['value'] = '';
+}
+

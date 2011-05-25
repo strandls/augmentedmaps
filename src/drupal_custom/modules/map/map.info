@@ -2,7 +2,7 @@
 ;$Id$
 
 name = Map
-description = Complete map module for MapLocator
+description = Complete map module for IBP
 core = 6.x
-package = MapLocator
+package = augmentedmaps 
 version = VERSION

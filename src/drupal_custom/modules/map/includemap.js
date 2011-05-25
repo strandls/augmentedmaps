@@ -22,6 +22,18 @@ please see http://www.gnu.org/licenses/gpl-3.0.html.
 *
 ***/
 
+//XXX:rahul:to fix console is not defined error in browser without firebug
+if (!window.console || !console.firebug)
+{
+    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+    "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+
+
+    window.console = {};
+    for (var i = 0; i < names.length; ++i)
+        window.console[names[i]] = function() {}
+}
+
 document.write("<script src='../openlayers/OpenLayers.js'></script>");
 var BASE_MAP_SOURCE_sp = BASE_MAP_SOURCE.split(",");
 for (var i = 0; i < BASE_MAP_SOURCE_sp.length; i++) {
@@ -33,8 +45,26 @@ for (var i = 0; i < BASE_MAP_SOURCE_sp.length; i++) {
       var ip_addr=ip_addr_text[1].split("/");
 	switch (ip_addr[0])
       {
-        case 'localhost':
-          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxRrHVaiU84MOoCV10Bvt7agAC7tbg'></script>");
+        case 'wgp.khasi.strandls.com':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BSh9t97vtMV8vIOMdpKn2GfN8-o5hRUWFN2pZkiPlpAQgl308dV5I-Acw'></script>");
+          break;
+       case 'ibp.khasi.strandls.com':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BSZqvpoLVONeNf4Ch2Jg2KQWckk5RQyiUhjaMvJu8mri3-O2bGJv7DxDA'></script>");
+          break;
+       case 'westernghatsportal.org':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BRgJ5oIIa8tb-azaxQOwB4GmV78mhSDlhaspt5acfUlFvAfAGBRsILiNw'></script>");
+          break;
+       case 'thewesternghats.in':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BSfxTrumlgHSvRYsANeHtrGSJFg7RR8hHiTHx34bPEx0AR3oXXv2aY75A'></script>");
+          break;
+       case 'thewesternghats.org':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BQMconc0x0wn-1aVQuOb-PYBIKJpBQhwtyLmCQqsrzFKmhsudJ9jMNDgg'></script>");
+          break;
+       case 'western-ghats.in':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BTlyX6odf56vLo5ik0vphRuYS3WnRQrH39qpLY6hNGAikfFY7kZsO3roQ'></script>");
+          break;
+       case 'indiabiodiversity.org':
+          document.write("<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BTAhyobnrf0vDUn9-dE4FfDgG9nWxRDCj3OYX4CR8PAXEaYu2Rs8doXVg'></script>");
           break;
       }
       break;
@@ -60,10 +90,13 @@ if(GOOGLE_EARTH_ENABLED){
   document.write("<script type='text/javascript' src='../MapFish/client/mfbase/ext-community-extensions/color-field.js' ></script>");
   document.write("<link rel='stylesheet' type='text/css' href='../MapFish/client/mfbase/ext-community-extensions/color-field.css' />");
   /* Get a seperate key as per the host server ip address */
-  if((document.location.href).indexOf("http://localhost") > -1) {
-    document.write("<script type='text/javascript' src='http://www.google.com/jsapi?key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxRrHVaiU84MOoCV10Bvt7agAC7tbg'></script>");
+  if((document.location.href).indexOf("http://ibp.saturn.strandls.com") > -1) {
+    document.write("<script type='text/javascript' src='http://www.google.com/jsapi?key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BSbtcI_iVa-2AmTDvcX2necywsXBRRTG8mFZvj-jcxS4lFSqiyphWJPlA'></script>");
+  }else if((document.location.href).indexOf("http://wgp.saturn.strandls.com") > -1) {
+    document.write("<script type='text/javascript' src='http://www.google.com/jsapi?key=ABQIAAAA1nFeM8TAZxFi_mL6qf7X8BSBuwmTeQPeaKahCdKH7SiemvKknBQAjbs3zw1SeDKNzpzLvp9Qp0QEUA'></script>");
   }
-  document.write("<script type='text/javascript' src='"+ base_path +"Earth.js'> </script>");
+  //XXX:rahul:commented Earth.js: not required
+  //document.write("<script type='text/javascript' src='"+ base_path +"Earth.js'> </script>");
 }
 
 

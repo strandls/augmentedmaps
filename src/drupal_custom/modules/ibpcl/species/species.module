@@ -42,14 +42,23 @@ function species_display($db_table, $ibp_id){
   $f = new phpFlickr("40059d14fc8c9915f0621568d61d9023", "41712609f787b238");
   $flickr_photos = array();
   $flickr_photos = $f->photos_search(array("tags"=>$row['ibp_scientific_name'], "tag_mode"=>"any"));
-  for($i=0;$i < 9;$i++)
+  //drupal_set_message($row['ibp_scientific_name']);
+  //Number of images from Flickr can be less than 9, handle it
+  $num_photos = count($flickr_photos['photo']);
+  $num_preview = 9;
+  $num_preview_show = $num_preview;
+  if($num_preview_show > $num_photos)
+     $num_preview_show = $num_photos;
+ 
+  for($i=0;$i < $num_preview_show;$i++)
   {
     	$url = "http://farm".$flickr_photos['photo'][$i]['farm'].".static.flickr.com/".$flickr_photos['photo'][$i]['server']."/".$flickr_photos['photo'][$i]['id']."_".$flickr_photos['photo'][$i]['secret']."_s.jpg";
     	$link_url = "http://www.flickr.com/photos/".$flickr_photos['photo'][$i]['owner']."/".$flickr_photos['photo'][$i]['id']."/";
-    	$output .= "<a href='".$link_url."' target='_blank'><img src='".$url."' border='1' title='".($flickr_photos['photo'][$i]['title']?$flickr_photos['photo'][$i]['title']:$flickr_photos['photo'][$i]['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
+    	$output .= "<a href='".$link_url."'><img src='".$url."' border='1' title='".($flickr_photos['photo'][$i]['title']?$flickr_photos['photo'][$i]['title']:$flickr_photos['photo'][$i]['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
 //$output .= $flickr_photos['photo'][$i]['title'];
   }
-  $output .= '<br /><span class=\'flickr_more\'><a href=\'#flickr_photos\'>more...</a></span>';
+  if($num_photos > 9)
+     $output .= '<br /><span class=\'flickr_more\'><a href=\'#flickr_photos\'>more...</a></span>';
  
   $output .= '<table class="speciesTable">';
   $output .= '<tr>';
@@ -119,7 +128,7 @@ function species_display($db_table, $ibp_id){
   {
     $url = "http://farm".$photo['farm'].".static.flickr.com/".$photo['server']."/".$photo['id']."_".$photo['secret']."_s.jpg";
     $link_url = "http://www.flickr.com/photos/".$photo['owner']."/".$photo['id']."/";
-    $output .= "<a href='".$link_url."' target='_blank'><img src='".$url."' border='1' title='".($photo['title']?$photo['title']:$photo['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
+    $output .= "<a href='".$link_url."'><img src='".$url."' border='1' title='".($photo['title']?$photo['title']:$photo['id'])."' style='margin:2px 2px 2px 2px;'/></a>";
   }
   }
   return($output);
