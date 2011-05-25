@@ -67,8 +67,11 @@ function cepf_grantee_project_after_build($form, &$form_state) {
   cepf_grantee_project_disable($form['title']);
   $form['title']['#value'] = $form['title']['#default_value'];
   $form_state['values']['title'] = $form['title']['#default_value'];
-
   }
+  //disable for members
+  if($role !=0 && $role != 1 && $role != 2)   {
+           cepf_grantee_project_disable($form['group_project_members']);
+   }
   return $form;
 }
 
@@ -191,7 +194,8 @@ function createUser($email, $name, $rid)            {
             domain_user('update', $edit, $u);
        
             //send an email to the user
-            $op = 'register_no_approval_required';
+            //$op = 'register_no_approval_required';
+            $op = 'register_admin_created';
              _user_mail_notify($op, $u);
        }
    }
