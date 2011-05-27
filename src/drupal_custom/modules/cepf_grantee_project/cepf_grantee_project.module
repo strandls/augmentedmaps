@@ -1,6 +1,14 @@
 <?php
 
 /**
+ * Given a domain_id, subdomains, check if a domain can access the content
+ */
+function domain_content($domain_id, $subdomains)    {
+   $domain = domain_lookup($domain_id);    
+   return in_array($domain['sitename'], $subdomains);
+}
+
+/**
  * Implementation of hook_form_alter
  */
 function cepf_grantee_project_form_alter(&$form, $form_state, $form_id) {
