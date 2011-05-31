@@ -1,0 +1,3 @@
+name = "Utilities for WGP"
+description = "Utilities required for the Westernghats Portal"
+core = 6.x

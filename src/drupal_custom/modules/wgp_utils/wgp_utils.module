@@ -1,0 +1,72 @@
+<?php
+//This module holds all the utility methods, required for the wgp code
+
+//Path URLs to address
+function wgp_utils_menu()   {
+ // Search
+ $items['search_custom'] = array(
+    'title' => 'Sarch HACKED',
+    'access arguments' => array('access content'),
+    'page callback' => 'search_custom',
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+
+  $items['search_custom/%/%'] = array(
+    'title' => 'Sarch HACKED',
+    'access arguments' => array('access content'),
+    'page callback' => 'search_display',
+    'page arguments' => array(1,2),
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Custom search form implementation
+ */
+function search_custom_form() {
+  $form['keyword'] = array(
+    '#type' => 'textfield',
+    '#title' => '',
+    '#size' => '20',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Search',
+  );
+  return $form;
+}
+
+
+function search_custom_form_submit($form, &$form_state) {
+  global $base_url;
+  drupal_goto($base_url."/search_custom/node/".$form_state['values']['keyword']);
+}
+
+
+//Page callback for search_custom
+function search_custom(){
+  return (drupal_get_form("search_custom_form"));
+}
+
+/**
+ * Display of custom search results
+ */
+function search_display($type, $keyword){
+  return (search_data($keyword, $type));
+  /*
+  $output = "<h2> Search Results </h2> <br/>";
+  $searchResults = do_search($keyword, $type);
+  foreach($searchResults as $result)
+  {
+     //the 'sid' is actually a node id.
+     $nid = $result->sid;
+     $node = node_load($nid);
+     $output = $output."<a href=$base_url/node/$nid>$node->title</a>"."<br/>";
+   }
+   //$output = search_excerpt($keyword, $output);
+   return ($output);
+*/
+}
+
