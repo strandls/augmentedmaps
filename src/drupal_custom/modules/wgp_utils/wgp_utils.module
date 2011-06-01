@@ -35,13 +35,24 @@ function search_custom_form() {
     '#type' => 'submit',
     '#value' => 'Search',
   );
+//  $form['#validate'] = 'search_custom_form_validate';
   return $form;
 }
 
+//validate handler
+function search_custom_form_validate($form, &$form_state) {
+  if ($form_state['values']['keyword'] == '') {
+    form_set_error('keys', t('Please enter some keyword to search.'));
+  }
+}
 
 function search_custom_form_submit($form, &$form_state) {
   global $base_url;
-  drupal_goto($base_url."/search_custom/node/".$form_state['values']['keyword']);
+  $keyword = check_plain($form_state['values']['keyword']);
+  if(strlen($keyword)>=3)
+       drupal_goto($base_url."/search_custom/node/".$keyword);
+  else
+       form_set_error('keys', t('Enter three positive characters to search.'));
 }
 
 
@@ -54,7 +65,11 @@ function search_custom(){
  * Display of custom search results
  */
 function search_display($type, $keyword){
-  return (search_data($keyword, $type));
+  
+  $output = search_data($keyword, $type);
+  if(!isset($output))
+     $output = "Your search yielded no results";
+  return ($output);
   /*
   $output = "<h2> Search Results </h2> <br/>";
   $searchResults = do_search($keyword, $type);
