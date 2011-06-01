@@ -199,8 +199,8 @@ function setActiveLayerInfo(obj_layerInfo) {
   var is_timebased = parseInt(obj_layerInfo.is_timebased);
 
   // Layer name link
-  //jQuery('#activeLayer div a')[1].innerHTML = layer_name;
-  //jQuery(jQuery('#activeLayer div a')[1]).attr("href", "javascript:getLayerMetadata('" + layer_tablename + "');");
+  jQuery('#activeLayer div a')[1].innerHTML = layer_name;
+  jQuery(jQuery('#activeLayer div a')[1]).attr("href", "javascript:getLayerMetadata('" + layer_tablename + "');");
 
   // Layer info icon
   jQuery("#anc_LayerInfo").attr("href", "javascript:getLayerMetadata('" + layer_tablename + "');");

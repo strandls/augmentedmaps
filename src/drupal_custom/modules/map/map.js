@@ -26,7 +26,7 @@ please see http://www.gnu.org/licenses/gpl-3.0.html.
 /***** Global variables start here *****/
 var map;
 var MapServerURL = '/cgi-bin/mapserv';
-var MAP_DATA = '/home/rahul/augmentedmaps/data/'; //@MAP_DATA should be replaced by the directory path containing map files
+var MAP_DATA = '@MAP_DATA'; //@MAP_DATA should be replaced by the directory path containing map files
 var GOOGLE_BASE_URL = 'http://maps.google.com/maps/api/staticmap?';
 var popup;
 var popupMinSize = new OpenLayers.Size(600, 400); // width, height
@@ -1046,13 +1046,13 @@ function getLayerMetadata(layer_tablename, successCallBack, successCallBackArgs)
           title = jQuery("#divThemes").find("input[value='" + layer_tablename + "']").attr('id');
         }
         jQuery('#metadata_popup').dialog({
-          height: ht+'px',
-          width: wd+'px',
-          maxHeight: ht+'px',
-          maxWidth: wd+'px',
-          position: [lft, tp],
+          height: ht,
+          width: wd,
+          maxHeight: ht,
+          maxWidth: wd,
           title: title,
-          zIndex: 2004
+          zIndex: 20000,
+          modal: true
         });
       }
       if(successCallBack) {
@@ -1704,7 +1704,7 @@ function onPointSelect(feature) {
               } else {
                 popupContentDiv = jQuery('#'+popup_div_id+'_contentDiv');
               }
-              popupContentDiv.linkize();
+              //popupContentDiv.linkize();
               jQuery.unblockUI();
             });
           }
@@ -2625,7 +2625,7 @@ function addToLayerOrdering(layer_tablename) {
     alert("Error reading layer info.");
     return;
   }
-  addLayerOrderingElemAtTop(layer_tablename, arr_layers[layer_tablename].layer_name, arr_layers[layer_tablename].p_nid,arr_layers[layer_tablename].extent,arr_layers[layer_tablename].access);
+  //addLayerOrderingElemAtTop(layer_tablename, arr_layers[layer_tablename].layer_name, arr_layers[layer_tablename].p_nid,arr_layers[layer_tablename].extent,arr_layers[layer_tablename].access);
 
 }
 
@@ -2634,7 +2634,7 @@ function removeFromLayerOrdering(layer_tablename) {
     alert("Error reading layer info.");
     return;
   }
-  removeLayerOrderingElem(layer_tablename, arr_layers[layer_tablename].layer_name);
+  //removeLayerOrderingElem(layer_tablename, arr_layers[layer_tablename].layer_name);
 }
 
 
@@ -3249,7 +3249,7 @@ function loadSelectedLayer(layer_tablename) {
   if ((getTopLayer().name != layer_tablename) && (jQuery.inArray(layer_tablename, layersChecked) == -1)) {
     getData_Category(layer_tablename,true);
   } else {
-    addLayerOrderingElemAtTop(layer_tablename, arr_layers[layer_tablename].layer_name, arr_layers[layer_tablename].p_nid,arr_layers[layer_tablename].extent,arr_layers[layer_tablename].access);
+    //addLayerOrderingElemAtTop(layer_tablename, arr_layers[layer_tablename].layer_name, arr_layers[layer_tablename].p_nid,arr_layers[layer_tablename].extent,arr_layers[layer_tablename].access);
   }
   //pop up to show information to the user
   jQuery("#divModalPopup").html("<ul><li>Zoom in to the area on the map where you want to add the new feature</li> <li>Select the \"Draw Feature\" icon from the panel on the top left corner of the map</li> <li>Mark the feature on the map</li> <li>Enter corresponding details in the form</li></ul>");
@@ -3467,12 +3467,12 @@ function getDownloadFormats(layer_tablename){
             var arr_format_len = arr_format.length;
             var html = "Choose one of the following format to download the layer <br>";
             for( var i=0; i< arr_format_len;i++){
-               html += '<input name = "download" type="radio" value="'+arr_format[i]+'">'+arr_format[i]+'</option><br/>';
+               html += '<input name = "download" type="radio" value="'+arr_format[i]+'"/>'+arr_format[i]+'<br/>';
             }
             if(layer_tablename)
-              html+= '<input type="button" id="downloadLink" value="Download" onClick="downloadLayer(\''+layer_tablename+'\')";';
+              html+= '<input type="button" id="downloadLink" value="Download" onClick="downloadLayer(\''+layer_tablename+'\')";/>';
             else
-              html+= '<input type="button" id="downloadLink" value="Download" onClick="downloadLayer(\''+toplayer+'\')";';
+              html+= '<input type="button" id="downloadLink" value="Download" onClick="downloadLayer(\''+toplayer+'\')";/>';
             html += '<iframe id = "downloadIframe" src="" style="display:none"/>';
             jQuery("#divModalPopup").html(html);
           }
@@ -3511,7 +3511,6 @@ function downloadLayer(layer_tablename){
         var var_data = 'action=getDownloadUrl&layer_tablename='+layer_tablename+'&format='+format;
       else
         var var_data = 'action=getDownloadUrl&layer_tablename='+toplayer+'&format='+format;
-      alert(lnk, layer_tablename);
       jQuery.ajax({
         url: lnk,
         type: 'GET',
@@ -3718,7 +3717,7 @@ str += "</tr>";
   jQuery("#output").css("width","360px");
 
   jQuery("#measurement").css("display","block");
-	jQuery("#measurement").css("top","20px");
+	//jQuery("#measurement").css("top","20px");
 	jQuery("#measurement").css("left","0px");
         /*
 	jQuery("#measurement").dialog({

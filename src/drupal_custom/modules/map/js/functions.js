@@ -110,6 +110,7 @@ function showModalPopup(inrHTML, dialogTitle, onCloseCallback, callbackArgs) {
 }
 
 function modalPopup(inrHTML, dialogTitle, ht, wd, lft, tp, onCloseCallback, callbackArgs, divID, isModal) {
+
   if(isModal == null) {
     isModal = true;
   }
@@ -127,7 +128,6 @@ function modalPopup(inrHTML, dialogTitle, ht, wd, lft, tp, onCloseCallback, call
     zIndex: 2001,
     minheight: '275px',
     minwidth: '600px',
-    height: ht+'px',
     width: wd+'px',
     maxHeight: ht+'px',
     maxWidth: wd+'px',
@@ -142,7 +142,7 @@ function modalPopup(inrHTML, dialogTitle, ht, wd, lft, tp, onCloseCallback, call
     resize: onModalPopupResize
   });
   onModalPopupResize();
-  divModalPopup.linkize();
+  //divModalPopup.linkize();
 }
 
 function onModalPopupResize(ht) {
@@ -183,8 +183,10 @@ function showAjaxLinkPopup(url, title, callbackOnClose, callbackArgs) {
       jQuery("#divModalInfo").html(resp);
       var lft = tp = ht = wd = 0;
       var mp = jQuery('#map');
-      ht = mp.height() * 0.6;
-      wd = mp.width() * 0.7;
+      //ht = mp.height() * 0.6;
+      //wd = mp.width() * 0.7;
+      ht = 300;
+      wd = 600;
       lft = mp.offset().left + ((mp.width()-wd)/2);
       tp = mp.offset().top + ((mp.height()-ht)/2);
       jQuery("#divModalInfo").dialog({
@@ -193,8 +195,8 @@ function showAjaxLinkPopup(url, title, callbackOnClose, callbackArgs) {
           opacity: 0.5,
           background: "black"
         },
-        height: ht+'px',
-        width: wd+'px',
+        height: ht,
+        width: wd,
         maxHeight: ht+'px',
         maxWidth: wd+'px',
         position: [lft, tp],
@@ -207,7 +209,7 @@ function showAjaxLinkPopup(url, title, callbackOnClose, callbackArgs) {
         }
       });
       //jQuery("#divModalInfo").siblings().find(".ui-dialog-title").html(title);
-      jQuery("#divModalInfo").linkize();
+      //jQuery("#divModalInfo").linkize();
       jQuery.unblockUI();
       //showModalPopup(resp);
     }
