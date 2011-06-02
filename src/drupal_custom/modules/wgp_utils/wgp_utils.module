@@ -42,7 +42,7 @@ function search_custom_form() {
 //validate handler
 function search_custom_form_validate($form, &$form_state) {
   if ($form_state['values']['keyword'] == '') {
-    form_set_error('keys', t('Please enter some keyword to search.'));
+    form_set_error('keyword', t('Please enter some keyword to search.'));
   }
 }
 
@@ -52,7 +52,7 @@ function search_custom_form_submit($form, &$form_state) {
   if(strlen($keyword)>=3)
        drupal_goto($base_url."/search_custom/node/".$keyword);
   else
-       form_set_error('keys', t('Enter three positive characters to search.'));
+       form_set_error('keyword', t('Enter three positive characters to search.'));
 }
 
 
