@@ -1,6 +1,46 @@
 <?php
 //This module holds all the utility methods, required for the wgp code
 
+ // LOG All the mails going out from portal
+/**
+* Implementation of hook_mail_alter().
+*
+* @param $message A structured array containing the message to be altered. keys in this array include: id, to, subject, body, from, headers
+*/
+function wgp_utils_mail_alter(&$message) {
+//dd($message);
+$subject = $message['subject'];
+
+$output = "                   *************** MAIL STARTS *************              \n";
+$output = $output.'ID :- '.$message['id']."\n";
+$output = $output.'FROM :- '.$message['from']."\n";
+$output = $output.'TO :- '.$message['to']."\n";
+$output = $output.'SUBJECT :- '.$subject."\n";
+$output = $output.'BODY :- '.implode("\n",$message['body'])."\n";
+
+/* If the mail is related to accoutn details, just log, but dont keep complete mail in the logs as the mail can oontain wensitive information */
+if(strpos($message['subject'], 'Account details')!=false || strpos($message['subject'], 'login information') != false)
+  $output = $subject."\n";
+
+$output = $output."                   ************* MAIL ENDS ***************               \n";
+
+$from = check_plain($message['from']);
+$logfile = "/tmp/mail_log/".$from;
+
+if (!$handle = fopen($logfile, 'a')) {
+    watchdog('mail_log', 'Cannot open log file %file', array('%file' => $logfile), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  if (fwrite($handle, $output) === FALSE) {
+    watchdog('mail_log', 'Cannot write log file %file', array('%file' => $logfile), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  fclose($handle);
+
+}
+
+
 //Path URLs to address
 function wgp_utils_menu()   {
  // Search
