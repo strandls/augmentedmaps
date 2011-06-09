@@ -1,0 +1,3 @@
+name = "indiatreepix Management"
+description = "Module for fetching and managing content related to indiatreepix"
+core = 6.x

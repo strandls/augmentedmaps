@@ -1,0 +1,154 @@
+<?php
+
+//hook_cron
+function indiatreepix_cron() {
+  //execute the python script to fetch mails from indiatreepix mail id
+  // $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
+/*    
+  global $base_url;
+  $base_url  = "/data/augmentedmaps";
+
+  //Load the dictionary of all the available Species
+  $dictionary = read_file("$base_url/sites/all/modules/indiatreepix/processed_dictionary");
+  //print_r($dictionary);
+  
+  //Process the folder to fetch information and create nodes
+  //Directory to which the mails and images are downloaded
+  //iterate over all the available files in the directory and create treepix content
+  $directory = "$base_url/sites/all/modules/indiatreepix/detach_dir_processed_2";
+  $handle = opendir($directory);
+  $count = 0;
+
+  while (false !== ($file = readdir($handle)) && $count<5){
+    $extension = substr($file, strrpos($file, '.') + 1);
+
+    if($file != "." && $file != ".." && $extension == 'xml'){
+      $filename = $directory."/".$file;
+      // now use file to create content in the portal
+      createtreepix_content($filename, $dictionary);
+      $count = $count + 1;
+    }
+  }
+   
+  //DONE
+  closedir($handler);
+
+*/
+}
+
+/* Function to load complete file into a string 
+ */
+function read_file($filename)  {
+  $output=array();
+  $file = fopen($filename, "r");
+  while(!feof($file)) {
+    //read file line by line into variable
+    list($name, $alias) = explode("\t", fgets($file, 4096));
+    
+    $output[$alias] = $name;
+    if(!array_key_exists($name, $output))
+         $output[$name] = $name;
+  }
+  fclose ($file);
+  return $output;
+}
+
+/**
+ * Function to create the tree pix content
+ */
+function createtreepix_content($file, $dictionary)      {
+  //LOAD XML FILE INTO ARRAY
+  $array_attributes = xml_parser_xml_to_array($file);
+  //print_r($array_attributes);
+
+  $messagetext = '';
+  foreach ($array_attributes as $mailmessage)     
+    $messagetext = $messagetext . $mailmessage['messagetext'];
+
+  global $user;
+  $new_node = (object) NULL;
+  $new_node->type = 'indiatreepix';
+  $new_node->title = $array_attributes[0]['subject'];
+  $new_node->uid = $user->uid ;
+  $new_node->created = time();
+  $new_node->changed = time();
+  $new_node->status = 1;    
+
+  //convert to lower and check
+  $check = strtolower($messagetext);
+  $sceintific_name = '';
+  foreach($dictionary as $key=>$value)     {
+     if(strpos($check, $value) != FALSE)
+         $sceintific_name = $sceintific_name.$value." ";
+  }
+
+  if($sceintific_name == '')
+    $sceintific_name = 'Unidentified';
+
+  $count = count($dictionary);
+  $sceintific_name = '';
+
+  foreach ($dictionary as $key=>$value)   {
+    if (preg_match("/\b($key)\b/i", $messagetext)) {
+         $sceintific_name = $sceintific_name.$value."   ";
+     }
+  }
+
+  if(!trim($sceintific_name))
+     $sceintific_name = 'Unidentified';
+
+
+  $new_node->field_itp_mail_text[0]['value'] = $messagetext;
+  $new_node->title = $sceintific_name;
+  $new_node->field_species_name[0]['value'] = $sceintific_name;
+
+  //Right now we stay in the same folder, so there is no base_dir to process
+  $base_dir = '';
+  $filesinfo = array();
+  foreach ($array_attributes as $mailmessage)      {
+     if( is_array($mailmessage['attachments']))  {
+	foreach($mailmessage['attachments'] as $file) {
+                $file = $base_dir.substr($file, 1, strlen($file)-1);
+		$fn = basename($file);
+                
+                $indiatreepixdir = "$base_url/sites/default/files/indiatreepix/";
+
+                // if(file_exists('/sites/default/files/treepix/'))
+                //     print "yes";
+		//copying from source folder to drupal's sites/default/files/treepix/
+		$cp = copy($file,$indiatreepixdir.$fn);
+
+		if($cp) {
+                       // print "copied";
+			$files = new stdClass();
+			$files->filename = basename($file);
+			$files->filepath = $indiatreepixdir.$fn;
+			$files->filemime = file_get_mimetype(basename($file));
+			$files->filesize = filesize($file);
+			$files->uid = 1;
+			$files->status = FILE_STATUS_PERMANENT;
+			$files->timestamp = time();
+
+                        //CREATE a record for file in the files table
+			drupal_write_record('files', $files);
+
+			$filesinfo[] = array(
+				'fid' => $files->fid,
+				'title' => basename($files->filename),
+				'filename' => $files->filename,
+				'filepath' => $files->filepath,
+				'filesize' => $files->filesize,
+				'mimetype' => file_get_mimetype(basename($file)),
+				'description' => basename($file),
+				'list' => 1,
+			);
+		}
+	}
+    }
+  }
+  
+  //Attach files to the new node and save it.
+  $new_node->field_treepix = $filesinfo;
+  node_save($new_node);
+}
+
