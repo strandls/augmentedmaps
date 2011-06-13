@@ -1,7 +1,7 @@
 -- Script to setup the augmented maps database 
 
 \c template1;
-CREATE DATABASE template_postgis WITH template1;
+CREATE DATABASE template_postgis WITH template = template1;
 
 UPDATE pg_database SET datistemplate = TRUE WHERE dataname = 'template_postgis';
 \c template_postgis;
