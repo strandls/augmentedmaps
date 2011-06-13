@@ -3,7 +3,7 @@
 \c template1;
 CREATE DATABASE template_postgis WITH template = template1;
 
-UPDATE pg_database SET datistemplate = TRUE WHERE dataname = 'template_postgis';
+UPDATE pg_database SET datistemplate = TRUE WHERE datname = 'template_postgis';
 \c template_postgis;
 
 CREATE LANGUAGE plpgsql;
