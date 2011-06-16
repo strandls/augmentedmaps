@@ -3,9 +3,8 @@
 //hook_cron
 function indiatreepix_cron() {
   //execute the python script to fetch mails from indiatreepix mail id
-  // $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
-/*    
-  global $base_url;
+  //$output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
+    
   $base_url  = "/data/augmentedmaps";
 
   //Load the dictionary of all the available Species
@@ -19,7 +18,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<5){
+  while (false !== ($file = readdir($handle)) && $count<10){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -33,7 +32,6 @@ function indiatreepix_cron() {
   //DONE
   closedir($handler);
 
-*/
 }
 
 /* Function to load complete file into a string 
@@ -41,13 +39,16 @@ function indiatreepix_cron() {
 function read_file($filename)  {
   $output=array();
   $file = fopen($filename, "r");
+  
+  //read file line by line and build the data structure that can be used for search
   while(!feof($file)) {
-    //read file line by line into variable
+    //break the line using tab space
     list($name, $alias) = explode("\t", fgets($file, 4096));
-    
+    //alias will be the key, scientific name will be the value
+    //there is an assumption that there will be an entry of scientific name vs scietific name in the file
     $output[$alias] = $name;
-    if(!array_key_exists($name, $output))
-         $output[$name] = $name;
+ //   if(!array_key_exists($name, $output))
+ //        $output[$name] = $name;
   }
   fclose ($file);
   return $output;
@@ -57,53 +58,76 @@ function read_file($filename)  {
  * Function to create the tree pix content
  */
 function createtreepix_content($file, $dictionary)      {
+  global $base_url;
+  //print 'createtreepix_content   '.$file;
   //LOAD XML FILE INTO ARRAY
   $array_attributes = xml_parser_xml_to_array($file);
-  //print_r($array_attributes);
-
+  //print_r($array_attributes); 
+  $first_time = 1;
+  //append all the messages into message text
   $messagetext = '';
-  foreach ($array_attributes as $mailmessage)     
-    $messagetext = $messagetext . $mailmessage['messagetext'];
-
+  $submitted_date = 'Unknown';
+  $submittedby = 'Unknown';
+  
+  
+  //Replace the <email address> showing up next to user name, in submitted by
+  $pattern = '/(<.*>)/';
+  $replace = '';
+  //REGEX for identifying the emails in the mail text
+  // This is a general purpoes regex for matching with email addresses
+  // This can also rmeove some thing else from text, need o be careful
+  $regex = "/([\w]+@[\w]+.[\w]+)/";
+  foreach ($array_attributes as $mailmessage)    { 
+    //Remove the email ids in the source text submitted by user
+    $messagetext = $messagetext . check_plain(preg_replace($regex, $replace, $mailmessage['messagetext']));
+    if($first_time == 1)     {       //Picking Subject, submittedby, date one time is sufficient
+          $title = $mailmessage['subject'];//DEFINE title here
+          //Hide email ids 
+          $submittedby = preg_replace($pattern, $replace, $mailmessage['from']);
+          $submitted_date = $mailmessage['date'];
+          $first_time = 0;        
+    }
+  }
+  
   global $user;
   $new_node = (object) NULL;
   $new_node->type = 'indiatreepix';
-  $new_node->title = $array_attributes[0]['subject'];
   $new_node->uid = $user->uid ;
   $new_node->created = time();
   $new_node->changed = time();
-  $new_node->status = 1;    
+  $new_node->status = 1;   
+  
+  $new_node->title = $title;
+  $matching_species = find_matching_species($messagetext, $dictionary);
+  $new_node->field_species_name = $matching_species['sceintific_name'];     //SCIENTIFIC name entered here
+  $new_node->field_matching_string[0]['value'] = $matching_species['namestring'];     //Store the matching names
+  //Use this in contemplate to highlight terms 
+  //search_excerpt($node->field_matching_string[0]['view'], $node->field_itp_mail_text[0]['view'])
 
-  //convert to lower and check
-  $check = strtolower($messagetext);
-  $sceintific_name = '';
-  foreach($dictionary as $key=>$value)     {
-     if(strpos($check, $value) != FALSE)
-         $sceintific_name = $sceintific_name.$value." ";
-  }
+  $new_node->field_itp_mail_text[0]['value'] = $messagetext;        //MAIL Text entered here
 
-  if($sceintific_name == '')
-    $sceintific_name = 'Unidentified';
+  $new_node->field_itp_submitted_by[0][value] = $submittedby;     
+  //THIS needs to be fed in carefully 
+  //$new_node->field_date_time[0]['value'] = $submitted_date;
 
-  $count = count($dictionary);
-  $sceintific_name = '';
-
-  foreach ($dictionary as $key=>$value)   {
-    if (preg_match("/\b($key)\b/i", $messagetext)) {
-         $sceintific_name = $sceintific_name.$value."   ";
-     }
-  }
-
-  if(!trim($sceintific_name))
-     $sceintific_name = 'Unidentified';
-
-
-  $new_node->field_itp_mail_text[0]['value'] = $messagetext;
-  $new_node->title = $sceintific_name;
-  $new_node->field_species_name[0]['value'] = $sceintific_name;
+  //obtain field details from the message text 
+  //$field_details = fetch_fields($messagetext);
+  
+  //ATTRIBUTION ??????????????????
+  $new_node->field_indiatreepix_location[0]['value'] = "dummy location";
+  $new_node->field_height_length[0]['value'] = "length";
+  $new_node->field_itp_habitat[0]['value'] = "habitat";
+  $new_node->field_itp_planthabitat[0]['value'] = "planthabitat";
+  $new_node->field_itp_subfamily[0]['value'] = "subfamily";
+  $new_node->field_itp_tribe[0]['value'] = "tribe";
+  $new_node->field_itp_leaves_type[0]['value'] ="leaves type";
+  $new_node->field_itp_inflorescence_type[0]['value'] =  "inflorescence type";	
+  $new_node->field_itp_flowers_size[0]['value'] = "itp_flowers_size";
+  $new_node->field_itp_fruits_type[0]['value'] = "fruits type";
+  $new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
 
   //Right now we stay in the same folder, so there is no base_dir to process
-  $base_dir = '';
+  $base_dir = 'sites/all/modules/indiatreepix';
   $filesinfo = array();
   foreach ($array_attributes as $mailmessage)      {
      if( is_array($mailmessage['attachments']))  {
@@ -111,7 +135,7 @@ function createtreepix_content($file, $dictionary)      {
                 $file = $base_dir.substr($file, 1, strlen($file)-1);
 		$fn = basename($file);
                 
-                $indiatreepixdir = "$base_url/sites/default/files/indiatreepix/";
+                $indiatreepixdir = "sites/default/files/indiatreepix/";
 
                 // if(file_exists('/sites/default/files/treepix/'))
                 //     print "yes";
@@ -123,6 +147,9 @@ function createtreepix_content($file, $dictionary)      {
 			$files = new stdClass();
 			$files->filename = basename($file);
 			$files->filepath = $indiatreepixdir.$fn;
+                       // print $indiatreepixdir."<br/>";
+                       // print $fn."<br/>";
+                        //print $files->filepath."<br/>";
 			$files->filemime = file_get_mimetype(basename($file));
 			$files->filesize = filesize($file);
 			$files->uid = 1;
@@ -148,7 +175,60 @@ function createtreepix_content($file, $dictionary)      {
   }
   
   //Attach files to the new node and save it.
-  $new_node->field_treepix = $filesinfo;
-  node_save($new_node);
+  //Save only the nodes which have images attached
+  if(!empty($filesinfo))     {
+       $new_node->field_indiatreepix_image = $filesinfo;
+       node_save($new_node);
+  }
+}
+/*
+ function indiatreepix_form_alter (&$form, $form_state, $form_id) {
+   $form['#submit'][] = 'itp_submit';
+}
+function itp_submit(&$form, $form_state)   {
+ print_r($form_state);
+}
+*/
+/**
+ * Function to find the matching species names in the message text passed
+ * Params dictionary, messagetext
+ * Returns the scientific names of the matching species found
+ * Unidentified if none of the species scientific names are identified in the messagetext passed
+ */
+function find_matching_species($messagetext, $dictionary)     {
+  $names = array();
+
+  //iterate over all the elements in the dictionary and keep the matching ones in sceintific_name
+  foreach ($dictionary as $key=>$value)   {
+    if(preg_match("/\b($key)\b/i", $messagetext) && !in_array($value, $names)) {
+         $names[] = $value;
+     }
+  }
+
+  //Return scientific names, in a format, which can be assigned directly to the scientific name field
+  $sceintific_name = array();
+
+  //If no match found
+  if(empty($names))
+     $sceintific_name[0] = array('value'=>'Unidentified', '_remove'=>0);
+  else   {
+    $counter = 0;
+    /** If multiple scientific names are found in the mail text, then keep all of them, let curator decide which ones to keep and which ones to leave */
+    foreach($names as $value)   {
+       if(trim($value))   {
+         $sceintific_name[$counter] = array('value'=>$value, '_remove'=>0);
+         $counter = $counter + 1;
+       }
+    }
+  }
+
+  return array('sceintific_name' => $sceintific_name, 'namestring' => implode(' ', $names));
 }
 
+/**
+ * Parse and obtain the field details from email message text
+ */
+function fetch_fields($messagetext)          {
+      
+
+}
