@@ -2,6 +2,12 @@ import email, getpass, imaplib, os
 from xml.dom.minidom import Document
 from xml.dom.minidom import parse
 
+import sys
+import time
+from time import strftime
+timetouse = strftime("%d-%b-%Y", time.strptime(sys.argv[1], '%d-%b-%Y'))
+
+from time import time, gmtime, strftime
 
 # remove lines starting with ">"
 def processText(text):
@@ -41,8 +47,9 @@ if not os.path.isdir(dirname):
 	os.mkdir(dirname)
 
 # Search for messages to download
-
-resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
+#GET MESSAGES ONLY AFTER DATE
+resp,items = m.search(None, 'SINCE', timetouse) # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
+#resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
 #resp,items = m.search("SINCE \"8-Aug-2006\"", "All") 
 #fetchUids = 1;
 #print m.search("SINCE \"8-Aug-2006\"",fetchUids);
