@@ -115,22 +115,23 @@ function createtreepix_content($file, $dictionary)      {
 
   $new_node->field_itp_submitted_by[0][value] = $submittedby;     
   //THIS needs to be fed in carefully 
-  //$new_node->field_date_time[0]['value'] = $submitted_date;
 
+  $search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
   //obtain field details from the message text 
-  $field_details = fetch_fields($messagetext);
+  $field_details = fetch_fields($messagetext, $search_fields);
   
   //ATTRIBUTION ??????????????????
+  $new_node->field_date_time[0]['value'] = strtotime($submitted_date);
   $new_node->field_indiatreepix_location[0]['value'] = $field_details['location'];
   $new_node->field_height_length[0]['value'] = $field_details['length'];
   $new_node->field_itp_habitat[0]['value'] = $field_details['habitat'];
-  $new_node->field_itp_planthabitat[0]['value'] = "planthabitat";
-  $new_node->field_itp_subfamily[0]['value'] = "subfamily";
-  $new_node->field_itp_tribe[0]['value'] = "tribe";
-  $new_node->field_itp_leaves_type[0]['value'] ="leaves type";
+  $new_node->field_itp_planthabitat[0]['value'] = $field_details['planthabitat'];
+  $new_node->field_itp_subfamily[0]['value'] = $field_details['sub family'];
+  $new_node->field_itp_tribe[0]['value'] = $field_details['tribe'];
+  $new_node->field_itp_leaves_type[0]['value'] =$field_details['leaves type'];
   $new_node->field_itp_inflorescence_type[0]['value'] =  $field_details["inflorescence"];	
-  $new_node->field_itp_flowers_size[0]['value'] = "itp_flowers_size";
-  $new_node->field_itp_fruits_type[0]['value'] = "fruits type";
+  $new_node->field_itp_flowers_size[0]['value'] = $field_details['flowers_size'];
+  $new_node->field_itp_fruits_type[0]['value'] = $field_details['fruits type'];
   $new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
 
   //Right now we stay in the same folder, so there is no base_dir to process
@@ -204,11 +205,13 @@ function itp_submit(&$form, $form_state)   {
  */
 function find_matching_species($messagetext, $dictionary)     {
   $names = array();
+  $matching_string = '';
 
   //iterate over all the elements in the dictionary and keep the matching ones in sceintific_name
   foreach ($dictionary as $key=>$value)   {
     if(preg_match("/\b($key)\b/i", $messagetext) && !in_array($value, $names)) {
          $names[] = $value;
+         $matching_string = $matching_string . $key. ' ';
      }
   }
 
@@ -216,7 +219,7 @@ function find_matching_species($messagetext, $dictionary)     {
   $sceintific_name = array();
 
   //If no match found
-  if(empty($names))
+  if(trim($matching_string) == '')
      $sceintific_name[0] = array('value'=>'Unidentified', '_remove'=>0);
   else   {
     $counter = 0;
@@ -229,16 +232,16 @@ function find_matching_species($messagetext, $dictionary)     {
     }
   }
 
-  return array('sceintific_name' => $sceintific_name, 'namestring' => implode(' ', $names));
+  return array('sceintific_name' => $sceintific_name, 'namestring' => $matching_string);
 }
 
 /**
  * Parse and obtain the field details from email message text
  */
-function fetch_fields($text, $terms=array('date', 'location', 'habitat', 'plant habit',  'leaves', 'inflorescence', 'flowers', 'fruits'))  {
+function fetch_fields($text, $terms)  {
    $identifiers = array();
    //Find positions of elements, sort by position and save
-   foreach ($terms as $term) {
+   foreach ($terms as $term => $i) {
      $position = stripos($text, $term);   
      if($position !== false)
          $identifiers[$term] = $position;
@@ -250,7 +253,7 @@ function fetch_fields($text, $terms=array('date', 'location', 'habitat', 'plant 
    $found = '';
    $result = array();
    //special characters to remove in the identified text
-   $order   = array('/', '-' , ';', ':', '*');
+   $order   = array('/', '-' , ';', ':', '*', '=');
    $replace = '';
   
    //iterate on the elements found
@@ -262,7 +265,7 @@ function fetch_fields($text, $terms=array('date', 'location', 'habitat', 'plant 
              //$str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
              //remove special characters
    	     $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
-             $result[$found] = $str;
+             $result[$terms[$found]] = $str;
           }
           $startindex = $position;
           $found = $term;
@@ -270,6 +273,6 @@ function fetch_fields($text, $terms=array('date', 'location', 'habitat', 'plant 
    $len = strlen($found);
    //remove special characters
    $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
-   $result[$found] = $str;
+   $result[$terms[$found]] = $str;
    return $result;
 }
