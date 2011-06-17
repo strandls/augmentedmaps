@@ -2,8 +2,15 @@
 
 //hook_cron
 function indiatreepix_cron() {
+  // HANDLE TIME HERE
+  // GET Stored time using variable_get
+  // Make a call to Python script passing time as an argunemt 
+  // This function will be useful in formatting time before passing to Python 
+  // format_date(time(), 'custom', 'd-M-Y');
+  // STORE THE Current time using variable_set
+
   //execute the python script to fetch mails from indiatreepix mail id
-  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
+  //$output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
     
   $base_url  = "/data/augmentedmaps";
 
@@ -18,7 +25,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<10){
+  while (false !== ($file = readdir($handle)) && $count<100){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -228,8 +235,9 @@ function find_matching_species($messagetext, $dictionary)     {
 /**
  * Parse and obtain the field details from email message text
  */
-function fetch_fields($text, $terms=array('location', 'habitat', 'plant habit',  'leaves', 'inflorescence', 'flowers', 'fruits'))  {
+function fetch_fields($text, $terms=array('date', 'location', 'habitat', 'plant habit',  'leaves', 'inflorescence', 'flowers', 'fruits'))  {
    $identifiers = array();
+   //Find positions of elements, sort by position and save
    foreach ($terms as $term) {
      $position = stripos($text, $term);   
      if($position !== false)
@@ -241,20 +249,27 @@ function fetch_fields($text, $terms=array('location', 'habitat', 'plant habit', 
    $first = 1;
    $found = '';
    $result = array();
+   //special characters to remove in the identified text
+   $order   = array('/', '-' , ';', ':', '*');
+   $replace = '';
+  
+   //iterate on the elements found
    foreach ($identifiers as $term => $position) {   
-          //print "term $term position $position".'<br/>';
           if($first == 1)   
              $first = 0;
           else      {
              $len = strlen($found);
-             $str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
+             //$str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
+             //remove special characters
+   	     $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
              $result[$found] = $str;
           }
           $startindex = $position;
           $found = $term;
    }
    $len = strlen($found);
-   $str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
+   //remove special characters
+   $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
    $result[$found] = $str;
    return $result;
 }
