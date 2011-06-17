@@ -3,7 +3,7 @@
 //hook_cron
 function indiatreepix_cron() {
   //execute the python script to fetch mails from indiatreepix mail id
-  //$output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
+  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
     
   $base_url  = "/data/augmentedmaps";
 
@@ -111,17 +111,17 @@ function createtreepix_content($file, $dictionary)      {
   //$new_node->field_date_time[0]['value'] = $submitted_date;
 
   //obtain field details from the message text 
-  //$field_details = fetch_fields($messagetext);
+  $field_details = fetch_fields($messagetext);
   
   //ATTRIBUTION ??????????????????
-  $new_node->field_indiatreepix_location[0]['value'] = "dummy location";
-  $new_node->field_height_length[0]['value'] = "length";
-  $new_node->field_itp_habitat[0]['value'] = "habitat";
+  $new_node->field_indiatreepix_location[0]['value'] = $field_details['location'];
+  $new_node->field_height_length[0]['value'] = $field_details['length'];
+  $new_node->field_itp_habitat[0]['value'] = $field_details['habitat'];
   $new_node->field_itp_planthabitat[0]['value'] = "planthabitat";
   $new_node->field_itp_subfamily[0]['value'] = "subfamily";
   $new_node->field_itp_tribe[0]['value'] = "tribe";
   $new_node->field_itp_leaves_type[0]['value'] ="leaves type";
-  $new_node->field_itp_inflorescence_type[0]['value'] =  "inflorescence type";	
+  $new_node->field_itp_inflorescence_type[0]['value'] =  $field_details["inflorescence"];	
   $new_node->field_itp_flowers_size[0]['value'] = "itp_flowers_size";
   $new_node->field_itp_fruits_type[0]['value'] = "fruits type";
   $new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
@@ -228,7 +228,33 @@ function find_matching_species($messagetext, $dictionary)     {
 /**
  * Parse and obtain the field details from email message text
  */
-function fetch_fields($messagetext)          {
-      
+function fetch_fields($text, $terms=array('location', 'habitat', 'plant habit',  'leaves', 'inflorescence', 'flowers', 'fruits'))  {
+   $identifiers = array();
+   foreach ($terms as $term) {
+     $position = stripos($text, $term);   
+     if($position !== false)
+         $identifiers[$term] = $position;
+   }
+   asort($identifiers);
 
+   $startindex = 0;
+   $first = 1;
+   $found = '';
+   $result = array();
+   foreach ($identifiers as $term => $position) {   
+          //print "term $term position $position".'<br/>';
+          if($first == 1)   
+             $first = 0;
+          else      {
+             $len = strlen($found);
+             $str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
+             $result[$found] = $str;
+          }
+          $startindex = $position;
+          $found = $term;
+   }
+   $len = strlen($found);
+   $str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
+   $result[$found] = $str;
+   return $result;
 }
