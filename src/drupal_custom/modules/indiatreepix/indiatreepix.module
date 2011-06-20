@@ -258,7 +258,9 @@ function fetch_fields($text, $terms)  {
    //special characters to remove in the identified text
    $order   = array('/', '-' , ';', ':', '*', '=');
    $replace = '';
-  
+   //trim text to number of characters
+   $max_len = 100;
+ 
    //iterate on the elements found
    foreach ($identifiers as $term => $position) {   
           if($first == 1)   
@@ -268,7 +270,8 @@ function fetch_fields($text, $terms)  {
              //$str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
              //remove special characters
    	     $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
-             $result[$terms[$found]] = $str;
+             $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len).'...' : $str;
+
           }
           $startindex = $position;
           $found = $term;
@@ -276,6 +279,7 @@ function fetch_fields($text, $terms)  {
    $len = strlen($found);
    //remove special characters
    $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
-   $result[$terms[$found]] = $str;
+   //$result[$terms[$found]] = $str;
+   $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len).'...' : $str;
    return $result;
 }
