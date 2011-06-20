@@ -8,10 +8,13 @@ function indiatreepix_cron() {
   // This function will be useful in formatting time before passing to Python 
   // format_date(time(), 'custom', 'd-M-Y');
   // STORE THE Current time using variable_set
-
+  $timetosend = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-M-Y');
+  $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
+  $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-  //$output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py");
-    
+  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetosend);
+  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetostore);
+  variable_set('indiatreepix_time', $timeval);  
   $base_url  = "/data/augmentedmaps";
 
   //Load the dictionary of all the available Species
@@ -25,7 +28,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<100){
+  while (false !== ($file = readdir($handle)) && $count<200){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
