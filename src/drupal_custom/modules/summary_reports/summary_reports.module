@@ -1,0 +1,290 @@
+<?php
+
+/**
+ * Define constants to use
+ */
+define("SUMMARY_WEEKLY", "Weekly");
+define("SUMMARY_MONTHLY", "Monthly");
+define("SUMMARY_ANNUAL", "Annual");
+define("SUMMARY_TOTAL", "Total");
+  
+//Find when is the node created first
+function firstnode_createdtime($contenttype = NULL)                  {
+  if($contenttype == NULL)
+    $timestamp = db_result(db_query('SELECT min(created) FROM {node}'));
+  else
+	$timestamp = db_result(db_query('SELECT min(created) from {node} where type = '."'".$contenttype."'"));   
+  return $timestamp;
+}
+//Find when is the node created last
+function lastnode_createdtime($contenttype = NULL)                   {
+  if($contenttype == NULL)
+    $timestamp = db_result(db_query('SELECT max(created) FROM {node}'));
+  else
+	$timestamp = db_result(db_query('SELECT max(created) FROM {node} where type = '."'".$contenttype."'"));
+  return $timestamp;
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function summary_reports_help($path, $arg) {
+  switch ($path) {    
+    case 'admin/reports/summary':
+    case 'admin/reports/summary/content':
+      $output = '<p>'. t('Summary reports module provides detailed summary of content and users in your system. This is useful for site administrators who want a quick overview of content creation, user contribution, user registration on their site.') .'</p>';
+      $output .= '<p>'. t('Along with these reports, summary reports module also provides a short summary of the site statistics as a block, which can be configured at Site building -> blocks.') .'</p>';          
+	  $output .= '<p>'. t('This page lists the count of content created, for different content types. Next to it, number of users who contributed in content creation is listed. Total number of users may not be equal to the sum of independent entries as it is higly likely that same user has contributed content for different content types.') .'</p>';          
+	  return $output; 
+    case 'admin/reports/summary/users':
+	  $output .= '<p>'. t('This page lists the count of users in different roles, total registered users at the bottom of the page.') .'</p>';          
+	  return $output; 
+  }
+}
+/**
+ * implementation of hook_menu
+ */
+function summary_reports_menu()   {
+  // Content summary
+  $items['admin/reports/summary'] = array(
+    'title' => 'Summary Reports',
+	'description' => 'Get a summary report/statistics of content',
+    'access arguments' => array('access summary reports'),
+    'page callback' => 'content_report',
+    'type' =>  MENU_NORMAL_ITEM,
+  );
+  
+  $items['admin/reports/summary/content'] = array(
+    'title' => 'Content Summary',
+	'description' => 'Get a summary report/statistics of content created',
+    'access arguments' => array('access summary reports'),
+    'page callback' => 'content_report',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/reports/summary/users'] = array(
+    'title' => 'User Summary',
+	'description' => 'Get a summary report/statistics of users',
+    'access arguments' => array('access summary reports'),
+    'page callback' => 'user_report',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * implement the call back function
+ **/
+function content_report()                  {
+  //Five fixed columns
+  $header = array(t("Content Type"), t("From"), t("To"), t("Total"), t("Users"));  
+  //Data needs to be populated
+  $data = array();
+  //PICK the report type choosen by user
+  $reporttype = $_SESSION['summary_reporttype'];  
+	 
+  //these needs to be passed from outside as functionality grows
+  $contenttypes = node_get_types($op = 'types');
+	
+  if(!empty($contenttypes))   {
+  	//Final statistics
+    $total_content = db_result(db_query('select count(DISTINCT nid) from {node}'));
+    $total_users = db_result(db_query('select count(DISTINCT uid) from {node}'));
+	
+	//increment is based on the input choosen by user, default which needs to compute total, is kept as an increment for 10 years,
+	//So the assumption is node recorsds will exist only in a span of 10 years, this needs to be modified 
+	$increment = '+10 year';
+    switch($reporttype)    {
+	  case SUMMARY_MONTHLY:
+		$increment = '+1 month';
+		  break;
+	  case SUMMARY_ANNUAL:
+		$increment = '+1 year';
+		break;
+	  case SUMMARY_WEEKLY:
+	    $increment = '+1 week';
+		break;
+	}
+	
+	//iterate over each content type
+	foreach ($contenttypes as $type=>$value)   {	  
+	  //get the first created and last created times of the content type
+	  $from = firstnode_createdtime($type);
+	  $to = lastnode_createdtime($type);	 	
+      //iterate over the time span, based on the option choosen by user      	  
+	  while($from < $to)         {	   	    	    
+		$till = strtotime($increment, $from);
+		//Handle the last hop
+        if($till > $to)
+           $till = $to;		
+		$details = fetchdetails($from, $till, $type);						
+		//populate data
+		$data[] = array($value->name,  date('m/d/Y', $from),  date('m/d/Y', $till), $details['num_content'], $details['num_users']);		
+		$from = $till;
+	  }	  	  
+	}	
+	$data[] = array('TOTAL', date('m/d/Y', firstnode_createdtime()), date('m/d/Y', lastnode_createdtime()), $total_content, $total_users);
+  }	 
+
+  $attributes = array('class' => 'user_summary', 'style' => 'min-width: 500px');
+  return drupal_get_form('summary_reports_filter_form') . theme_table($header, $data, $attributes);
+}
+
+/**
+ * implement call back function for user summary reports
+ */
+function user_report()      {
+   //Four fixed columns
+   $header = array(t("Role "), t("Users"));   
+   //Data needs to be populated
+   $data = array();
+   $role_data = db_query("SELECT rid, name from {role}");
+   $users_with_role = 0;
+   while ($row = db_fetch_object($role_data)) {
+     $num_users = db_result(db_query("SELECT count(*) from {users}, {users_roles} where users.uid = users_roles.uid and users_roles.rid = %d", $row->rid));
+	 if($num_users)
+	    $data[] = array($row->name, $num_users);
+	 $users_with_role = $users_with_role + $num_users;
+  } /* end while */   
+  
+  /* Get count of all the users*/
+  $all_users = db_result(db_query("SELECT count(*) from {users} where uid != 0"));  
+  //$data[] = array('Users with no Role ', '-', '-' , ($all_users - $users_with_role));
+  $data[] = array('All Registered Users ', $all_users);
+  
+  $attributes = array('class' => 'user_summary', 'style' => 'min-width: 500px');
+  return theme_table($header, $data, $attributes);
+}
+
+/*
+ * Implementation of hook_perm()
+ */
+function summary_reports_perm() {
+    return array('access summary reports');
+}
+
+/**
+ * params from time, to time, content type
+ * returns the number of nodes created in between from and to, of type contenttype
+ */
+function fetchdetails($from, $to, $contenttype)           {
+	$num_content = db_result(db_query("SELECT count(*) from {node} where type = '%s' and created > $from and created < $to",$contenttype));
+	$num_users = db_result(db_query("SELECT count(DISTINCT uid) from {node} where type = '%s' and created > $from and created < $to",$contenttype));
+	if(!isset($num_content))    $num_content = 0;
+	if(!isset($num_users))    $num_users = 0;
+	return array('num_content' => $num_content, 'num_users' => $num_users);
+}
+
+/**
+ * Implementation of hook_block().
+ **/
+function summary_reports_block($op = 'list', $delta = 0, $edit=array()) {
+  global $user;
+  if ($op == 'list') {
+    $block[0]['info'] = t('Summary Reports');
+    return $block;
+  }
+  else if ($op == 'view') {
+    //Get the message configured by User
+	$message = variable_get('summary_message', '!type !number');
+	$find = array('!number', '!type');
+	
+    $contenttypes = node_get_types($op = 'types');
+	$content = '';
+	$configuration = array_filter(variable_get('summary_boxes', array()));
+    //For all the content types, fetch the amount of content available	   
+	foreach ($contenttypes as $type=>$value)        {
+	  if($type)           {
+		$details = fetchdetails(firstnode_createdtime(), lastnode_createdtime(), $type); 
+		
+		//Filter content in the block, based on the options choosen by the user.
+		if($details['num_content'] && (empty($configuration) || in_array($type, $configuration)))         {
+		  $replace = array($details['num_content'], $value->name);		  
+          $content = $content . '<div class=summary_block>';
+		  $content = $content.str_replace($find, $replace, $message);	
+		  $content = $content.'</div>';
+		}
+	  }
+ 	}
+	
+	//display the information in a block
+    $block['content'] = $content;
+    $block['subject'] = t('Summary Reports');
+    return $block;    
+  }
+  else if($op == 'configure')              {	
+		$contenttypes = node_get_types($op = 'types');
+		$options = array();
+		foreach ($contenttypes as $type=>$value)   {
+			if($type)      {
+				$options[$type] = $value->name;								
+			}
+		}
+		$form['summary_message'] = array(
+		     '#type' => 'textfield',
+	         '#title' => t('Message'),
+             '#default_value' => variable_get('summary_message', '!type !number'),
+			 '#description' => 'Text to show in the Summary block. tokens !type !number are available',
+        );
+
+		$form['items'] = array (
+				'#type'            => 'checkboxes',
+				'#title'           => t('Show summary for this type of content'),
+				'#description'	   => t('Choose the content types to appear in the block. All the content types will be shown, if none is checked'),
+				'#options'         => $options,
+				'#default_value'   => variable_get('summary_boxes', array()),
+		);    		
+
+		return $form;
+   }
+   else if($op == 'save')           {        	    
+        variable_set('summary_boxes', $edit['items']);
+		variable_set('summary_message', check_plain($edit['summary_message']));
+   }
+}
+
+/**
+ * Return form for summary reports administration filters.
+ *
+ * @ingroup forms
+ * @see summary_reports_filter_form_submit()
+ * @see summary_reports_filter_form_validate()
+ */
+function summary_reports_filter_form() {    
+  //List of options and the default option
+  $options = array(SUMMARY_WEEKLY, SUMMARY_MONTHLY, SUMMARY_ANNUAL, SUMMARY_TOTAL);
+  $default_value = SUMMARY_TOTAL;
+  //If user has selected some thing, then it will be stored in session, use it
+  if(isset($_SESSION['summary_reporttype']))
+	$default_value = array_search($_SESSION['summary_reporttype'], $options) ;
+
+  $form['summary_report_filter_options']['timeperiod'] =  array(
+	'#type' => 'select', 
+    '#title' => t('Report type'), 
+	'#default_value' => $default_value, 
+    '#options' => $options,
+	'#description' => t('Choose report type(time frame) to display results.'),
+   );  
+  $form['summary_report_filters']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Filter'),
+  );
+  return $form;
+}
+
+/**
+ * Validate result from Summary reports administration filter form.
+ */
+function summary_reports_filter_form_validate($form, &$form_state) {
+   //Right now we don't have anything to validate here
+}
+
+/**
+ * Process result from Summary reports administration filter form.
+ */
+function summary_reports_filter_form_submit($form, &$form_state) {        
+   //STORE the Selected option in SESSION      
+   $selected_option = $form_state['values']['timeperiod'];  
+   $_SESSION['summary_reporttype'] = $form['summary_report_filter_options']['timeperiod']['#options'][$selected_option];
+   drupal_goto('admin/reports/summary/content');  
+}

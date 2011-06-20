@@ -1,0 +1,1 @@
+<?php/**  * implementation of hook_uninstall * Remove the variables created by this module **/function summary_reports_uninstall() {   variable_del('summary_message');   variable_del('summary_boxes');}

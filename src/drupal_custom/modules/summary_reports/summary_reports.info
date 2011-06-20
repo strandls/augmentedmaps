@@ -1,0 +1,5 @@
+;summary_reports.info  2010/06/12   ravuriharish Exp $
+version = "6.x-1.0alpha"
+core = "6.x"
+name = Summary Reports
+description = Display summary reports of content, users.
