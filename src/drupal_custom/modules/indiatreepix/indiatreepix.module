@@ -12,8 +12,8 @@ function indiatreepix_cron() {
   $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetosend);
-  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetostore);
+  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
+  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
   variable_set('indiatreepix_time', $timeval);  
   $base_url  = "/data/augmentedmaps";
 
@@ -117,9 +117,10 @@ function createtreepix_content($file, $dictionary)      {
   $new_node->field_itp_mail_text[0]['value'] = $messagetext;        //MAIL Text entered here
 
   $new_node->field_itp_submitted_by[0][value] = $submittedby;     
-  //THIS needs to be fed in carefully 
-
-  $search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
+  
+  //This is an array of field names vs field names, aliases vs field names
+  //Going forward, this list can expand, but need to be expanded CAREFULLY
+  $search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
   //obtain field details from the message text 
   $field_details = fetch_fields($messagetext, $search_fields);
   
