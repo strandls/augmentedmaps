@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Highlight word occurances in the text passed
+ */
+function highlight_words($text,$word){
+   $text = preg_replace('/\b'.$word.'\b/i', '<span class="highlight">$0</span>', $text);
+   return $text;
+}
+
 //hook_cron
 function indiatreepix_cron() {
   // HANDLE TIME HERE
@@ -89,7 +97,10 @@ function createtreepix_content($file, $dictionary)      {
   $regex = "/([\w]+@[\w]+.[\w]+)/";
   foreach ($array_attributes as $mailmessage)    { 
     //Remove the email ids in the source text submitted by user
-    $messagetext = $messagetext . check_plain(preg_replace($regex, $replace, $mailmessage['messagetext']));
+    //Store the headers also in the mail message text
+    $messagetext = $messagetext."<br/> From: ".preg_replace($pattern, $replace, $mailmessage['from']);
+    $messagetext = $messagetext."<br/> Subject: ".$mailmessage['subject'];
+    $messagetext = $messagetext."<br/>".check_plain(preg_replace($regex, $replace, $mailmessage['messagetext']));
     if($first_time == 1)     {       //Picking Subject, submittedby, date one time is sufficient
           $title = $mailmessage['subject'];//DEFINE title here
           //Hide email ids 
@@ -115,6 +126,7 @@ function createtreepix_content($file, $dictionary)      {
   //search_excerpt($node->field_matching_string[0]['view'], $node->field_itp_mail_text[0]['view'])
 
   $new_node->field_itp_mail_text[0]['value'] = $messagetext;        //MAIL Text entered here
+  $new_node->field_itp_mail_text[0]['format'] = 2;        //MAIL Text needs to be in input format 'FULL HTML'
 
   $new_node->field_itp_submitted_by[0][value] = $submittedby;     
   
@@ -194,7 +206,7 @@ function createtreepix_content($file, $dictionary)      {
   }
 }
 /*
- function indiatreepix_form_alter (&$form, $form_state, $form_id) {
+function indiatreepix_form_alter (&$form, $form_state, $form_id) {
    $form['#submit'][] = 'itp_submit';
 }
 function itp_submit(&$form, $form_state)   {
