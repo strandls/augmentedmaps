@@ -48,8 +48,8 @@ if not os.path.isdir(dirname):
 
 # Search for messages to download
 #GET MESSAGES ONLY AFTER DATE
-resp,items = m.search(None, 'SINCE', timetouse) # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
-#resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
+#resp,items = m.search(None, 'SINCE', timetouse) # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
+resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
 #resp,items = m.search("SINCE \"8-Aug-2006\"", "All") 
 #fetchUids = 1;
 #print m.search("SINCE \"8-Aug-2006\"",fetchUids);
@@ -96,9 +96,9 @@ for emailid in items:
 			references = references.split(">")
 			idfilename = references[0]
 			#print " reference 0 " + references[0]
-	
-		idfilename = idfilename.lstrip("<")
-		idfilename = idfilename.rstrip(">")
+	        idfilename = ''.join(e for e in idfilename if e.isalnum())
+		#idfilename = idfilename.lstrip("<")
+		#idfilename = idfilename.rstrip(">")
 		#print " idfilename " + idfilename
 		# Write fields in XML document
 		idfilepath = os.path.join(dirname, idfilename) + ".xml"
