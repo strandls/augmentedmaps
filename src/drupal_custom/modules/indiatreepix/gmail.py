@@ -46,10 +46,20 @@ dirname = os.path.join(".", detach_dir)
 if not os.path.isdir(dirname):
 	os.mkdir(dirname)
 
+till_time = strftime("%d-%b-%Y", gmtime(time()-15*24*60*60))
+str = ''
+str += '(SINCE '
+str += timetouse
+str += ' BEFORE '
+str += till_time
+str += ')'
+print str
+resp,items = m.search(None, str)
+
 # Search for messages to download
 #GET MESSAGES ONLY AFTER DATE
 #resp,items = m.search(None, 'SINCE', timetouse) # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
-resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
+#resp,items = m.search(None, "All") # you could filter using the IMAP rules here (check http://www.example-code.com/csharp/imap-search-critera.asp) 
 #resp,items = m.search("SINCE \"8-Aug-2006\"", "All") 
 #fetchUids = 1;
 #print m.search("SINCE \"8-Aug-2006\"",fetchUids);
