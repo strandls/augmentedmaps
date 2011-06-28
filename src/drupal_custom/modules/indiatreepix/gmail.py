@@ -8,6 +8,17 @@ from time import strftime
 timetouse = strftime("%d-%b-%Y", time.strptime(sys.argv[1], '%d-%b-%Y'))
 
 from time import time, gmtime, strftime
+time_end = time()-15*24*60*60
+
+from datetime import datetime
+import time
+time_start = time.mktime(datetime.strptime(sys.argv[1], '%d-%b-%Y').timetuple())
+if(time_end <= time_start):
+	import sys
+	sys.exit(0)
+
+
+
 
 # remove lines starting with ">"
 def processText(text):
@@ -23,7 +34,6 @@ def processText(text):
 
 
 # Take gmail username and passwd
-
 user = 'indiatreepix'; #raw_input("Enter your GMail username:") 
 pwd = 'indiatreepix123'; #getpass.getpass("Enter your password: ") 
 
@@ -46,6 +56,7 @@ dirname = os.path.join(".", detach_dir)
 if not os.path.isdir(dirname):
 	os.mkdir(dirname)
 
+from time import time, gmtime, strftime
 till_time = strftime("%d-%b-%Y", gmtime(time()-15*24*60*60))
 str = ''
 str += '(SINCE '
@@ -64,7 +75,8 @@ resp,items = m.search(None, str)
 #fetchUids = 1;
 #print m.search("SINCE \"8-Aug-2006\"",fetchUids);
 #items = m.search("SINCE \"8-Aug-2006\"",fetchUids);
-
+print items
+print resp
 items = items[0].split() # getting the mails id 
 
 # Iterate through all the messages meeting search criterion
@@ -73,7 +85,11 @@ for emailid in items:
 	try :
 		# fetching the mail, "`(RFC822)`" means "get the whole stuff", but you can ask for headers only, etc 
 		resp,data = m.fetch(emailid, "(RFC822)") 
-
+		
+		#Fetch thread id and group messages by threadid
+		item, arr = m.fetch(emailid, 'X-GM-THRID')
+		threadid = arr[0].split('(')[1].split(')')[0].split()[1]
+		
 		# getting the mail content 
 		email_body = data[0][1] 
 
@@ -111,19 +127,19 @@ for emailid in items:
 		#idfilename = idfilename.rstrip(">")
 		#print " idfilename " + idfilename
 		# Write fields in XML document
-		idfilepath = os.path.join(dirname, idfilename) + ".xml"
-
+		idfilepath = os.path.join(dirname, threadid) + ".xml"
+		print idfilepath
 		doc = None
 		root = None
-		if os.path.isfile(idfilepath):
-			doc = parse(idfilepath)
-			root = doc.getElementsByTagName('root')
-			root = root[0]
-			print "idfilename: " +  idfilename
-		else:
-			doc = Document()
-			root = doc.createElement('root')
-			doc.appendChild(root)
+		#if os.path.isfile(idfilepath):
+		#	doc = parse(idfilepath)
+		#	root = doc.getElementsByTagName('root')
+		#	root = root[0]
+		#	print "idfilename: " +  idfilename
+		#else: */
+		doc = Document()
+		root = doc.createElement('root')
+		doc.appendChild(root)
 	
 		message = doc.createElement('Message')
 		root.appendChild(message)
@@ -154,6 +170,8 @@ for emailid in items:
 		messagesubject = doc.createElement('Subject')
 		message.appendChild(messagesubject)
 		text = doc.createTextNode(mail["Subject"])
+		print mail["Subject"]
+		#print mail
 		messagesubject.appendChild(text)
 
 
@@ -165,7 +183,7 @@ for emailid in items:
 			referencesnode.appendChild(reference)
 			text = doc.createTextNode(mail["References"])
 			reference.appendChild(text)
-
+			
 		messagedate = doc.createElement('Date')
 		message.appendChild(messagedate)
 		text = doc.createTextNode(mail["Date"])
@@ -242,9 +260,18 @@ for emailid in items:
 		#	os.mkdir(dirname)
 		
 		# Write XML to a file
-		#fileid = os.path.join(dirname, idfilename) + ".xml"
-		f = open(idfilepath,"w")
-		print >>f, doc.toxml()
+		#fileid = os.path.join(dirname, idfilename) + ".xml"		
+		print  idfilepath		
+		try:
+			dom = parse(idfilepath)
+			dom.firstChild.appendChild(doc.firstChild.firstChild)
+			f = open(idfilepath,"w")
+			print >>f, dom.toxml()
+		except IOError, e:
+			f = open(idfilepath,"w")
+			print >>f, doc.toxml()
+			print 'Creating for the first time :::: ', idfilepath 		
+			
 		f.close()
 		#mailfileid.close()
 	except :
