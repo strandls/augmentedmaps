@@ -8,9 +8,16 @@ $patterns = array();
 $patterns[0] = '/=A0/';
 $patterns[1] = '/=0A/';
 $patterns[2] = '/=3D/';
+$patterns[3] = '/=94/';
+$patterns[4] = '/=93/';
+$patterns[5] = '/=20/';
+
 $replacements = array();
-$replacements[2] = '&nbsp;';
-$replacements[1] = '<br/>';
+$replacements[5] = '&nbsp;';
+$replacements[4] = '<br/>';
+$replacements[3] = ' ';
+$replacements[2] = '"';
+$replacements[1] = '"';
 $replacements[0] = ' ';
 return preg_replace($patterns, $replacements, $mailmessage);
 }

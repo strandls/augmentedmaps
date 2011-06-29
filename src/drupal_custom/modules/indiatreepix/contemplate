@@ -1,0 +1,123 @@
+ <br/>
+<?php global $base_url; ?>
+<p><b>
+This page is a curation interface for aggregating data from
+the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatreepix </a> </b>
+</p>
+<p>
+<b>This is an alpha site and is not open to public. </b>
+</p>
+
+<div  class='disclaimer'> Images fetched from <a href='https://groups.google.com/group/indiantreepix/'>efloraofindia</a> </div>
+<div class="field field-type-filefield field-field-indiatreepix-image">
+  <div class="field-items">
+    <?php foreach ((array)$node->field_indiatreepix_image as $item) { ?>
+      <?php 
+$file_path = drupal_urlencode($item['filepath']);
+print "<a href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>" ?>
+    <?php } ?>
+
+  </div>
+</div>
+<br/>
+<?php
+$headers = array();
+$data = array();
+
+$row = array();
+$row[] = 'Species Name';
+$view = '';
+foreach ((array)$node->field_species_name as $item) { 
+      $view = $view . $item['view'] . '<br/>';
+}
+$row[] = $view;
+$data[] = $row;
+
+$row = array();
+$row[] = 'Date/Time';
+$row[] = $node->field_date_time[0]['view'];
+$data[] = $row;
+
+$row = array();
+$row[] = 'Submitted by';
+$row[] = $node->field_itp_submitted_by[0]['view'];
+$data[] = $row;
+
+$row = array();
+$row[] = 'Location';
+$row[] = $node->field_indiatreepix_location[0]['view'];
+$data[] = $row;
+
+$row = array();
+$row[] = 'Height/Length';
+$row[] = $node->field_height_length[0]['view'];
+$data[] = $row;
+
+$row = array();
+$row[] = 'Habitat';
+$row[] = $node->field_itp_habitat[0]['view'];
+$data[] = $row;
+
+$row = array();
+$row[] = 'Plant Habitat';
+$row[] = $node->field_itp_planthabitat[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Sub family';
+$row[] = $node->field_itp_subfamily[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Tribe';
+$row[] = $node->field_itp_tribe[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Leaves Type/ Shape/ Size';
+$row[] = $node->field_itp_leaves_type[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Inflorescence Type/ Size';
+$row[] = $node->field_itp_inflorescence_type[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Flowers Size/ Colour/ Calyx/ Bracts';
+$row[] = $node->field_itp_flowers_size[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Fruits Type/ Shape/ Size Seeds';
+$row[] = $node->field_itp_fruits_type[0]['view'];
+$data[] = $row;
+
+$row   = array();
+$row[] = 'Miscellaneous';
+$row[] = $node->field_itp_miscellaneous[0]['view'];
+$data[] = $row;
+
+print theme_table($header, $data, array('class'=>'itp_table'));
+?>
+
+<div class="field field-type-text field-field-itp-mail-text">
+  <h3 class="field-label">Source Text</h3>
+  <div class="field-items">
+      <div class="field-item">
+<?php 
+$keywords = explode(KEYWORD_SEPERATOR, $node->field_matching_string[0]['value']);
+
+$mailtext =  cleanupmailmessage($node->field_itp_mail_text[0]['view']);
+foreach ($keywords as $keyword)     {
+     if($keyword)
+         $mailtext = highlight_words($mailtext, $keyword);           
+}
+print $mailtext;
+ ?>
+       </div>
+  </div>
+
+</div>
+
+
