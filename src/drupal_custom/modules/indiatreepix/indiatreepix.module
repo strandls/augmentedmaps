@@ -2,6 +2,19 @@
 define("DEFAULT_FIELD_VALUE", "-");
 define("KEYWORD_SEPERATOR", "%");
 
+//CODE TO CLEANUP MAIL MESSAGE FROM GMAIL
+function cleanupmailmessage($mailmessage) {
+$patterns = array();
+$patterns[0] = '/=A0/';
+$patterns[1] = '/=0A/';
+$patterns[2] = '/=3D/';
+$replacements = array();
+$replacements[2] = '&nbsp;';
+$replacements[1] = '<br/>';
+$replacements[0] = ' ';
+return preg_replace($patterns, $replacements, $mailmessage);
+}
+
 /**
  * Highlight word occurances in the text passed
  */
@@ -312,6 +325,6 @@ function fetch_fields($text, $terms)  {
 function get_field_value($field_details, $key)    {
   $value = DEFAULT_FIELD_VALUE;
   if(array_key_exists($key, $field_details))
-     $value = $field_details[$key];
+     $value = preg_replace('/\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', '', $field_details[$key]);//REMOVE FULL URLS Showing up in text
   return $value;
 }
