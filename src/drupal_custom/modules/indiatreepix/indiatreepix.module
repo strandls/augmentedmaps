@@ -1,6 +1,8 @@
 <?php
 define("DEFAULT_FIELD_VALUE", "-");
 define("KEYWORD_SEPERATOR", "%");
+//KEEP A MIN LENGTH TO HIGHTLIGHT AS 4, OTHERWISE THERE WILL BE LOT OF NOICE
+define("HIGHTLIGHT_MINLENGTH", 4);
 
 //CODE TO CLEANUP MAIL MESSAGE FROM GMAIL
 function cleanupmailmessage($mailmessage) {
@@ -11,22 +13,28 @@ $patterns[2] = '/=3D/';
 $patterns[3] = '/=94/';
 $patterns[4] = '/=93/';
 $patterns[5] = '/=20/';
+$patterns[6] = '/=/';
+$patterns[7] = '/&lt;>/';
 
 $replacements = array();
-$replacements[5] = '&nbsp;';
-$replacements[4] = '<br/>';
-$replacements[3] = ' ';
-$replacements[2] = '"';
-$replacements[1] = '"';
+$replacements[7] = '&nbsp;';
+$replacements[6] = '<br/>';
+$replacements[5] = ' ';
+$replacements[4] = '"';
+$replacements[3] = '"';
+$replacements[2] = ' ';
+$replacements[1] = ' ';
 $replacements[0] = ' ';
+
 return preg_replace($patterns, $replacements, $mailmessage);
 }
 
 /**
  * Highlight word occurances in the text passed
  */
-function highlight_words($text,$word){
-   $text = preg_replace('/\b'.$word.'\b/i', '<span class="highlight">$0</span>', $text);
+function highlight_words($text,$word, $class="highlight"){
+   if(strlen(trim($word)) < HIGHTLIGHT_MINLENGTH)  return $text;
+   $text = preg_replace('/\b'.$word.'\b/i', '<span class="'.$class.'">$0</span>', $text);
    return $text;
 }
 
@@ -42,8 +50,8 @@ function indiatreepix_cron() {
   $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-  //$output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
-  //$output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
+  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
+  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
   variable_set('indiatreepix_time', $timeval);  
   $base_url  = "/data/augmentedmaps";
 
@@ -58,7 +66,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<50){
+  while (false !== ($file = readdir($handle)) && $count<500000){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
