@@ -1,4 +1,32 @@
- <br/>
+<br/>
+<script>
+setInterval("doSomething()", 5000);
+Array.prototype.contains = function ( needle ) {
+   for (i in this) {
+       if (this[i] == needle) return true;
+   }
+   return false;
+}
+var threshold = 5;
+var current = 5;
+function doSomething ()  {
+	var numhidden = $('.slideshow').children().length;
+	if(numhidden > threshold)           {   
+		if(current >= numhidden)
+			current = 0;
+		$('.slideshow .show').attr('class', 'hide');   
+		var max = current + threshold;
+		if(max > numhidden)
+			max = numhidden;
+		for(var i=current; i<max;i++)     
+			$(".slideshow").find('a').eq(i).attr('class', 'show');
+		current = max;
+	}
+} 
+
+jQuery(document).ready(function(){
+});
+</script>
 <?php global $base_url; ?>
 <p><b>
 This page is a curation interface for aggregating data from
@@ -6,23 +34,34 @@ the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatr
 </p>
 <p>
 <b>This is an alpha site and is not open to public. </b>
+
 </p>
 
 <div  class='disclaimer'> Images fetched from <a href='https://groups.google.com/group/indiantreepix/'>efloraofindia</a> </div>
 <div class="field field-type-filefield field-field-indiatreepix-image">
   <div class="field-items">
-    <?php foreach ((array)$node->field_indiatreepix_image as $item) { ?>
+    <div class="slideshow">
+    <?php 
+      $num = 0;
+      foreach ((array)$node->field_indiatreepix_image as $item) { ?>
       <?php 
+$num = $num + 1;
 $file_path = drupal_urlencode($item['filepath']);
-print "<a href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>" ?>
+if($num > 5)
+  print "<a class=hide href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
+else 
+   print "<a class=show href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
+?>
     <?php } ?>
-
+    </div>
   </div>
+
 </div>
 <br/>
 <?php
 $headers = array();
 $data = array();
+$highlighters = array();
 
 $row = array();
 $row[] = 'Species Name';
@@ -42,61 +81,73 @@ $row = array();
 $row[] = 'Submitted by';
 $row[] = $node->field_itp_submitted_by[0]['view'];
 $data[] = $row;
+$highlighters['hsubmitted'] = $node->field_itp_submitted_by[0]['value'];
 
 $row = array();
 $row[] = 'Location';
 $row[] = $node->field_indiatreepix_location[0]['view'];
 $data[] = $row;
+$highlighters['hlocation'] = $node->field_indiatreepix_location[0]['value'];
 
 $row = array();
 $row[] = 'Height/Length';
 $row[] = $node->field_height_length[0]['view'];
 $data[] = $row;
+$highlighters['hhl'] = $node->field_height_length[0]['value'];
 
 $row = array();
 $row[] = 'Habitat';
 $row[] = $node->field_itp_habitat[0]['view'];
 $data[] = $row;
+$highlighters['hhabitat'] = $node->field_itp_habitat[0]['value'];
 
 $row = array();
 $row[] = 'Plant Habitat';
 $row[] = $node->field_itp_planthabitat[0]['view'];
 $data[] = $row;
+$highlighters['hphabitat'] = $node->$node->field_itp_planthabitat[0]['value'];
 
 $row   = array();
 $row[] = 'Sub family';
 $row[] = $node->field_itp_subfamily[0]['view'];
 $data[] = $row;
+$highlighters['hsfamily'] = $node->field_itp_subfamily[0]['value'];
 
 $row   = array();
 $row[] = 'Tribe';
 $row[] = $node->field_itp_tribe[0]['view'];
 $data[] = $row;
+$highlighters['htribe'] = $node->field_itp_tribe[0]['value'];
 
 $row   = array();
 $row[] = 'Leaves Type/ Shape/ Size';
 $row[] = $node->field_itp_leaves_type[0]['view'];
 $data[] = $row;
+$highlighters['hltype'] = $node->field_itp_leaves_type[0]['value'];
 
 $row   = array();
 $row[] = 'Inflorescence Type/ Size';
 $row[] = $node->field_itp_inflorescence_type[0]['view'];
 $data[] = $row;
+$highlighters['hinflorescence'] = $node->field_itp_inflorescence_type[0]['value'];
 
 $row   = array();
 $row[] = 'Flowers Size/ Colour/ Calyx/ Bracts';
 $row[] = $node->field_itp_flowers_size[0]['view'];
 $data[] = $row;
+$highlighters['hfsize'] = $node->field_itp_flowers_size[0]['value'];
 
 $row   = array();
 $row[] = 'Fruits Type/ Shape/ Size Seeds';
 $row[] = $node->field_itp_fruits_type[0]['view'];
 $data[] = $row;
+$highlighters['hftype'] = $node->field_itp_fruits_type[0]['value'];
 
 $row   = array();
 $row[] = 'Miscellaneous';
 $row[] = $node->field_itp_miscellaneous[0]['view'];
 $data[] = $row;
+$highlighters['hmscs'] = $node->field_itp_miscellaneous[0]['value'];
 
 print theme_table($header, $data, array('class'=>'itp_table'));
 ?>
@@ -113,11 +164,16 @@ foreach ($keywords as $keyword)     {
      if($keyword)
          $mailtext = highlight_words($mailtext, $keyword);           
 }
+/*
+Highlight other matching words
+foreach ($highlighters as $key => $value)
+    if(strlen($value)>3) {
+         $mailtext = highlight_words($mailtext, $value, $key);
+    }
+*/
 print $mailtext;
  ?>
        </div>
   </div>
 
 </div>
-
-
