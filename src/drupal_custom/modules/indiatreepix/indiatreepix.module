@@ -50,8 +50,8 @@ function indiatreepix_cron() {
   $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
-  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
+//  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
+//  $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
   variable_set('indiatreepix_time', $timeval);  
   $base_url  = "/data/augmentedmaps";
 
@@ -66,7 +66,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<500000){
+  while (false !== ($file = readdir($handle)) && $count<50){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -128,15 +128,18 @@ function createtreepix_content($file, $dictionary)      {
   $regex = "/([\w]+@[\w]+.[\w]+)/";
   foreach ($array_attributes as $mailmessage)    { 
     //Remove the email ids in the source text submitted by user
-    //Store the headers also in the mail message text
-    $messagetext = $messagetext."<br/>".preg_replace($regex, $replace, $mailmessage['messagetext']);
     if($first_time == 1)     {       //Picking Subject, submittedby, date one time is sufficient
           $title = $mailmessage['subject'];//DEFINE title here
           //Hide email ids, " 
           $submittedby = preg_replace('/\"/', ' ', preg_replace($pattern, $replace, $mailmessage['from']));
           $submitted_date = $mailmessage['date'];
           $first_time = 0;        
+          
+         //Store the headers also in the mail message text
+         $messagetext = $messagetext."<br/> Submitted by ".$submittedby;
+         $messagetext = $messagetext."<br/> Submitted on ".$submitted_date . "<br/>";
     }
+    $messagetext = $messagetext."<br/>".preg_replace($regex, $replace, $mailmessage['messagetext']);
   }
  /* $messagetext = "<br/> Subject: ".$mailmessage['subject'].$messagetext;
   $messagetext = "<br/> From: ".preg_replace($pattern, $replace, $mailmessage['from']).$messagetext;
@@ -184,15 +187,21 @@ function createtreepix_content($file, $dictionary)      {
 
   //STORE THE THREAD id for future references
   //FILE NAME IS THREAD ID SO KEEP IT
-  $new_node->field_itp_thread_id[0]['value'] = intval(basename($file));
+  $threadid = intval(basename($file));
+  $new_node->field_itp_thread_id[0]['value'] = $threadid; 
  
   //Right now we stay in the same folder, so there is no base_dir to process
   $base_dir = 'sites/all/modules/indiatreepix';
   $filesinfo = array();
+  $files_list = array();
   foreach ($array_attributes as $mailmessage)      {
      if( is_array($mailmessage['attachments']))  {
 	foreach($mailmessage['attachments'] as $file) {
                 $file = $base_dir.substr($file, 1, strlen($file)-1);
+                if(in_array($file, $files_list))
+                     continue;
+                else
+                     $files_list[] = $file;
 		$fn = basename($file);
                 
                 $indiatreepixdir = "sites/default/files/indiatreepix/";
