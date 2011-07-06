@@ -17,9 +17,6 @@ function doSomething ()  {
 		current = max;
 	}
 } 
-
-jQuery(document).ready(function(){
-});
 </script>
 <?php 
 global $base_url; 
@@ -30,20 +27,9 @@ the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatr
 </p>
 <p>
 <b>This is an alpha site and is not open to public. </b>
-
 </p>
-<?php
-$flag = flag_get_flag('itp_validated');
-print "<div class=itp_content>";
-if($flag->is_flagged($node->nid))
-        print "<div class=validated title='This Content is validated'></div>";
-else
-        print "<div class=notvalidated title='This Content is not validated'></div>";
-if (user_access('administer flags')) 
-    print flag_create_link('itp_validated', $node->nid);
-?>
 <div  class='link_ss'> <a href="#" onclick="Lightbox.triggerLightbox('lightshow', 'treepix');">slideshow</a> </div>
-<?php print "</div>";   ?>
+
 <div class="field field-type-filefield field-field-indiatreepix-image">
   <div class="field-items">
     <div class="slideshow">
@@ -64,6 +50,19 @@ else
 </div>
 <br/>
 <?php
+$flag = flag_get_flag('itp_validated');
+print "<div class=itp_content>";
+if($flag->is_flagged($node->nid))
+        print "<div class=validated title='This Content is validated'></div>";
+else
+        print "<div class=notvalidated title='This Content is not validated'></div>";
+if (user_access('administer flags')) 
+    print flag_create_link('itp_validated', $node->nid);
+
+print "</div>";
+?>
+
+<?php
 $headers = array();
 $data = array();
 $highlighters = array();
@@ -77,9 +76,34 @@ foreach ((array)$node->field_species_name as $item) {
 $row[] = $view;
 $data[] = $row;
 
+$keywords = explode(KEYWORD_SEPERATOR, $node->field_matching_string[0]['value']);
+$key_value = '';
+foreach ($keywords as $keyword)     {
+     if($keyword)    {
+          if($key_value == '')
+              $key_value = $keyword;
+          else
+              $key_value = $key_value . ',' .$keyword;
+     }
+}
 $row = array();
-$row[] = 'Date/Time';
-$row[] = $node->field_date_time[0]['view'];
+$row[] = 'Names identified in mail text ';
+$row[] = $key_value;
+$data[] = $row;
+
+
+$row = array();
+$row[] = 'Start date of the mail';
+//$row[] = format_date($node->field_itp_startdate[0]['value']);
+//Use this after the bug in datefield is resolved
+$row[] = $node->field_itp_startdate[0]['view']; 
+$data[] = $row;
+
+$row = array();
+$row[] = 'Latest Update';
+//$row[] = format_date($node->field_itp_latestupdate[0]['value']);
+//Use this after the bug in datefield is resolved
+$row[] = $node->field_itp_latestupdate[0]['view']; 
 $data[] = $row;
 
 $row = array();
@@ -164,15 +188,16 @@ print theme_table($header, $data, array('class'=>'itp_table'));
 <?php 
 $keywords = explode(KEYWORD_SEPERATOR, $node->field_matching_string[0]['value']);
 
-$mailtext =  $node->field_itp_mail_text[0]['view'];
+$mailtext =   cleanupmailmessage($node->field_itp_mail_text[0]['view']);
 foreach ($keywords as $keyword)     {
      if($keyword)
          $mailtext = highlight_words($mailtext, $keyword);           
 }
 
 //Highlight other matching words
-foreach ($highlighters as $key => $value)
-         $mailtext = highlight_words($mailtext, $value, $key);
+foreach ($highlighters as $key => $value)    {
+         $mailtext = highlight_words($mailtext, trim($value), $key);
+}
 print $mailtext;
  ?>
        </div>

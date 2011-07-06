@@ -15,13 +15,15 @@ $patterns[4] = '/=93/';
 $patterns[5] = '/=20/';
 $patterns[6] = '/=/';
 $patterns[7] = '/&lt;>/';
+$patterns[8] = '/E2 80"/';
 
 $replacements = array();
-$replacements[7] = '&nbsp;';
-$replacements[6] = '<br/>';
-$replacements[5] = ' ';
+$replacements[8] = '&nbsp;';
+$replacements[7] = '<br/>';
+$replacements[6] = ' ';
+$replacements[5] = '"';
 $replacements[4] = '"';
-$replacements[3] = '"';
+$replacements[3] = ' ';
 $replacements[2] = ' ';
 $replacements[1] = ' ';
 $replacements[0] = ' ';
@@ -68,7 +70,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<5000){
+  while (false !== ($file = readdir($handle)) && $count<9){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -104,6 +106,19 @@ function read_file($filename)  {
   return $output;
 }
 
+
+//REMOVE THE UNNECESSARY TEXT IN SUBMITTED DATE
+function cleanupdate($submitted_date)    {
+     //HARDCODED REMOVAL OF Thu, Fri, at the beginning of the date time
+  /*   $submitted_date = substr($submitted_date, 4, strlen($submitted_date));
+     if(strpos($submitted_date, "-") !== false)
+         $submitted_date = strstr(trim($submitted_date), '-', TRUE);
+     else
+         $submitted_date = strstr(trim($submitted_date), '+', TRUE);
+*/
+     return $submitted_date;
+}
+
 /**
  * Function to create the tree pix content
  */
@@ -116,7 +131,8 @@ function createtreepix_content($file, $dictionary)      {
   $first_time = 1;
   //append all the messages into message text
   $messagetext = '';
-  $submitted_date = 'Unknown';
+  $submitted_date = '6june2011';
+  $last_submitted_date = '6june2011';
   $submittedby = 'Unknown';
   
   
@@ -134,15 +150,18 @@ function createtreepix_content($file, $dictionary)      {
           $title = $mailmessage['subject'];//DEFINE title here
           //Hide email ids, " 
           $submittedby = preg_replace('/\"/', ' ', preg_replace($pattern, $replace, $mailmessage['from']));
-          $submitted_date = $mailmessage['date'];
+          $last_submitted_date = cleanupdate($mailmessage['date']);
+
           $first_time = 0;        
           
          //Store the headers also in the mail message text
          $messagetext = $messagetext."<br/> Submitted by ".$submittedby;
-         $messagetext = $messagetext."<br/> Submitted on ".$submitted_date . "<br/>";
+         $messagetext = $messagetext."<br/> Submitted on ".$last_submitted_date . "<br/>";
     }
     $messagetext = $messagetext."<br/>".preg_replace($regex, $replace, $mailmessage['messagetext']);
+    $submitted_date = $mailmessage['date'];
   }
+  $submitted_date = cleanupdate($submitted_date);
   $messagetext = cleanupmailmessage($messagetext);
  /* $messagetext = "<br/> Subject: ".$mailmessage['subject'].$messagetext;
   $messagetext = "<br/> From: ".preg_replace($pattern, $replace, $mailmessage['from']).$messagetext;
@@ -156,38 +175,53 @@ function createtreepix_content($file, $dictionary)      {
   $new_node->changed = time();
   $new_node->status = 1;   
   
-  $new_node->title = $title;
-  $matching_species = find_matching_species($messagetext, $dictionary);
-  $new_node->field_species_name = $matching_species['sceintific_name'];     //SCIENTIFIC name entered here
-  $new_node->field_matching_string[0]['value'] = $matching_species['namestring'];     //Store the matching names
-  //Use this in contemplate to highlight terms 
-  //search_excerpt($node->field_matching_string[0]['view'], $node->field_itp_mail_text[0]['view'])
+  try {
+  	$new_node->title = $title;
+  	$matching_species = find_matching_species($messagetext, $dictionary);
+  	$new_node->field_species_name = $matching_species['sceintific_name'];     //SCIENTIFIC name entered here
+  	$new_node->field_matching_string[0]['value'] = $matching_species['namestring'];     //Store the matching names
+  	//Use this in contemplate to highlight terms 
+  	//search_excerpt($node->field_matching_string[0]['view'], $node->field_itp_mail_text[0]['view'])
+  	$new_node->field_itp_mail_text[0]['value'] = $messagetext;        //MAIL Text entered here
+  	$new_node->field_itp_mail_text[0]['format'] = FILTER_HTML_ESCAPE;        //MAIL Text needs to be in input format 'FULL HTML'
 
-  $new_node->field_itp_mail_text[0]['value'] = $messagetext;        //MAIL Text entered here
-  $new_node->field_itp_mail_text[0]['format'] = FILTER_HTML_ESCAPE;        //MAIL Text needs to be in input format 'FULL HTML'
-
-  $new_node->field_itp_submitted_by[0][value] = $submittedby;     
+  	$new_node->field_itp_submitted_by[0][value] = $submittedby;     
+  } catch (Exception $e) {
+    	echo 'Exception in setting basic details: ',  $e->getMessage(), "\n";
+  }
   
-  //This is an array of field names vs field names, aliases vs field names
-  //Going forward, this list can expand, but need to be expanded CAREFULLY
-  $search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
-  //obtain field details from the message text 
-  $field_details = fetch_fields($messagetext, $search_fields);
   
   //ATTRIBUTION ??????????????????
-  $new_node->field_date_time[0]['value'] = strtotime($submitted_date);
-  $new_node->field_indiatreepix_location[0]['value'] = get_field_value($field_details, 'location');
-  $new_node->field_height_length[0]['value'] = get_field_value($field_details, 'length');
-  $new_node->field_itp_habitat[0]['value'] = get_field_value($field_details, 'habitat');
-  $new_node->field_itp_planthabitat[0]['value'] = get_field_value($field_details, 'planthabitat');
-  $new_node->field_itp_subfamily[0]['value'] = get_field_value($field_details, 'sub family');
-  $new_node->field_itp_tribe[0]['value'] = get_field_value($field_details, 'tribe');
-  $new_node->field_itp_leaves_type[0]['value'] = get_field_value($field_details, 'leaves type');
-  $new_node->field_itp_inflorescence_type[0]['value'] =  get_field_value($field_details, "inflorescence");	
-  $new_node->field_itp_flowers_size[0]['value'] = get_field_value($field_details, 'flowers_size');
-  $new_node->field_itp_fruits_type[0]['value'] = get_field_value($field_details, 'fruits type');
-  $new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
-
+  try {
+  	$new_node->field_itp_startdate[0]['value'] = $submitted_date;
+  	$new_node->field_itp_latestupdate[0]['value'] = $last_submitted_date;
+  } catch (Exception $e) {
+    	echo 'Excdeption in setting dates: ',  $e->getMessage(), "\n";
+  }
+  try  { 
+  	//This is an array of field names vs field names, aliases vs field names
+  	//Going forward, this list can expand, but need to be expanded CAREFULLY
+  	$search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
+  	
+	//obtain field details from the message text 
+  	$field_details = fetch_fields($messagetext, $search_fields);
+        //fill in the fields of the new node
+  	$new_node->field_indiatreepix_location[0]['value'] = get_field_value($field_details, 'location');
+  	$new_node->field_height_length[0]['value'] = get_field_value($field_details, 'height/length');
+  	$new_node->field_itp_habitat[0]['value'] = get_field_value($field_details, 'habitat');
+  	$new_node->field_itp_planthabitat[0]['value'] = get_field_value($field_details, 'planthabitat');
+  	$new_node->field_itp_subfamily[0]['value'] = get_field_value($field_details, 'sub family');
+  	$new_node->field_itp_tribe[0]['value'] = get_field_value($field_details, 'tribe');
+  	$new_node->field_itp_leaves_type[0]['value'] = get_field_value($field_details, 'leaves type');
+  	$new_node->field_itp_inflorescence_type[0]['value'] =  get_field_value($field_details, "inflorescence");	
+  	$new_node->field_itp_flowers_size[0]['value'] = get_field_value($field_details, 'flowers_size');
+  	$new_node->field_itp_fruits_type[0]['value'] = get_field_value($field_details, 'fruits type');
+  	$new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
+  }
+  catch(Exception $e)        {
+    	echo 'Exception in fetching fields: ',  $e->getMessage(), "\n";
+  }
+ 
   //STORE THE THREAD id for future references
   //FILE NAME IS THREAD ID SO KEEP IT
   $threadid = intval(basename($file));
@@ -253,7 +287,9 @@ function createtreepix_content($file, $dictionary)      {
        node_save($new_node);
   }
 }
+
 /*
+//TEST FUNCTION FOR VERIFICATIONS
 function indiatreepix_form_alter (&$form, $form_state, $form_id) {
    $form['#submit'][] = 'itp_submit';
 }
@@ -261,6 +297,8 @@ function itp_submit(&$form, $form_state)   {
  print_r($form_state);
 }
 */
+
+
 /**
  * Function to find the matching species names in the message text passed
  * Params dictionary, messagetext
@@ -304,7 +342,9 @@ function find_matching_species($messagetext, $dictionary)     {
  * Parse and obtain the field details from email message text
  */
 function fetch_fields($text, $terms)  {
+   $result = array();
    $identifiers = array();
+   try         {
    //Find positions of elements, sort by position and save
    foreach ($terms as $term => $i) {
      $position = stripos($text, $term);   
@@ -316,7 +356,6 @@ function fetch_fields($text, $terms)  {
    $startindex = 0;
    $first = 1;
    $found = '';
-   $result = array();
    //special characters to remove in the identified text
    $order   = array('/', '-' , ';', ':', '*', '=');
    $replace = '';
@@ -332,7 +371,7 @@ function fetch_fields($text, $terms)  {
              //$str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
              //remove special characters
    	     $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
-             $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len).'...' : $str;
+             $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len) : $str;
 
           }
           $startindex = $position;
@@ -342,7 +381,11 @@ function fetch_fields($text, $terms)  {
    //remove special characters
    $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
    //$result[$terms[$found]] = $str;
-   $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len).'...' : $str;
+   $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len) : $str;
+   }
+   catch (Exception $e) {
+        echo 'Caught exception: ',  $e->getMessage(), "\n";
+   }
    return $result;
 }
 
