@@ -1,12 +1,6 @@
 <br/>
 <script>
 setInterval("doSomething()", 5000);
-Array.prototype.contains = function ( needle ) {
-   for (i in this) {
-       if (this[i] == needle) return true;
-   }
-   return false;
-}
 var threshold = 5;
 var current = 5;
 function doSomething ()  {
@@ -27,7 +21,9 @@ function doSomething ()  {
 jQuery(document).ready(function(){
 });
 </script>
-<?php global $base_url; ?>
+<?php 
+global $base_url; 
+?>
 <p><b>
 This page is a curation interface for aggregating data from
 the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatreepix </a> </b>
@@ -36,8 +32,18 @@ the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatr
 <b>This is an alpha site and is not open to public. </b>
 
 </p>
-
-<div  class='disclaimer'> Images fetched from <a href='https://groups.google.com/group/indiantreepix/'>efloraofindia</a> </div>
+<?php
+$flag = flag_get_flag('itp_validated');
+print "<div class=itp_content>";
+if($flag->is_flagged($node->nid))
+        print "<div class=validated title='This Content is validated'></div>";
+else
+        print "<div class=notvalidated title='This Content is not validated'></div>";
+if (user_access('administer flags')) 
+    print flag_create_link('itp_validated', $node->nid);
+?>
+<div  class='link_ss'> <a href="#" onclick="Lightbox.triggerLightbox('lightshow', 'treepix');">slideshow</a> </div>
+<?php print "</div>";   ?>
 <div class="field field-type-filefield field-field-indiatreepix-image">
   <div class="field-items">
     <div class="slideshow">
@@ -48,14 +54,13 @@ the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatr
 $num = $num + 1;
 $file_path = drupal_urlencode($item['filepath']);
 if($num > 5)
-  print "<a class=hide href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
+  print "<a class=hide href=$base_url/$file_path rel=lightshow[treepix][caption $num] title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
 else 
-   print "<a class=show href=$base_url/$file_path rel=lightbox title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
+   print "<a class=show href=$base_url/$file_path rel=lightshow[treepix][caption $num] title=lightbox><img class=lightboxicon src =$base_url/$file_path /> </a>";
 ?>
     <?php } ?>
     </div>
   </div>
-
 </div>
 <br/>
 <?php
@@ -102,7 +107,7 @@ $data[] = $row;
 $highlighters['hhabitat'] = $node->field_itp_habitat[0]['value'];
 
 $row = array();
-$row[] = 'Plant Habitat';
+$row[] = 'Plant Habit';
 $row[] = $node->field_itp_planthabitat[0]['view'];
 $data[] = $row;
 $highlighters['hphabitat'] = $node->$node->field_itp_planthabitat[0]['value'];
@@ -159,18 +164,15 @@ print theme_table($header, $data, array('class'=>'itp_table'));
 <?php 
 $keywords = explode(KEYWORD_SEPERATOR, $node->field_matching_string[0]['value']);
 
-$mailtext =  cleanupmailmessage($node->field_itp_mail_text[0]['view']);
+$mailtext =  $node->field_itp_mail_text[0]['view'];
 foreach ($keywords as $keyword)     {
      if($keyword)
          $mailtext = highlight_words($mailtext, $keyword);           
 }
-/*
-Highlight other matching words
+
+//Highlight other matching words
 foreach ($highlighters as $key => $value)
-    if(strlen($value)>3) {
          $mailtext = highlight_words($mailtext, $value, $key);
-    }
-*/
 print $mailtext;
  ?>
        </div>
