@@ -110,12 +110,12 @@ function read_file($filename)  {
 //REMOVE THE UNNECESSARY TEXT IN SUBMITTED DATE
 function cleanupdate($submitted_date)    {
      //HARDCODED REMOVAL OF Thu, Fri, at the beginning of the date time
-  /*   $submitted_date = substr($submitted_date, 4, strlen($submitted_date));
+  //   $submitted_date = substr($submitted_date, 4, strlen($submitted_date));
      if(strpos($submitted_date, "-") !== false)
          $submitted_date = strstr(trim($submitted_date), '-', TRUE);
      else
          $submitted_date = strstr(trim($submitted_date), '+', TRUE);
-*/
+
      return $submitted_date;
 }
 
@@ -356,9 +356,6 @@ function fetch_fields($text, $terms)  {
    $startindex = 0;
    $first = 1;
    $found = '';
-   //special characters to remove in the identified text
-   $order   = array('/', '-' , ';', ':', '*', '=');
-   $replace = '';
    //trim text to number of characters
    $max_len = 100;
  
@@ -370,7 +367,7 @@ function fetch_fields($text, $terms)  {
              $len = strlen($found);
              //$str = preg_replace("/-/i", "", substr($text, $startindex+$len, $position-($startindex+$len)));
              //remove special characters
-   	     $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
+   	     $str = removespecialcharacters(substr($text, $startindex+$len, $position-($startindex+$len)));
              $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len) : $str;
 
           }
@@ -379,7 +376,7 @@ function fetch_fields($text, $terms)  {
    }
    $len = strlen($found);
    //remove special characters
-   $str =str_replace($order, $replace, substr($text, $startindex+$len, $position-($startindex+$len)));
+   $str = removespecialcharacters(substr($text, $startindex+$len, $position-($startindex+$len)));
    //$result[$terms[$found]] = $str;
    $result[$terms[$found]] = (strlen($str) > $max_len) ? substr($str,0, $max_len) : $str;
    }
@@ -387,6 +384,15 @@ function fetch_fields($text, $terms)  {
         echo 'Caught exception: ',  $e->getMessage(), "\n";
    }
    return $result;
+}
+//function used to remove special characters at the beginning of the identified text
+function removespecialcharacters($text)      {
+        $text = trim($text);
+   	//special characters to remove in the identified text
+ 	$order   = array('/', '-' , ';', ':', '*', '=');
+   	while($text != '' && in_array($text[0], $order))
+		$text = substr($text, 1, strlen($text)-1);
+        return $text;
 }
 
 /**
