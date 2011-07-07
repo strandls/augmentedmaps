@@ -199,10 +199,9 @@ function createtreepix_content($file, $dictionary)      {
     	echo 'Excdeption in setting dates: ',  $e->getMessage(), "\n";
   }
   try  { 
-  	//This is an array of field names vs field names, aliases vs field names
-  	//Going forward, this list can expand, but need to be expanded CAREFULLY
-  	$search_fields = array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type'); 
-  	
+  	//get search fields and use them
+        $search_fields = get_search_fields();
+  
 	//obtain field details from the message text 
   	$field_details = fetch_fields($messagetext, $search_fields);
         //fill in the fields of the new node
@@ -448,3 +447,8 @@ function get2darrayfromfile($filename)  {
   return $output;
 }
 
+//This is an array of field names vs field names, aliases vs field names
+//Going forward, this list can expand, but need to be expanded CAREFULLY
+function get_search_fields()    {
+return array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type');
+}

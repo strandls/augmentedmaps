@@ -18,7 +18,7 @@ function get_browse_link($nid, $type, $direction = "next", $text="Next") {
    $path_alias = db_result(db_query('SELECT dst from {url_alias} where src = \'node/%d\'',$rnid));
    //print $path_alias;
    //THIS SHOULD BE EMPTY BY DEFAULT
-   $link = '';
+   $link = "<p>$text</p>";
    //IF THERE IS A NODE TO BROWSE TO, THEN POPULATE THE LINK, ELSE LEAVE IT EMPTY
    if($rnid > 0)          {
         //ALIAS IS THERE FOR THE URL
@@ -38,6 +38,11 @@ function get_browse_link($nid, $type, $direction = "next", $text="Next") {
 function get_teaser($nid)          {
      $node = node_load($nid);
      return node_teaser(strip_tags($node->body), $format = NULL, $size = 500);
+}
+
+//form_alter for testing purposes
+function wgp_utils_form_alter(&$form, &$form_state, $form_id)        {
+                    //print_r($form);
 }
 
 //Path URLs to address

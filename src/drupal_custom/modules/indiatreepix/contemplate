@@ -1,8 +1,8 @@
 <div class="browse">
 <?php 
-print get_browse_link($node->nid, "indiatreepix", $direction = "prev", $text="Prev");
-print "<a href=/curation_interface> Browse All</a>";
-print get_browse_link($node->nid, "indiatreepix", $direction = "next", $text="Next"); 
+print get_browse_link($node->nid, "indiatreepix", $direction = "next", $text="Newer");
+print "<a href=/curation_interface>Browse All</a>"; 
+print get_browse_link($node->nid, "indiatreepix", $direction = "prev", $text="Older");
 ?>
 </div>
 <br/>
@@ -33,7 +33,7 @@ This page is a curation interface for aggregating data from
 the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatreepix </a> </b>
 </p>
 <p>
-<b>This is an alpha site and is not open to public. </b> Click <a href="/scientificnames_dictionary">here</a> to view Scientific name reference.
+<b>This is an alpha site and is not open to public. </b>  
 </p>
 <div  class='link_ss'> <a href="#" onclick="Lightbox.triggerLightbox('lightshow', 'treepix');">Slide show</a> </div>
 
@@ -65,11 +65,12 @@ else
         print "<div class=notvalidated title='This content is not validated'></div>";
 if (user_access('administer flags')) 
     print flag_create_link('itp_validated', $node->nid);
+?>
+&nbsp;&nbsp;&nbsp;<a href="/scientificnames_dictionary">Table of species names used for curation.</a>
+<?php
 
 print "</div>";
-?>
 
-<?php
 $headers = array();
 $data = array();
 $highlighters = array();
@@ -222,6 +223,10 @@ $mailtext =   cleanupmailmessage($node->field_itp_mail_text[0]['view']);
 foreach ($keywords as $keyword)     {
      if($keyword)
          $mailtext = highlight_words($mailtext, $keyword);           
+}
+$search_fields = get_search_fields();
+foreach ($search_fields as $key => $value)  {
+         $mailtext = highlight_words($mailtext, trim($key), "highlightkey");
 }
 
 //Highlight other matching words
