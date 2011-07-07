@@ -21,13 +21,21 @@ function get_browse_link($nid, $type, $direction = "next", $text="Next") {
    $link = "<p>$text</p>";
    //IF THERE IS A NODE TO BROWSE TO, THEN POPULATE THE LINK, ELSE LEAVE IT EMPTY
    if($rnid > 0)          {
-        //ALIAS IS THERE FOR THE URL
-      	if($path_alias)
-      		$link = "<a href=\"$base_url/$path_alias\">$text</a>";
-      	else 
-      		$link = "<a href=\"$base_url/node/$rnid\">$text</a>";
-   }
 
+       global $_domain;
+       $active = $_domain['domain_id'];
+       $domain_lookup = domain_get_node_domains($rnid);
+       //if accessible in this domain 
+        if(in_array($active, $domain_lookup["domain_id"]) || $domain_lookup['domain_site'] == 1)     {
+           //ALIAS IS THERE FOR THE URL
+      	    if($path_alias)
+      		$link = "<a href=\"$base_url/$path_alias\">$text</a>";
+      	    else 
+      		$link = "<a href=\"$base_url/node/$rnid\">$text</a>";
+         }
+         else
+              return get_browse_link($rnid, $type, $direction, $text);
+   }
    return $link;
 }
 
@@ -41,9 +49,9 @@ function get_teaser($nid)          {
 }
 
 //form_alter for testing purposes
-function wgp_utils_form_alter(&$form, &$form_state, $form_id)        {
+//function wgp_utils_form_alter(&$form, &$form_state, $form_id)        {
                     //print_r($form);
-}
+//}
 
 //Path URLs to address
 function wgp_utils_menu()   {
