@@ -1,6 +1,45 @@
 <?php
 //This module holds all the utility methods, required for the wgp code
 
+/**
+ * function to return the links to be placed for browsing between nodes
+ * else return link to the next/previous node of the same type
+ * direction can be next/prev
+ */
+function get_browse_link($nid, $type, $direction = "next", $text="Next") {
+   $rnid = 0;
+   //GET THE required node id, based on the direction to browse
+   if($direction=="prev")   
+     $rnid = db_result(db_query('SELECT nid from {node} where nid < %d and type = \'%s\' ORDER by nid DESC', $nid, $type));
+   else
+     $rnid = db_result(db_query('SELECT nid from {node} where nid > %d and type=\'%s\' ORDER by nid ASC', $nid, $type));
+   
+   //Show human readable URL, if its there.
+   $path_alias = db_result(db_query('SELECT dst from {url_alias} where src = \'node/%d\'',$rnid));
+   //print $path_alias;
+   //THIS SHOULD BE EMPTY BY DEFAULT
+   $link = '';
+   //IF THERE IS A NODE TO BROWSE TO, THEN POPULATE THE LINK, ELSE LEAVE IT EMPTY
+   if($rnid > 0)          {
+        //ALIAS IS THERE FOR THE URL
+      	if($path_alias)
+      		$link = "<a href=\"$base_url/$path_alias\">$text</a>";
+      	else 
+      		$link = "<a href=\"$base_url/node/$rnid\">$text</a>";
+   }
+
+   return $link;
+}
+
+/**
+ * Given a node id, returens the teaser
+ * Used in showing teasers inside front page
+ */
+function get_teaser($nid)          {
+     $node = node_load($nid);
+     return node_teaser(strip_tags($node->body), $format = NULL, $size = 500);
+}
+
 //Path URLs to address
 function wgp_utils_menu()   {
  // Search
