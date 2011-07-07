@@ -1,3 +1,10 @@
+<div class="browse">
+<?php 
+print get_browse_link($node->nid, "indiatreepix", $direction = "prev", $text="Prev");
+print "<a href=/curation_interface> Browse All</a>";
+print get_browse_link($node->nid, "indiatreepix", $direction = "next", $text="Next"); 
+?>
+</div>
 <br/>
 <script>
 setInterval("doSomething()", 5000);
@@ -26,9 +33,9 @@ This page is a curation interface for aggregating data from
 the googlegroup <a href='https://groups.google.com/group/indiantreepix'> indiatreepix </a> </b>
 </p>
 <p>
-<b>This is an alpha site and is not open to public. </b>
+<b>This is an alpha site and is not open to public. </b> Click <a href="/scientificnames_dictionary">here</a> to view Scientific name reference.
 </p>
-<div  class='link_ss'> <a href="#" onclick="Lightbox.triggerLightbox('lightshow', 'treepix');">slideshow</a> </div>
+<div  class='link_ss'> <a href="#" onclick="Lightbox.triggerLightbox('lightshow', 'treepix');">Slide show</a> </div>
 
 <div class="field field-type-filefield field-field-indiatreepix-image">
   <div class="field-items">
@@ -53,9 +60,9 @@ else
 $flag = flag_get_flag('itp_validated');
 print "<div class=itp_content>";
 if($flag->is_flagged($node->nid))
-        print "<div class=validated title='This Content is validated'></div>";
+        print "<div class=validated title='This content is validated'></div>";
 else
-        print "<div class=notvalidated title='This Content is not validated'></div>";
+        print "<div class=notvalidated title='This content is not validated'></div>";
 if (user_access('administer flags')) 
     print flag_create_link('itp_validated', $node->nid);
 
@@ -87,27 +94,27 @@ foreach ($keywords as $keyword)     {
      }
 }
 $row = array();
-$row[] = 'Names identified in mail text ';
+$row[] = 'Identified Names';
 $row[] = $key_value;
 $data[] = $row;
 
 
 $row = array();
-$row[] = 'Start date of the mail';
+$row[] = 'Start Date';
 //$row[] = format_date($node->field_itp_startdate[0]['value']);
 //Use this after the bug in datefield is resolved
 $row[] = $node->field_itp_startdate[0]['view']; 
 $data[] = $row;
 
 $row = array();
-$row[] = 'Latest Update';
+$row[] = 'Last Update';
 //$row[] = format_date($node->field_itp_latestupdate[0]['value']);
 //Use this after the bug in datefield is resolved
 $row[] = $node->field_itp_latestupdate[0]['view']; 
 $data[] = $row;
 
 $row = array();
-$row[] = 'Submitted by';
+$row[] = 'Submitted By';
 $row[] = $node->field_itp_submitted_by[0]['view'];
 $data[] = $row;
 $highlighters['hsubmitted'] = $node->field_itp_submitted_by[0]['value'];
@@ -137,7 +144,7 @@ $data[] = $row;
 $highlighters['hphabitat'] = $node->$node->field_itp_planthabitat[0]['value'];
 
 $row   = array();
-$row[] = 'Sub family';
+$row[] = 'Sub Family';
 $row[] = $node->field_itp_subfamily[0]['view'];
 $data[] = $row;
 $highlighters['hsfamily'] = $node->field_itp_subfamily[0]['value'];
@@ -187,6 +194,29 @@ print theme_table($header, $data, array('class'=>'itp_table'));
       <div class="field-item">
 <?php 
 $keywords = explode(KEYWORD_SEPERATOR, $node->field_matching_string[0]['value']);
+
+$allwords = array("whatever","goes","in","here"); 
+function Ascii_Sort($val_1, $val_2) 
+{ 
+// initialize the return value to zero 
+$retVal = 0;
+
+// compare lengths 
+$firstVal = strlen($val_1); 
+$secondVal = strlen($val_2);
+
+if($firstVal > $secondVal) 
+{ 
+$retVal = -1; 
+} 
+else if($firstVal < $secondVal) 
+{ 
+$retVal = 1; 
+} 
+return $retVal; 
+}
+
+uasort($keywords, "Ascii_Sort"); 
 
 $mailtext =   cleanupmailmessage($node->field_itp_mail_text[0]['view']);
 foreach ($keywords as $keyword)     {

@@ -70,7 +70,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<9){
+  while (false !== ($file = readdir($handle)) && $count<50000){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -216,7 +216,7 @@ function createtreepix_content($file, $dictionary)      {
   	$new_node->field_itp_inflorescence_type[0]['value'] =  get_field_value($field_details, "inflorescence");	
   	$new_node->field_itp_flowers_size[0]['value'] = get_field_value($field_details, 'flowers_size');
   	$new_node->field_itp_fruits_type[0]['value'] = get_field_value($field_details, 'fruits type');
-  	$new_node->field_itp_miscellaneous[0]['value'] =  "miscellaneous";
+  	$new_node->field_itp_miscellaneous[0]['value'] =  "-";
   }
   catch(Exception $e)        {
     	echo 'Exception in fetching fields: ',  $e->getMessage(), "\n";
@@ -404,3 +404,45 @@ function get_field_value($field_details, $key)    {
      $value = preg_replace('/\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', '', $field_details[$key]);//REMOVE FULL URLS Showing up in text
   return $value;
 }
+
+/**
+ * hook_menu 
+ * for publishing the scientific name dictionary
+ */
+function indiatreepix_menu()  {
+  $items['scientificnames_dictionary'] = array(
+    'title' => 'Scientific names',
+    'access arguments' => array('access content'),
+    'description' => 'Dictionary used for curating india treepix content',
+    'page callback' => 'scientificnames_dictionary',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * implement the call back functioni of scientificnames_dictionary
+ **/
+function scientificnames_dictionary()                  {
+ 	$base_url  = "/data/augmentedmaps";
+  	//Load the dictionary of all the available Species
+  	$dictionary = get2darrayfromfile("$base_url/sites/all/modules/indiatreepix/processed_dictionary");
+        //$dictionary is a 2d array
+        return theme_table(array("Alias", "Scientific Name"), $dictionary, array());
+}
+
+//return 2d array, reading columns from a file
+function get2darrayfromfile($filename)  {
+  $output=array();
+  $file = fopen($filename, "r");
+
+  //read file line by line and build the data structure that can be used for search
+  while(!feof($file)) {
+    //break the line using tab space
+    list($name, $alias) = explode("\t", fgets($file, 4096));
+    $output[] = array($alias, $name);
+  }
+  fclose ($file);
+  return $output;
+}
+
