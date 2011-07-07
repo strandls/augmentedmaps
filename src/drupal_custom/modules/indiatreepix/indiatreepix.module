@@ -428,19 +428,21 @@ function scientificnames_dictionary()                  {
   	//Load the dictionary of all the available Species
   	$dictionary = get2darrayfromfile("$base_url/sites/all/modules/indiatreepix/processed_dictionary");
         //$dictionary is a 2d array
-        return theme_table(array("Alias", "Scientific Name"), $dictionary, array());
+        return theme_table(array("No.", "Alias", "Scientific Name"), $dictionary, array());
 }
 
 //return 2d array, reading columns from a file
 function get2darrayfromfile($filename)  {
   $output=array();
   $file = fopen($filename, "r");
-
+  $count = 0;
   //read file line by line and build the data structure that can be used for search
   while(!feof($file)) {
     //break the line using tab space
     list($name, $alias) = explode("\t", fgets($file, 4096));
-    $output[] = array($alias, $name);
+    $count = $count + 1;
+    if($alias)
+      $output[] = array($count, $alias, $name);
   }
   fclose ($file);
   return $output;
