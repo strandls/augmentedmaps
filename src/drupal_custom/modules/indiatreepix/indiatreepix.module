@@ -70,7 +70,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
 
-  while (false !== ($file = readdir($handle)) && $count<50000){
+  while (false !== ($file = readdir($handle)) && $count<5){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -288,12 +288,14 @@ function createtreepix_content($file, $dictionary)      {
 }
 
 /*
-//TEST FUNCTION FOR VERIFICATIONS
+//hook_formalter
 function indiatreepix_form_alter (&$form, $form_state, $form_id) {
    $form['#submit'][] = 'itp_submit';
 }
+
 function itp_submit(&$form, $form_state)   {
- print_r($form_state);
+  $form_state['values']->domain_source = DOMAIN_SOURCE_USE_ACTIVE;
+  $form_state['values']['domain_site'] = 1;
 }
 */
 
@@ -450,5 +452,15 @@ function get2darrayfromfile($filename)  {
 //This is an array of field names vs field names, aliases vs field names
 //Going forward, this list can expand, but need to be expanded CAREFULLY
 function get_search_fields()    {
-return array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type');
+static $search_fields =  array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type');
+return $search_fields;
 }
+
+//DOMAIN SOURCE FOR INDIA TREE PIX SHOULD BE ALWAYS ACTIVE DOMAIN
+function indiatreepix_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+        if($node->type =="indiatreepix")     {
+              $node->domain_source = DOMAIN_SOURCE_USE_ACTIVE;
+        }
+}
+
+
