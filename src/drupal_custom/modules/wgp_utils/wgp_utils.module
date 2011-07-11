@@ -159,23 +159,25 @@ function search_custom(){
  * Display of custom search results
  */
 function search_display($type, $keyword){
-  
   $output = search_data($keyword, $type);
   if(!isset($output))
      $output = "Your search yielded no results";
   return ($output);
-  /*
-  $output = "<h2> Search Results </h2> <br/>";
-  $searchResults = do_search($keyword, $type);
-  foreach($searchResults as $result)
-  {
-     //the 'sid' is actually a node id.
-     $nid = $result->sid;
-     $node = node_load($nid);
-     $output = $output."<a href=$base_url/node/$nid>$node->title</a>"."<br/>";
-   }
-   //$output = search_excerpt($keyword, $output);
-   return ($output);
-*/
 }
 
+/**
+ * Function to return the names from a layer table
+ * One needs to pass the layer table name,
+ * name of column, which needs to be considered as name column
+ * Ex usage:- get_names("name", "lyr_171_india_tigerreserves")
+ *         get_names("areaname", "lyr_85_india_papoints")
+ **/
+function get_names($column, $table)         {
+  $names = array();
+  $sql = "SELECT $column as name from {$table}";
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+      $names[] = $row->name;
+  }
+  return $names;
+}
