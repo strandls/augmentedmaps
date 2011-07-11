@@ -118,13 +118,13 @@ $row = array();
 $row[] = 'Submitted By';
 $row[] = $node->field_itp_submitted_by[0]['view'];
 $data[] = $row;
-$highlighters['hsubmitted'] = $node->field_itp_submitted_by[0]['value'];
+$highlighters['hsbmitted'] = $node->field_itp_submitted_by[0]['value'];
 
 $row = array();
 $row[] = 'Location';
 $row[] = $node->field_indiatreepix_location[0]['view'];
 $data[] = $row;
-$highlighters['hlocation'] = $node->field_indiatreepix_location[0]['value'];
+$highlighters['hlcation'] = $node->field_indiatreepix_location[0]['value'];
 
 $row = array();
 $row[] = 'Height/Length';
@@ -136,13 +136,13 @@ $row = array();
 $row[] = 'Habitat';
 $row[] = $node->field_itp_habitat[0]['view'];
 $data[] = $row;
-$highlighters['hhabitat'] = $node->field_itp_habitat[0]['value'];
+$highlighters['hhbitat'] = $node->field_itp_habitat[0]['value'];
 
 $row = array();
 $row[] = 'Plant Habit';
 $row[] = $node->field_itp_planthabitat[0]['view'];
 $data[] = $row;
-$highlighters['hphabitat'] = $node->$node->field_itp_planthabitat[0]['value'];
+$highlighters['hphbitat'] = $node->$node->field_itp_planthabitat[0]['value'];
 
 $row   = array();
 $row[] = 'Sub Family';
@@ -154,31 +154,31 @@ $row   = array();
 $row[] = 'Tribe';
 $row[] = $node->field_itp_tribe[0]['view'];
 $data[] = $row;
-$highlighters['htribe'] = $node->field_itp_tribe[0]['value'];
+$highlighters['htibe'] = $node->field_itp_tribe[0]['value'];
 
 $row   = array();
 $row[] = 'Leaves Type/ Shape/ Size';
 $row[] = $node->field_itp_leaves_type[0]['view'];
 $data[] = $row;
-$highlighters['hltype'] = $node->field_itp_leaves_type[0]['value'];
+$highlighters['hltpe'] = $node->field_itp_leaves_type[0]['value'];
 
 $row   = array();
 $row[] = 'Inflorescence Type/ Size';
 $row[] = $node->field_itp_inflorescence_type[0]['view'];
 $data[] = $row;
-$highlighters['hinflorescence'] = $node->field_itp_inflorescence_type[0]['value'];
+$highlighters['hnflorescence'] = $node->field_itp_inflorescence_type[0]['value'];
 
 $row   = array();
 $row[] = 'Flowers Size/ Colour/ Calyx/ Bracts';
 $row[] = $node->field_itp_flowers_size[0]['view'];
 $data[] = $row;
-$highlighters['hfsize'] = $node->field_itp_flowers_size[0]['value'];
+$highlighters['hfsze'] = $node->field_itp_flowers_size[0]['value'];
 
 $row   = array();
 $row[] = 'Fruits Type/ Shape/ Size Seeds';
 $row[] = $node->field_itp_fruits_type[0]['view'];
 $data[] = $row;
-$highlighters['hftype'] = $node->field_itp_fruits_type[0]['value'];
+$highlighters['hftye'] = $node->field_itp_fruits_type[0]['value'];
 
 $row   = array();
 $row[] = 'Miscellaneous';
@@ -224,14 +224,14 @@ foreach ($keywords as $keyword)     {
      if($keyword)
          $mailtext = highlight_words($mailtext, $keyword);           
 }
+//Highlight other matching words
+foreach ($highlighters as $key => $value)    {
+         $values = explode("\n", $value);
+         $mailtext = highlight_words($mailtext, trim($values[0]), $key);
+}
 $search_fields = get_search_fields();
 foreach ($search_fields as $key => $value)  {
          $mailtext = highlight_words($mailtext, trim($key), "highlightkey");
-}
-
-//Highlight other matching words
-foreach ($highlighters as $key => $value)    {
-         $mailtext = highlight_words($mailtext, trim($value), $key);
 }
 print $mailtext;
  ?>
