@@ -57,7 +57,7 @@ background-color:#ffffff;
 margin-left:20px;
 border-radius:5px;
 box-shadow: 3px 3px 7px #c5c5c5; 
-width:970px;
+width:1050px;
 }
 
 #menus {
@@ -395,6 +395,7 @@ color: #5e5e5e;
 
 #content {
 padding:20px;
+margin-left: -85px;
 }
 
 #contentMenu {
@@ -2493,4 +2494,143 @@ width:500px;
 #homeWrapper div.error {
     max-width: 600px;
     margin-left: 390px;
+}
+
+/*Error positioning in the front page*/
+#homeWrapper div.error {
+    max-width: 600px;
+    margin-left: 390px;
+}
+
+/* TEMP HACK FOR SEARCH*/
+#block-block-26 {
+    margin-bottom: 20px;
+    margin-top: -30px;
+}
+#search-custom-form #edit-submit-1 {
+    float: right;
+    margin-top: -15px;
+    margin-right: 15px;
+    padding-bottom: 5px;
+}
+#contentMenu {
+ height: 380px;
+}
+/*CLOSURE OF CSS FOR LEFT SIDEBAR with SEARCH BOX*/
+/* CSS Rules for ITP content */
+.lightboxicon_small {
+   height: 75px;
+   width: 75px;
+   margin-bottom: 10px;
+}
+ul.itp_list li {
+    list-style: none;
+    display: inline;
+}
+.lightboxicon {
+    height: 130px;
+    width: 130px;
+}
+.itp_table {
+    width: 300px;
+    overflow: scroll;
+    float: left;
+}
+.field-field-itp-mail-text {
+    float: right;
+    width: 380px;
+    height: 665px;
+    overflow: scroll;
+}
+.flag-itp-validated {
+    margin-left: 20px;
+}
+ul.links li.statistics_counter {
+    margin: 10px;
+    float: left;
+}
+table.itp_table, .itp_table tr td {
+    border: 0.5px solid silver;
+    margin-left: 1px;
+}
+#editablefields-form div input, #editablefields-form div.resizable-textarea, .editablefields form-item {
+    max-width: 150px;
+}
+.highlight {
+    background: yellow;
+}
+ul.itp_list {
+  /*  max-height: 60px;
+   overflow: hide; */
+}
+.location_itpview {
+    max-width: 85px;
+}
+.itp_table .clicktoedit, .itp_table td  {
+   max-width: 170px;
+   word-wrap: break-word;
+}
+.itp_table .form-text, .itp_table .form-autocomplete, html.js .itp_table input.form-autocomplete  {
+    max-width: 150px;
+    word-wrap: break-word;
+}
+.hide {
+    display: none;
+}
+.show  {
+    display: inline;
+}
+
+/*Handling validation flag*/
+.itp_content .validated, .itp_content .notvalidated {
+    width: 30px;
+    height: 30px;
+    float: left;
+}
+.itp_content {
+    line-height: 30px;
+    clear: both;
+    padding-bottom: 40px;
+}
+.itp_content .notvalidated  {
+    background: url(../images/not_validated.png);
+}
+.itp_content .validated  {
+    background: url(../images/validated.png);
+}
+/* no need of showing link atbottom of th epage */
+.links span.flag-itp-validated {
+    display: none;
+}
+.link_ss {
+    display: inline;
+}
+.slideshow {
+    margin-top: 5px;
+}
+.browse a {
+    padding-left: 140px;
+}
+.browse p {
+    padding-left: 140px;
+    float: left;
+    margin: 0px;
+}
+.browse {
+    position: absolute;
+    top: 20px;
+    left: 400px;
+}
+.hsbmitted, .hlcation, .hhl, .hhbitat, .hphbitat, .hsfamily, .htibe, .hltpe, .hnflorescence, .hfsze, .hftye, .hmscs {
+   background: lightgreen;
+}
+.highlightkey {
+    background: orange;
+}
+//Fix issue with views Pager breaking up into 2 lines
+.item-list ul.pager li  {
+   padding: 0;
+}
+.item-list ul li {
+ margin-left: 5px;
 }
