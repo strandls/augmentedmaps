@@ -54,10 +54,12 @@ function indiatreepix_cron() {
   $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-/*  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
+/*
+  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
   $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
-  variable_set('indiatreepix_time', $timeval);   */
-  $base_url  = "/data/augmentedmaps";
+  variable_set('indiatreepix_time', $timeval);   
+*/ 
+ $base_url  = "/data/augmentedmaps";
 
   //Load the dictionary of all the available Species
   $dictionary = read_file("$base_url/sites/all/modules/indiatreepix/processed_dictionary");
@@ -284,6 +286,8 @@ function createtreepix_content($file, $dictionary)      {
   if(!empty($filesinfo))     {
        $new_node->field_indiatreepix_image = $filesinfo;
        node_save($new_node);
+       //set path alias here
+      // path_set_alias("node/".$new_node->nid, get_itp_pathalias($new_node->title));
   }
 }
 
@@ -294,8 +298,7 @@ function indiatreepix_form_alter (&$form, $form_state, $form_id) {
 }
 
 function itp_submit(&$form, $form_state)   {
-  $form_state['values']->domain_source = DOMAIN_SOURCE_USE_ACTIVE;
-  $form_state['values']['domain_site'] = 1;
+  print_r($form_state);
 }
 */
 
@@ -402,7 +405,7 @@ function removespecialcharacters($text)      {
 function get_field_value($field_details, $key)    {
   $value = DEFAULT_FIELD_VALUE;
   if(array_key_exists($key, $field_details))
-     $value = preg_replace('/\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', '', $field_details[$key]);//REMOVE FULL URLS Showing up in text
+     $value = $field_details[$key];//preg_replace('/\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', '', $field_details[$key]);//REMOVE FULL URLS Showing up in text
   return $value;
 }
 
@@ -463,4 +466,36 @@ function indiatreepix_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         }
 }
 
+//get the path alias for itp node
+function get_itp_pathalias($title)      {
+  $start = strpos($title, "[")+1;
+  $end = strpos($title, "]");
+  //get text between []
+  $string = substr($title, $start, $end-$start);
+  $path_alias = strtolower(preg_replace('#\W#', '', $string));
+  if(!$path_alias)
+     $path_alias = strtolower(preg_replace('#\W#', '', $title));
+  return $path_alias;
+}
 
+/**
+ * Implementation of hook_token_list().
+ */
+function indiatreepix_token_list($type = 'all') {
+if ($type == 'node' || $type == 'all') {
+    $tokens['node']['custom-itp-path'] = t("Custom path of ITP content generated from title");
+  }
+  return $tokens;
+}
+/**
+* Implementation of hook_token_values().
+*/
+function indiatreepix_token_values($type, $object = NULL, $options = array()) {
+  $values = array();
+
+  if ($type == 'node' && !empty($object)) {
+    $values['custom-itp-path'] = get_itp_pathalias($object->title);
+  }
+
+  return $values;
+}
