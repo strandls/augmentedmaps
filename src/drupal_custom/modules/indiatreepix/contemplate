@@ -142,7 +142,7 @@ $row = array();
 $row[] = 'Plant Habit';
 $row[] = $node->field_itp_planthabitat[0]['view'];
 $data[] = $row;
-$highlighters['hphbitat'] = $node->$node->field_itp_planthabitat[0]['value'];
+$highlighters['hphbitat'] = $node->field_itp_planthabitat[0]['value'];
 
 $row   = array();
 $row[] = 'Sub Family';
@@ -230,6 +230,9 @@ foreach ($highlighters as $key => $value)    {
          $mailtext = highlight_words($mailtext, trim($values[0]), $key);
 }
 $search_fields = get_search_fields();
+//No need to highlighting date
+unset($search_fields['date']);
+
 foreach ($search_fields as $key => $value)  {
          $mailtext = highlight_words($mailtext, trim($key), "highlightkey");
 }
