@@ -471,8 +471,8 @@ function indiatreepix_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
 function get_itp_pathalias($title)      {
   $start = strpos($title, "[")+1;
   $end = strpos($title, "]");
-  //get text between []
-  $string = substr($title, $start, $end-$start);
+  //get text between [], replace : with underscore, to obtain a better readable url
+  $string = str_replace(":", "_", substr($title, $start, $end-$start));
   $path_alias = strtolower(preg_replace('#\W#', '', $string));
   if(!$path_alias)
      $path_alias = strtolower(preg_replace('#\W#', '', $title));
