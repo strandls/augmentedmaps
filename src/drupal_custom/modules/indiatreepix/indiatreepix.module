@@ -32,12 +32,13 @@ return preg_replace($patterns, $replacements, $mailmessage);
 }
 
 /**
- * Highlight word occurances in the text passed
+ * Identify the word in the text passed, surround it with span class = $class
+ * Used to highlight word occurances in the text
  */
 function highlight_words($text,$word, $class="highlight"){
+   //Check if the word crosses the Min length to highlight, otherwise there will be lot of noise 
    if(strlen(trim($word)) < HIGHTLIGHT_MINLENGTH)  return $text;
- //  $text = 'XXXXXXXXXXXXXXXXXXXXXXX'.$word.'XXXXXXXXXXXXXXXX'.$text;
- //  $text = preg_replace('/\b'.$word.'\b/i', '<span class="'.$class.'">$0</span>', $text);
+   //actual replacement code
    $text = str_ireplace($word,'<span class='.$class.'>'.$word.'</span>', $text);
    return $text;
 }
@@ -55,6 +56,7 @@ function indiatreepix_cron() {
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
 /*
+  //PASS times to the python script and update the time stored in drupal
   $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
   $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
   variable_set('indiatreepix_time', $timeval);   
@@ -71,8 +73,8 @@ function indiatreepix_cron() {
   $directory = "$base_url/sites/all/modules/indiatreepix/detach_dir_processed_2";
   $handle = opendir($directory);
   $count = 0;
-
-  while (false !== ($file = readdir($handle)) && $count<5){
+  //Create Nodes for each mail fetched
+  while (false !== ($file = readdir($handle)) && $count<5000){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -101,8 +103,6 @@ function read_file($filename)  {
     //alias will be the key, scientific name will be the value
     //there is an assumption that there will be an entry of scientific name vs scietific name in the file
     $output[$alias] = $name;
- //   if(!array_key_exists($name, $output))
- //        $output[$name] = $name;
   }
   fclose ($file);
   return $output;
@@ -401,6 +401,7 @@ function removespecialcharacters($text)      {
 
 /**
  * if key exists in the array, then return it, else return DEFAULT_FIELD_VALUE
+ * Cleanup is commented
  */
 function get_field_value($field_details, $key)    {
   $value = DEFAULT_FIELD_VALUE;
