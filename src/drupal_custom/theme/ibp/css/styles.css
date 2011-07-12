@@ -1389,7 +1389,7 @@ ul.itp_list li {
     width: 130px;
 }
 .itp_table {
-    width: 45%;
+    width: 450px;
     overflow: scroll;
     float: left;
 }
@@ -1411,7 +1411,9 @@ table.itp_table, .itp_table tr td {
     margin-left: 1px;
 }
 #editablefields-form div input, #editablefields-form div.resizable-textarea, .editablefields form-item {
-    max-width: 210px;
+    margin:0;
+    padding:0;
+    max-width:210px;
 }
 .highlight {
     background: yellow;
@@ -1424,11 +1426,11 @@ ul.itp_list {
     max-width: 85px;
 }
 .itp_table .clicktoedit, .itp_table td {
-    max-width: 170px;
+    max-width: 230px;
     word-wrap: break-word;
 }
 .itp_table .form-text, .itp_table .form-autocomplete, html.js .itp_table input.form-autocomplete  {
-    max-width: 150px;
+    max-width:210px;
     word-wrap: break-word;
 }
 
@@ -1488,4 +1490,18 @@ ul.itp_list {
 }
 .highlightkey {
     background: orange;
+}
+/*FIX THE WIDTH OF MISCELLANEOUS INPUT TO 150, otherwise it will explode in IE*/
+#edit-field-itp-miscellaneous-0-value  {
+ width: 170px;
+}
+#main td {
+    padding: 10px;
+}
+a:focus, a:hover, a:active, a:visited {
+outline: none;
+  }
+/* Fix width issues in IE8 */
+td div.editablefields-processed {
+   width: 210px;
 }

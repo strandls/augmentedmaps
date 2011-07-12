@@ -41,7 +41,7 @@ a:active {
 	text-decoration: none;
 }
 
-a:focus {
+a:focus, a:hover, a:active, a:visited {
 outline: none;
   }
 
@@ -2633,4 +2633,8 @@ ul.itp_list {
 }
 .item-list ul li {
  margin-left: 5px;
+}
+/*FIX THE WIDTH OF MISCELLANEOUS INPUT TO 150, otherwise it will explode in IE*/
+#edit-field-itp-miscellaneous-0-value  {
+ width: 210px;
 }
