@@ -36,6 +36,7 @@ return preg_replace($patterns, $replacements, $mailmessage);
  * Used to highlight word occurances in the text
  */
 function highlight_words($text,$word, $class="highlight"){
+   //print $word."<br/>";
    //Check if the word crosses the Min length to highlight, otherwise there will be lot of noise 
    if(strlen(trim($word)) < HIGHTLIGHT_MINLENGTH)  return $text;
    //actual replacement code
@@ -438,26 +439,35 @@ function scientificnames_dictionary()                  {
 
 //return 2d array, reading columns from a file
 function get2darrayfromfile($filename)  {
-  $output=array();
-  $file = fopen($filename, "r");
-  $count = 0;
-  //read file line by line and build the data structure that can be used for search
-  while(!feof($file)) {
-    //break the line using tab space
-    list($name, $alias) = explode("\t", fgets($file, 4096));
-    $count = $count + 1;
-    if($alias)
-      $output[] = array($count, $alias, $name);
+  static $output;
+
+  if(!isset($output))        {
+     $output=array();
+     $file = fopen($filename, "r");
+     $count = 0;
+ 
+     //read file line by line and build the data structure that can be used for search
+     while(!feof($file)) {
+           //break the line using tab space
+           list($name, $alias) = explode("\t", fgets($file, 4096));
+           $count = $count + 1;
+           if($alias)
+               $output[] = array($count, $alias, $name);
+     }
+     fclose ($file);
   }
-  fclose ($file);
   return $output;
 }
 
 //This is an array of field names vs field names, aliases vs field names
 //Going forward, this list can expand, but need to be expanded CAREFULLY
 function get_search_fields()    {
-static $search_fields =  array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type');
-return $search_fields;
+  static $search_fields;
+
+  if(!isset($search_fields))
+     $search_fields =  array('location'=>'location', 'habitat' => 'habitat', 'plant habit' => 'planthabitat', 'planthabitat' => 'planthabitat', 'habit' => 'planthabitat', 'date'=>'date', 'sub family' => 'sub family', 'inflorescence' => 'inflorescence', 'flowers size' => 'flowers size', 'fruits type' => 'fruits type', 'height/length' => 'height/length', 'Plant height' => 'height/length', 'tribe'=>'tribe', 'leaves type' => 'leaves type');
+
+  return $search_fields;
 }
 
 //DOMAIN SOURCE FOR INDIA TREE PIX SHOULD BE ALWAYS ACTIVE DOMAIN
