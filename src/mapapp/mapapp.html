@@ -1,0 +1,79 @@
+
+<html> 
+<head> 
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+<title>map application</title> 
+<link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.13.custom.css" />
+<link rel="stylesheet" type="text/css" href="css/am.css" />
+
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
+<script type="text/javascript" src="OpenLayers-2.10/OpenLayers.js"></script> 
+<script type="text/javascript" src="scripts/jquery-1.6.1.min.js"></script> 
+<script type="text/javascript" src="scripts/jquery-ui-1.8.13.custom.min.js"></script> 
+<script type="text/javascript" src="scripts/am.js"></script> 
+<script type="text/javascript" src="scripts/mapapp.js"></script> 
+</head> 
+
+<body> 
+
+<div id="parent_panel">
+<div>
+<a href="#" id="panel_hide_bttn"></a>
+<a href="#" id="panel_show_bttn" style="display:none;"></a>
+</div>
+<div id="panel">
+<div id="top_bar">
+<ul id="top_bar_links">
+<li><a href="#" id="explore_bttn">Explore</a></li>
+<li><a href="#" id="search_bttn">Search</a></li>
+<li><a href="#" id="share_bttn">Share</a></li>
+<li><a href="#" id="selected_layers_bttn">Selected layers</a></li>
+</ul>
+
+
+</div>
+<div id="feature_info_panel"></div>
+<div id="layers_list_panel"></div>
+<div id="search_panel" style="display:none;">
+<div id="search_box"></div>
+<div id="search_results_panel"></div>
+</div>
+<div id="share_panel" style="display:none;"></div>
+<div id="selected_layers_panel" style="display:none;"></div>
+</div>
+</div>
+<div id="map" class="shadow"></div>
+
+<div>
+<script id="text/javascript">
+var mapOptions = {
+    popup_enabled: true,
+    toolbar_enabled: true,
+};
+
+var layersOptions = [
+    {
+        title:'India population',
+        layers:'ibp:lyr_104_india_states_census01',
+        styles:'india_population_female',
+        opacity:0.3
+    },
+    {
+        title:'India birds',
+        layers:'ibp:lyr_85_india_papoints',
+        styles:'point',
+        opacity:0.7
+    }
+];
+
+var map = showMap('map', mapOptions);
+showLayersExplorer('layers_list_panel', map);
+addSearchBox('search_box');
+addSearchResultsPanel('search_results_panel');
+</script>
+</div>
+
+<div id="layer_details_dialog" title="Layer Details" style="display:none;"><p>TODO</p></div>
+
+</body> 
+</html> 
