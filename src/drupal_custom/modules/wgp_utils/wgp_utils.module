@@ -169,15 +169,16 @@ function search_display($type, $keyword){
  * Function to return the names from a layer table
  * One needs to pass the layer table name,
  * name of column, which needs to be considered as name column
+ * This function returns a Map containing mlocate_id vs name
  * Ex usage:- get_names("name", "lyr_171_india_tigerreserves")
  *         get_names("areaname", "lyr_85_india_papoints")
  **/
 function get_names($column, $table)         {
   $names = array();
-  $sql = "SELECT $column as name from {$table}";
+  $sql = "SELECT __mlocate__id as id, $column as name from {$table}";
   $result = db_query($sql);
   while($row = db_fetch_object($result)) {
-      $names[] = $row->name;
+      $names[$row->id] = $row->name;
   }
   return $names;
 }
