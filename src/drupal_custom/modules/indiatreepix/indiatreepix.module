@@ -82,7 +82,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
   //Create Nodes for each mail fetched
-  while (false !== ($file = readdir($handle)) && $count<2){
+  while (false !== ($file = readdir($handle)) && $count<10000){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -177,14 +177,28 @@ function createtreepix_content($file, $dictionary)      {
   $messagetext = "<br/> From: ".preg_replace($pattern, $replace, $mailmessage['from']).$messagetext;
     $messagetext = $messagetext."<br/>".$mailmessage['messagetext'];
   */
-  global $user;
-  $new_node = (object) NULL;
-  $new_node->type = 'indiatreepix';
-  $new_node->uid = $user->uid ;
-  $new_node->created = time();
-  $new_node->changed = time();
-  $new_node->status = 1;   
-  
+
+  //STORE THE THREAD id for future references
+  //FILE NAME IS THREAD ID SO KEEP IT
+  $threadid = preg_replace("/\\.[^.\\s]{3,4}$/", "", basename($file));
+  $node_id = get_nid_from_threadid($threadid);
+
+  //If a node already exists with the given thread id, load the node and update the fields
+  if($node_id)			{
+      $new_node = node_load($node_id);
+      $messagetext = $messagetext . '<br/>'. $new_node->field_itp_mail_text[0]['value'];
+  }
+  else {
+     	global $user;
+  	$new_node = (object) NULL;
+  	$new_node->type = 'indiatreepix';
+  	$new_node->uid = $user->uid ;
+  	$new_node->created = time();
+  	$new_node->changed = time();
+  	$new_node->status = 1;   
+  	$new_node->field_itp_thread_id[0]['value'] = $threadid;
+  }
+ 
   try {
   	$new_node->title = $title;
   	$matching_species = find_matching_species($messagetext, $dictionary);
@@ -231,11 +245,6 @@ function createtreepix_content($file, $dictionary)      {
     	echo 'Exception in fetching fields: ',  $e->getMessage(), "\n";
   }
  
-  //STORE THE THREAD id for future references
-  //FILE NAME IS THREAD ID SO KEEP IT
-  $threadid = intval(basename($file));
-  $new_node->field_itp_thread_id[0]['value'] = $threadid; 
- 
   //Right now we stay in the same folder, so there is no base_dir to process
   $base_dir = 'sites/all/modules/indiatreepix';
   $filesinfo = array();
@@ -244,11 +253,13 @@ function createtreepix_content($file, $dictionary)      {
      if( is_array($mailmessage['attachments']))  {
 	foreach($mailmessage['attachments'] as $file) {
                 $file = $base_dir.substr($file, 1, strlen($file)-1);
-                if(in_array($file, $files_list))
+		$fn = basename($file);
+               
+                //If the same image is send twice in a mail, ignore it
+                if(in_array($fn, $files_list))
                      continue;
                 else
-                     $files_list[] = $file;
-		$fn = basename($file);
+                     $files_list[] = $fn;
                 
                 $indiatreepixdir = "sites/default/files/indiatreepix/";
 
@@ -526,4 +537,9 @@ function indiatreepix_token_values($type, $object = NULL, $options = array()) {
   }
 
   return $values;
+}
+
+// returns the nid of the given thread id
+function get_nid_from_threadid($threadid)            {
+  return db_result(db_query('SELECT nid from {content_type_indiatreepix} where field_itp_thread_id_value = \'%s\'', $threadid));
 }
