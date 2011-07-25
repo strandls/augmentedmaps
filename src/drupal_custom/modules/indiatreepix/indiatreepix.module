@@ -4,6 +4,12 @@ define("KEYWORD_SEPERATOR", "%");
 //KEEP A MIN LENGTH TO HIGHTLIGHT AS 4, OTHERWISE THERE WILL BE LOT OF NOICE
 define("HIGHTLIGHT_MINLENGTH", 4);
 
+/* Used to remove special characters coming up because of characters in different languages */
+function remove_locale($text)         {
+$special = array("E0", "A4", "B6", "A5", "8D", "B5", "BE", "B0");
+return str_replace($special, "", $text);
+}
+
 //CODE TO CLEANUP MAIL MESSAGE FROM GMAIL
 function cleanupmailmessage($mailmessage) {
 $patterns = array();
@@ -41,6 +47,7 @@ function highlight_words($text,$word, $class="highlight"){
    if(strlen(trim($word)) < HIGHTLIGHT_MINLENGTH)  return $text;
    //actual replacement code
    $text = str_ireplace($word,'<span class='.$class.'>'.$word.'</span>', $text);
+ //  $text = preg_replace(''/\b'.$word.'\b/'', '<span class='.$class.'>'.$word.'</span>', $text);
    return $text;
 }
 
@@ -56,12 +63,12 @@ function indiatreepix_cron() {
   $timetostore = format_date(variable_get('indiatreepix_time', strtotime('-2 days', time())), 'custom', 'd-m-Y_H-i');  
   $timeval = time();
   //execute the python script to fetch mails from indiatreepix mail id
-/*
+
   //PASS times to the python script and update the time stored in drupal
-  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
+/*  $output = shell_exec("mv /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2 /data/augmentedmaps/sites/all/modules/indiatreepix/detach_dir_processed_2_".$timetostore);
   $output = shell_exec("cd /data/augmentedmaps/sites/all/modules/indiatreepix/; python gmail.py ".$timetosend);
   variable_set('indiatreepix_time', $timeval);   
-*/ 
+ */
  $base_url  = "/data/augmentedmaps";
 
   //Load the dictionary of all the available Species
@@ -75,7 +82,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
   //Create Nodes for each mail fetched
-  while (false !== ($file = readdir($handle)) && $count<5000){
+  while (false !== ($file = readdir($handle)) && $count<2){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -245,7 +252,17 @@ function createtreepix_content($file, $dictionary)      {
                 
                 $indiatreepixdir = "sites/default/files/indiatreepix/";
 
-                // if(file_exists('/sites/default/files/treepix/'))
+                //remove duplicate file names
+                $count = 0;
+                $cn = '';
+
+                while(file_exists($indiatreepixdir.$fn.$cn))      {
+                   $count = $count + 1;
+                   $cn = $count;
+                }
+                $fn = $fn.$cn;
+
+
                 //     print "yes";
 		//copying from source folder to drupal's sites/default/files/treepix/
 		$cp = copy($file,$indiatreepixdir.$fn);
