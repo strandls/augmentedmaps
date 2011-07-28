@@ -24,6 +24,14 @@
             <list>
                 <value>getColumnTitle</value>
                 <value>getSummaryColumns</value>
+                <value>getThemeNames</value>
+                <value>getLayersByTheme</value>
+                <value>getLayerColumns</value>
+                <value>getLayerAttribution</value>
+                <value>getLayerDetails</value>
+                <value>getLayerSummary</value>
+                <value>getLayerLinkTables</value>
+                <value>getLayersAccessStatus</value>
             </list>
         </constructor-arg>
 
