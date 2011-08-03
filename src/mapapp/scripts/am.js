@@ -132,6 +132,8 @@ function getColumnTitle(layer, columnName) {
 }
 
 function getThemeNames(theme_type) {
+
+    /*
     var url = 'http://' + getHost() + '/geoserver/ows';
     
     var params = {
@@ -164,6 +166,18 @@ function getThemeNames(theme_type) {
     });
 
     return themes;
+    */
+
+    //currently  no way to filter the theme names by domains ibp/wgp, 
+    //hence, commented above code and using  hardcoded theme names below
+    var by_themes = 'Biogeography///Abiotic///Demography///Species///Administrative Units///Land Use Land Cover///Conservation';
+
+    var by_geography = 'India///Nilgiri Biosphere Reserve///Western Ghats///BR Hills, Karnataka///Vembanad, Kerala///Bandipur, Karnataka';
+
+    if (theme_type == 1)
+	return by_themes.split('///');
+    else if (theme_type == 2)
+	return by_geography.split('///');
 }
 
 function getLayersByTheme(theme) {
@@ -407,6 +421,43 @@ function getLayersAccessStatus() {
     return layersAccess;
 }
 
+function getUrlData(url) {
+    var url_data;
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        async: false,
+        cache: false,
+        timeout: 30000,
+        dataType: 'text',
+        error: function(){
+            return true;
+        },
+        success: function(data, msg){
+            if (parseFloat(msg)){
+                return false;
+            } else {
+                url_data = data;
+                return true;
+            }
+        }
+    });
+
+    return url_data;	
+    //$( "#" + lnk_table_div ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 480, modal:true, zIndex: 3999});
+}
+
+function showAjaxLinkPopup(url, title) {
+
+	var url_data = getUrlData(url);
+
+    	var elem = document.getElementById("layers_list_panel_info_dialog");
+
+	elem.innerHTML = url_data;
+
+    	$( "#layers_list_panel_info_dialog" ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 380, modal:true, zIndex: 3999});
+}
 
 function getLinkTableEntries(feature_id, layer_tablename, link_tablename) {
     var url = 'http://' + getHost() + '/ml_orchestrator.php?action=getLinkTableEntries&layerdata_id=' + feature_id + '&layer_tablename=' + layer_tablename + '&link_tablename=' + link_tablename;
@@ -491,9 +542,14 @@ function AugmentedMap(map_div, options) {
                 {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 19}
             );
 
+         var ghyb = new OpenLayers.Layer.Google(
+                "Google Hybrid",
+                {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 19}
+            );
+
         var osm = new OpenLayers.Layer.OSM();
 
-        map.addLayers([gphy, gsat, osm]);
+        map.addLayers([gphy, gsat, ghyb, osm]);
     }
 
     function addLayer(layer) {
@@ -645,15 +701,18 @@ function AugmentedMap(map_div, options) {
             html = html + '<table class="popup_table">';
             for (var j in summaryColumns) {
                 var summaryColumn = summaryColumns[j]; 
-                var title = getColumnTitle(featuresList[i].layer, 
-                        summaryColumn);
+                //var title = getColumnTitle(featuresList[i].layer, summaryColumn);
+		var title = layerColumns[summaryColumn];
                 var value = featuresList[i][summaryColumn];
                 html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
             }
             html = html + '</table>';
 
             html = html + '<div style="float:right;" id=\'' + featuresList[i].layer + title_div + '_more\'>';
-            html = html + '<a href="#" onClick="showDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\', \'fade\');hideDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1);">more</a>';
+            html = html + '<a href="#" onClick="showDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\', \'fade\');hideDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1); showDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">more&darr;</a>';
+            html = html + '</div>';
+            html = html + '<div style="float:right; display:none;" id=\'' + featuresList[i].layer + title_div + '_less\'>';
+            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
             html = html + '</div>';
             html = html + '</div>';
 
@@ -674,7 +733,7 @@ function AugmentedMap(map_div, options) {
                     });
             html = html + '</table>';
             html = html + '<div style="float:right;">';
-            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'slide\');">less</a>';
+            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'slide\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
             html = html + '</div>';
             html = html + '</div>';
             
@@ -682,6 +741,7 @@ function AugmentedMap(map_div, options) {
 
             html = html + '</div>';
         }
+
         return html;
     }
 
@@ -726,7 +786,7 @@ function AugmentedMap(map_div, options) {
             getWMS(), 
             {layers:layer,
             featureid:featureid,
-            env:'stroke:ff0000;stroke-width:'+index,
+            env:'size:18;stroke:ff0000;stroke-width:'+index,
             format: "image/png",
             styles: '',
             tiled: true,
@@ -825,6 +885,18 @@ function AugmentedMap(map_div, options) {
          return layers;
     }
 
+    function getLayersName(layer) {
+        return map.getLayersName(layer);
+    }
+
+    function setBaseLayer(layer) {
+        map.setBaseLayer(layer);
+    }
+
+    function updateSize() {
+        map.updateSize();
+    }
+
     this.addLayer = addLayer;
     this.removeLayer = removeLayer;
     this.addFeaturesList = addFeaturesList;
@@ -833,12 +905,14 @@ function AugmentedMap(map_div, options) {
     this.zoomToExtent = zoomToExtent;
     this.getLayers = getLayers;
     this.clearHighlight = clearHighlight;
+    this.getLayersName = getLayersName;
+    this.setBaseLayer = setBaseLayer;
+    this.updateSize = updateSize;
 
     map = new OpenLayers.Map(this.map_div, {
             controls: [
 		    new OpenLayers.Control.Navigation(),
 		    new OpenLayers.Control.PanZoomBar({zoomWorldIcon:true}),
-		    new OpenLayers.Control.LayerSwitcher(),
 		    new OpenLayers.Control.ScaleLine(),
 		    new OpenLayers.Control.MousePosition(),
 		    new OpenLayers.Control.KeyboardDefaults(),
@@ -1189,10 +1263,7 @@ function processLayerSummary(layer_summary) {
     
 
     if (layer_summary['description'] !== '')
-        html = html + '<tr><td class="key">Description</td><td class="value">' + layer_summary['description'] + '</td></tr>';
-
-    if (layer_summary['status'] !== '')
-        html = html + '<tr><td class="key">Status</td><td class="value">' + layer_summary['status'] + '</td></tr>';
+        html = html + '<tr><td class="key">Description</td><td class="value">' + layer_summary['layer_description'] + '</td></tr>';
 
     if (layer_summary['pdf_link'] !== '')
         html = html + '<tr><td class="key">PDF</td><td class="value">' + layer_summary['pdf_link'] + '</td></tr>';
@@ -1230,13 +1301,19 @@ function toggleLayerDetails(layer_details_div, layer) {
     document.getElementById(layer_details_div).innerHTML = layer_summary_table + layer_details;
 
     //$( "#" + layer_details_div ).toggle('fade', 500);
-    $( "#" + layer_details_div ).dialog({show: "fade",	hide: "fade", title:layer_summary['name'], width:670,minWidth:670, maxWidth:670,  height: 480, modal:true, zIndex: 3999});
+    $( "#" + layer_details_div ).dialog({show: "fade",	hide: "fade", title:layer_summary['layer_name'], width:670,minWidth:670, maxWidth:670,  height: 480, modal:true, zIndex: 3999});
 
 }
 
-function createDownloadBox(divId, layer) {
+function createDownloadBox(divId, layer, isAuthorisedUser) {
     var html = '';
     html = html + '<a style="float:right;" href="#" onclick="hideDownloadBox(\'' + divId + '\')">close</a>';
+
+    if (!isAuthorisedUser) {
+    	html = html + '<p><span class="info_msg">You have to login to download this layer</span></p>';
+	return html;
+    }
+
     html = html + '<ul class="download_formats_list">';
     //http://localhost:8080/geoserver/ibp/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ibp:lyr_118_india_foresttypes&outputFormat=json
     
@@ -1244,7 +1321,7 @@ function createDownloadBox(divId, layer) {
     var kml_url = getWorkspaceWMS() + '/kml?layers=' + layer; 
 
     html = html + '<li><a href="' + wfs_url+ '" >GML</a></li>';
-    html = html + '<li><a href="' + kml_url + '" >KML</a></li>';
+    html = html + '<!--li><a href="' + kml_url + '" >KML</a></li-->';
     html = html + '<li><a href="' + wfs_url + '&outputFormat=SHAPE-ZIP" >Shape</a></li>';
     html = html + '<li><a href="' + wfs_url + '&outputFormat=csv" >Text</a></li>';
     html = html + '</ul>';
@@ -1253,12 +1330,12 @@ function createDownloadBox(divId, layer) {
 
 }
 
-function toggleDownloadBox(divId , layer) {
+function toggleDownloadBox(divId , layer, isAuthorisedUser) {
 
     var download_box_div = document.getElementById(divId);
 
     if (download_box_div !== undefined && download_box_div.innerHTML === '') {
-        download_box_div.innerHTML = createDownloadBox(divId, layer);
+        download_box_div.innerHTML = createDownloadBox(divId, layer, isAuthorisedUser);
     }
     
     $("#" + divId).toggle('fade', 500);
@@ -1321,6 +1398,7 @@ function updateLayersListPanel() {
 function updateLayersListByTheme(theme) {
     var layers = document.layers;
 
+    document.getElementById('layers_as_list_panel_title').innerHTML = theme;
     for (var i in layers) {
         var layer = layers[i].name;
         document.getElementById(layer).style.display = 'none';
@@ -1338,6 +1416,8 @@ function updateLayersListByTheme(theme) {
 
 function updateLayersList(tag) {
     var layers = document.layers;
+
+    document.getElementById('layers_as_list_panel_title').innerHTML = tag;
 
     if (tag === 'all') {
         for (var i in layers) {
@@ -1363,10 +1443,11 @@ function updateLayersList(tag) {
     }
 }
 
-function showDiv(divId, effect) {
+function showDiv(divId, effect, duration) {
 
     var effct = (effect === undefined)?'fade':effect;
-    $('#'+divId).show(effct, {direction:'up'}, 500);
+    var _duration = (duration === undefined)?500:duration;
+    $('#'+divId).show(effct, {direction:'up'}, _duration);
 }
 
 function hideDiv(divId, effect, duration) {
@@ -1390,7 +1471,7 @@ function createLayerExplorerLinks(layers) {
     html = html + '<ul class="layer_explorer_sidebar_items">';
 
     html = html + '<li><a href="#" onClick="updateLayersList(\'all\')">All layers</a></li>';
-    html = html + '<li><div class="collapsible_box"><a class="collapsible_box_title" href="#" onClick="toggleDiv(\'layers_by_theme\')">By theme</a>';
+    html = html + '<li><div class="collapsible_box"><a class="collapsible_box_title" href="#" onClick="toggleDiv(\'layers_by_theme\', \'fade\'); hideDiv(\'layers_by_geography\', \'fade\', 1);">By theme</a>';
     html = html + '<div id="layers_by_theme">';
     html = html + '<ul class="layer_explorer_sidebar_subitems">';
     var themes = getThemeNames(1);
@@ -1400,8 +1481,8 @@ function createLayerExplorerLinks(layers) {
     }
     html = html + '</ul>';
     html = html + '</div></div></li>';
-    html = html + '<li><div class="collapsible_box"><a  class="collapsible_box_title" href="#" onClick="toggleDiv(\'layers_by_geography\')">By geography</a>';
-    html = html + '<div id="layers_by_geography">';
+    html = html + '<li><div class="collapsible_box"><a  class="collapsible_box_title" href="#" onClick="toggleDiv(\'layers_by_geography\', \'fade\'); hideDiv(\'layers_by_theme\', \'fade\', 1);">By geography</a>';
+    html = html + '<div id="layers_by_geography" style="display:none;">';
     html = html + '<ul class="layer_explorer_sidebar_subitems">';
     var geography = getThemeNames(2);
     for (var i in geography) {
@@ -1479,6 +1560,8 @@ function generateHTMLForLayersAsList(layers, hasMap) {
     //html = html + allKeywordsLinks;
     html = html + layerExplorerLinks;
 
+    html = html + '<div class="info_box">Showing <span id="layers_as_list_panel_title">all</span> layers</div>';
+
     html = html + '<div id="layers_as_list_panel">';
     html = html + '<ul>';
     for (var i in layers) {
@@ -1494,9 +1577,9 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         html = html + '<li class="layer_details_link" onclick="toggleLayerDetails(\'layer_details_' + i + '\',\'' + layers[i].name + '\');">details</li>';
         html = html + '<div id="layer_details_' + i + '" style="display:none;" class="layer_details_box"></div>';
 
-        if (layers[i].name !== undefined && layers_access[layers[i].name.replace(getWorkspace()+":", "")] && isAuthorised) {
+        if (layers[i].name !== undefined && layers_access[layers[i].name.replace(getWorkspace()+":", "")]) {
             var layer_download_div = 'layer_download_box_' + i;
-            html = html + '<li id=\'' + layer_download_div + '_link\' class="layer_download_link" onclick="toggleDownloadBox(\'' + layer_download_div + '\',\'' + layers[i].name + '\');">download</li>';
+            html = html + '<li id=\'' + layer_download_div + '_link\' class="layer_download_link" onclick="toggleDownloadBox(\'' + layer_download_div + '\',\'' + layers[i].name + '\',' + isAuthorised + ');">download</li>';
             html = html + '<div class="layer_download_box" id="' + layer_download_div + '" style="display:none;"></div>';
         }
         html = html + '</ul>';
@@ -1529,6 +1612,7 @@ function generateHTMLForLayersAsList(layers, hasMap) {
 
     html = html + '</ul>';
     html = html + '</div>';
+    html = html + '<div id="layers_list_panel_info_dialog" style="display:none;"></div>';
     
     return html;
 }
@@ -1688,8 +1772,34 @@ function resetMap() {
     
 }
 
+function setBaseLayer(layer) {
+  var map = window.map;
+  var obj = map.getLayersByName(layer);
+  map.setBaseLayer(obj[0]);
+  map.updateSize();
+}
+
+function createBaseLayerSwitcher() {
+    var base_layers = ['Google Physical', 'Google Satellite', 'Google Hybrid', 'OpenStreetMap'];
+
+    var html = '<div style="position:absolute;right:20px;top:100px;z-index:2000;">';
+    html = html + '<select id="ddlBaseLayer" onchange="setBaseLayer(options[selectedIndex].value)">';
+    
+    for (var i in base_layers) {
+        html = html + '<option value="' + base_layers[i] + '">' + base_layers[i] + '</option>';
+    }
+
+    html = html + '</select>';
+    html = html + '</div>';
+    
+    return html;
+}
+
 //create a div; add map to the div  
 function showMap(map_div, mapOptions, layersOptions) {
+
+    var base_layers_switcher = createBaseLayerSwitcher();
+    $('#' + map_div).before(base_layers_switcher);
 
     var fullOptions = getFullMapOptions(mapOptions);
 
@@ -1784,9 +1894,18 @@ function toggleLayer(layer, title) {
     }
 }
 
-function closeLayerPane(layer, selected_layer_div) {
+function closeLayerPane(layer, selected_layer_div, selected_layers_div) {
     removeLayer(layer);
     $("#" + selected_layer_div).hide('fade', 500);
+
+    var map = window.map;
+    var layers = map.getQueryableLayers();
+   
+    if (layers.length == 0){
+	var html = '<p><span class="info_msg">No layers selected</span></p>';
+    	document.getElementById(selected_layers_div).innerHTML = html;
+    }
+
 }
 
 function setLayerOpacity(layer_id, value) {
@@ -1879,7 +1998,7 @@ function updateSelectedLayersPanel(selected_layers_div) {
             var layer_id = layers[i].params.LAYERS.replace(":", "_");
             html = html + '<input id="' + layer_id + '_checkbox' + '" type="checkbox" checked="yes" onclick="toggleLayer(\'' + layers[i].params.LAYERS + '\', \'' + layers[i].name + '\')"><span class="selected_layer_title">' + layers[i].name + '</span>';
             
-            html = html + '<div class="close_button" onclick="closeLayerPane(\'' + layers[i].params.LAYERS + '\',\'' + selected_layer_div_id + '\');"></div>';
+            html = html + '<div class="close_button" onclick="closeLayerPane(\'' + layers[i].params.LAYERS + '\',\'' + selected_layer_div_id + '\', \'' + selected_layers_div + '\');"></div>';
 
             var attribution_div_id = 'selected_layer_attribution_' + i;
             html = html + '<div class="attribution_link" onclick="toggleAttribution(\'' + attribution_div_id + '\', \'' + layers[i].params.LAYERS + '\');"></div>';
@@ -1898,6 +2017,10 @@ function updateSelectedLayersPanel(selected_layers_div) {
 
             html = html + '</div>';
         }
+    }
+
+    if (map.getQueryableLayers().length == 0){
+	html = '<p><span class="info_msg">No layers selected</span></p>';
     }
 
     document.getElementById(selected_layers_div).innerHTML = html;

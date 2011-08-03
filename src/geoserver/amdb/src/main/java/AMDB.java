@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -131,8 +132,6 @@ public class AMDB {
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write("]".getBytes());
                 }
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -168,21 +167,21 @@ public class AMDB {
                 rs = st.executeQuery("select column_name, col_description((select oid from pg_class where relname = '" + layer + "'), ordinal_position) from information_schema.columns where table_name='" + layer + "';");
                 response.getOutputStream().write("{".getBytes());
                 while (rs.next()) {
-                    if (rs.getString(2) == null)
-                        continue;
-
                     response.getOutputStream().write("'".getBytes());
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write("'".getBytes());
                     response.getOutputStream().write(":".getBytes());
                     response.getOutputStream().write("'".getBytes());
-                    response.getOutputStream().write(rs.getString(2).getBytes());
+
+                    if (rs.getString(2) != null)
+                        response.getOutputStream().write(rs.getString(2).getBytes());
+                    else
+                        response.getOutputStream().write(rs.getString(1).getBytes());
+
                     response.getOutputStream().write("'".getBytes());
                     response.getOutputStream().write(",".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -220,8 +219,6 @@ public class AMDB {
                     response.getOutputStream().write(",".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -262,8 +259,6 @@ public class AMDB {
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write(FIELD_SEP.getBytes());
                 }
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -302,8 +297,6 @@ public class AMDB {
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write(FIELD_SEP.getBytes());
                 }
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -343,8 +336,6 @@ public class AMDB {
                     response.getOutputStream().write(FIELD_SEP.getBytes());
                     response.getOutputStream().write(rs.getString(2).getBytes());
                 }
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -385,8 +376,6 @@ public class AMDB {
                     response.getOutputStream().write("</span>".getBytes());
                     response.getOutputStream().write(rs.getString(2).getBytes());
                 }
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -421,41 +410,21 @@ public class AMDB {
 
                 st = c.createStatement();
                 rs = st.executeQuery("select layer_name, layer_description, status, pdf_link, url, comments, created_by, created_date, modified_by, modified_date from \"Meta_Layer\" where layer_tablename=\'" + layer + "\'");
+
+                ResultSetMetaData rsmetadata = rs.getMetaData();
+                int column_count = rsmetadata.getColumnCount();
                 response.getOutputStream().write("{".getBytes());
                 while (rs.next()) {
-                    response.getOutputStream().write("name:'".getBytes());
-                    response.getOutputStream().write(rs.getString(1).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("description:'".getBytes());
-                    response.getOutputStream().write(rs.getString(2).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("status:'".getBytes());
-                    response.getOutputStream().write(rs.getString(3).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("pdf_link:'".getBytes());
-                    response.getOutputStream().write(rs.getString(4).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("url:'".getBytes());
-                    response.getOutputStream().write(rs.getString(5).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("comments:'".getBytes());
-                    response.getOutputStream().write(rs.getString(6).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("created_by:'".getBytes());
-                    response.getOutputStream().write(rs.getString(7).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("created_date:'".getBytes());
-                    response.getOutputStream().write(rs.getString(8).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("modified_by:'".getBytes());
-                    response.getOutputStream().write(rs.getString(9).getBytes());
-                    response.getOutputStream().write("',".getBytes());
-                    response.getOutputStream().write("modified_date:'".getBytes());
-                    response.getOutputStream().write(rs.getString(10).getBytes());
+
+                    for (int i = 1; i <= column_count; ++i) {
+                        String columnName = rsmetadata.getColumnName(i);
+                        response.getOutputStream().write((columnName + ":'").getBytes());
+                        if (rs.getString(i) != null)
+                            response.getOutputStream().write(rs.getString(i).getBytes());
+                        response.getOutputStream().write("',".getBytes());
+                    }
                 }
-                response.getOutputStream().write("'}".getBytes());
-                rs.close();
-                st.close();
+                response.getOutputStream().write("}".getBytes());
             
             } catch (SQLException se) {
                 se.printStackTrace();
@@ -501,8 +470,6 @@ public class AMDB {
                     response.getOutputStream().write("',".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
-                rs.close();
-                st.close();
             
             } catch (SQLException se) {
                 se.printStackTrace();

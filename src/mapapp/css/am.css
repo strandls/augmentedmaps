@@ -2,7 +2,6 @@
 body#mapPage {
 	margin: 0;
 	font-family: Verdana, Helvetica, Sans-Serif;
-	font-size: 10pt;
 }
 
 h4 {
@@ -33,6 +32,7 @@ z-index: 2000;
 #wg_logo {
 height:80px;
 width:auto;
+border:0;
 }
 
 .loginRegister{
@@ -51,6 +51,7 @@ height:100%;
 #panel {
 width:36em;      
 height:95%;      
+background-color:#ffffff;
 }
 
 #map {
@@ -353,6 +354,7 @@ background-repeat: no-repeat;
 
 a.collapsible_box_title {
 padding-left:15px;    
+color:#5e5e5e;
 }
 
 .legend_title {
@@ -734,4 +736,18 @@ opacity:0.5;
 
 .layer_details_link:hover {
 opacity:1;      
+}
+
+.info_msg {
+color:#700a0a;
+font-weight: bold;
+}
+
+#layers_as_list_panel_title {
+font-style: italic;
+font-weight:bold;
+}
+
+.info_box {
+font-size:0.9em;
 }
