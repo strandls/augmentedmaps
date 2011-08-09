@@ -1,0 +1,4 @@
+core = "6.x"
+description = "Species Pages"
+name = "Species Pages"
+version = "6.x-1.0"
