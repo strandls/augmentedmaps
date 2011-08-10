@@ -4,9 +4,10 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php print $language->language ?>" lang="<?php print $language->language ?>" dir="<?php print $language->dir ?>">
 	<head>
+		<title><?php print "Western Ghats Portal" ?></title>
 		<?php print $head ?>
-		<title><?php print $head_title ?></title>
 		<?php print $styles ?>
+                <link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/wg/css/styles.css"/>
 		<?php print $scripts ?>
 	</head>
 	<body>
@@ -15,11 +16,9 @@
 			<!-- Main menu -->
 			<div id="menus">
 				<div id="mainMenu">
-                                    <?php if(isset($primary_links)): ?>
-                                           <?php print theme('links', $primary_links, array('class' => 'links p
-rimary-links')) ?>
-                                     <?php endif;?>
-
+					<?php if($main_menu): ?>
+					<?php print $main_menu?>
+					<?php endif; ?>
 				</div>
 				<div id="userMenu">
 					<ul>
@@ -38,21 +37,34 @@ rimary-links')) ?>
 				</div>
 			</div>
 			<!-- Main menu ends -->
-			<!-- Guide -->
-			<div id="guide">
-				<!-- Branding -->
+<div id="top_nav_bar">
+<ul>
+<li id="maps_nav_link" title="Maps" onclick="location.href='<?php print check_url($front_page)?>map'">Maps</li>
+<li id="checklists_nav_link" title="Checklists" onclick="location.href='<?php print check_url($front_page)?>browsechecklists'">Checklists</li>
+<li id="collaborate_nav_link" title="Collaborate" onclick="location.href='<?php print check_url($front_page)?>collaborate-wg'">Collaborate</li>
+<li id="species_nav_link" title="Species" onclick="location.href='<?php print check_url($front_page)?>species'">Species</li>
+<li id="themes_nav_link" title="Themes">Themes</li>
+<li id="about_nav_link" title="About" onclick="location.href='<?php print check_url($front_page)?>about/western-ghats'">About</li>
+</ul>
+</div>
+
+			<!-- Branding -->
 				<div id="branding">
 					<!-- Logo -->
 					<div id="logo">
 						<a href="<?php print check_url($front_page)?>">
 							<!--<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="logo"/>-->
-							<div></div>
+      							<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="western ghats" id="wg_logo"/>
 						</a>
 					</div>
 					<!-- Logo ends -->
 				</div>
 				<!-- Branding ends -->
 
+			<div id="parent-container">
+			<!-- Guide -->
+			<div id="guide">
+			
 				<!-- Search pane -->
 				<div id="searchPane">
 					<div id="mapSearch" class="paneBox">
@@ -110,12 +122,15 @@ rimary-links')) ?>
 				
 			</div>
 			<!-- Main ends -->
+
+			</div>
+			<!-- parent-container -->
 		</div>
 		<!-- Wrapper end -->
 		<?php print $closure;?>
     <script language="javascript">
       jQuery(document).ready(function(){
-        setMainDivSize();
+        //setMainDivSize();
       });
     </script>
 	</body>

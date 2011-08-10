@@ -37,13 +37,24 @@
 				</div>
 			</div>
 			<!-- Main menu ends -->
+<div id="top_nav_bar">
+<ul>
+<li id="maps_nav_link" title="Maps" onclick="location.href='<?php print check_url($front_page)?>map'">Maps</li>
+<li id="checklists_nav_link" title="Checklists" onclick="location.href='<?php print check_url($front_page)?>browsechecklists'">Checklists</li>
+<li id="collaborate_nav_link" title="Collaborate" onclick="location.href='<?php print check_url($front_page)?>collaborate-wg'">Collaborate</li>
+<li id="species_nav_link" title="Species" onclick="location.href='<?php print check_url($front_page)?>species'">Species</li>
+<li id="themes_nav_link" title="Themes">Themes</li>
+<li id="about_nav_link" title="About" onclick="location.href='<?php print check_url($front_page)?>about/western-ghats'">About</li>
+</ul>
+</div>
+
 			<!-- Branding -->
 				<div id="branding">
 					<!-- Logo -->
 					<div id="logo">
 						<a href="<?php print check_url($front_page)?>">
 							<!--<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="logo"/>-->
-							<div></div>
+      							<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="western ghats" id="wg_logo"/>
 						</a>
 					</div>
 					<!-- Logo ends -->
@@ -119,7 +130,7 @@
 		<?php print $closure;?>
     <script language="javascript">
       jQuery(document).ready(function(){
-        setMainDivSize();
+        //setMainDivSize();
       });
     </script>
 	</body>

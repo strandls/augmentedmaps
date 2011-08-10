@@ -41,7 +41,7 @@ a:active {
 	text-decoration: none;
 }
 
-a:focus, a:hover, a:active, a:visited {
+a:focus {
 outline: none;
   }
 
@@ -54,10 +54,10 @@ outline: none;
 position:absolute;
 border:1px solid #a5a5a5;
 background-color:#ffffff;
-margin-left:20px;
+margin-left:212px;
 border-radius:5px;
 box-shadow: 3px 3px 7px #c5c5c5; 
-width:1050px;
+width:980px;
 }
 
 #menus {
@@ -142,11 +142,15 @@ width:1050px;
 	margin-top: 10px;
 }
 
-#navbar {
+.navbar {
     margin-left:auto;
     margin-right:auto;
     width:660px;
     height:220px;      
+}
+
+.navbar div {
+opacity:0.8;
 }
 
 .side_nav {
@@ -197,7 +201,7 @@ text-decoration:underline;
 	width: 200px;
 	height: 200px;
 	margin: 10px;
-	background-image: url(../images/explore.png);
+	background-image: url(images/explore.png);
         background-position:0 0;
         cursor: pointer;
 	border-radius:7px;
@@ -206,7 +210,7 @@ text-decoration:underline;
 
 #home #explore:hover {
     background-position:-200px 0;
-    box-shadow:-1px -1px 21px #ef575a;
+    box-shadow:-1px -1px 21px #efefef;
 }
 
 #home #checklists {
@@ -214,7 +218,7 @@ text-decoration:underline;
 	width: 200px;
 	height: 200px;
 	margin: 10px;
-	background-image: url(../images/checklists.png);
+	background-image: url(images/checklists.png);
         background-position:0 0;
         cursor: pointer;
 	border-radius:7px;
@@ -223,7 +227,7 @@ text-decoration:underline;
 
 #home #checklists:hover {
     background-position:-200px 0;
-    box-shadow:-1px -1px 21px #c86e25;
+    box-shadow:-1px -1px 21px #efefef;
 }
 
 #home #collaborate {
@@ -231,7 +235,7 @@ text-decoration:underline;
 	width: 200px;
 	height: 200px;
 	margin: 10px;
-	background-image: url(../images/collaborate.png);
+	background-image: url(images/collaborate.png);
         background-position:0 0;
         cursor: pointer;
 	border-radius:7px;
@@ -240,8 +244,61 @@ text-decoration:underline;
 
 #home #collaborate:hover {
     background-position:-200px 0;
-    box-shadow:-1px -1px 21px #5a64e7;
+    box-shadow:-1px -1px 21px #efefef;
 }
+
+#home #species_entry {
+        float:left;
+	width: 200px;
+	height: 200px;
+	margin: 10px;
+	background-image: url(images/species.png);
+        background-position:0 0;
+        cursor: pointer;
+	border-radius:7px;
+        box-shadow:-3px -1px 21px #777777;
+}
+
+#home #species_entry:hover {
+    background-position:-200px 0;
+    box-shadow:-1px -1px 21px #efefef;
+}
+
+#home #themes_entry {
+        float:left;
+	width: 200px;
+	height: 200px;
+	margin: 10px;
+	background-image: url(images/themes.png);
+        background-position:0 0;
+        cursor: pointer;
+	border-radius:7px;
+        box-shadow:-3px -1px 21px #777777;
+}
+
+#home #themes_entry:hover {
+    background-position:-200px 0;
+    box-shadow:-1px -1px 21px #efefef;
+}
+
+#home #aboutus_entry {
+        float:left;
+	width: 200px;
+	height: 200px;
+	margin: 10px;
+	background-image: url(images/about.png);
+        background-position:0 0;
+        cursor: pointer;
+	border-radius:7px;
+        box-shadow:-3px -1px 21px #777777;
+}
+
+#home #aboutus_entry:hover {
+    background-position:-200px 0;
+    box-shadow:-1px -1px 21px #efefef;
+}
+
+
 
 
 
@@ -268,7 +325,6 @@ font-size: 0.7em;
 }
 
 #wrapper {
-max-width:1000px;
 margin-left:auto;
 margin-right:auto;
 position:relative;
@@ -366,15 +422,13 @@ color: #5e5e5e;
 }
 
 #branding {
-	margin-top: 20px;
-	height: 85px;
+	height: 80px;
 }
 
 #branding #logo a div{
-	width: 604px;
+	width: 250px;
 	height: 80px;
 	background-image: url(../images/map-logo2.png);
-	
   cursor: hand;
   cursor: pointer;
 }
@@ -395,7 +449,6 @@ color: #5e5e5e;
 
 #content {
 padding:20px;
-margin-left: -85px;
 }
 
 #contentMenu {
@@ -1825,8 +1878,6 @@ background-color: #f7f7f7;
 .edit-tid {
     margin: 20px;
 }
-.views-widget .edit-title-wrapper, .views-widget #edit-title {
-}
 
 .view-cepf-grantee-projects .item-list ul li, .view-strategic-direction  .item-list ul li{
     list-style:none outside none;
@@ -1912,7 +1963,7 @@ thead th, .view-strategic-direction a, .view-cepf-grantee-projects a {
 background-color: #d4edc9;
 padding:10px;
 position:relative;
-top:60px;
+top:40px;
 left:20px;
 width:230px;
 border-radius:7px;
@@ -2221,11 +2272,6 @@ background-color: #f7f7f7;
     clear: left;
 }
 
-.views-exposed-form .edit-title{
-    clear: left;
-    margin:0px;       
-}
-
 .edit-field-project-grantee-org-value {
 }
 
@@ -2507,107 +2553,24 @@ width:500px;
     margin-bottom: 20px;
     margin-top: -30px;
 }
-#search-custom-form #edit-submit-1 {
+#search-custom-form input.form-submit  {
     float: right;
     margin-top: -15px;
     margin-right: 15px;
     padding-bottom: 5px;
 }
 #contentMenu {
- height: 380px;
+ height: 310px;
 }
 /*CLOSURE OF CSS FOR LEFT SIDEBAR with SEARCH BOX*/
-/* CSS Rules for ITP content */
-.lightboxicon_small {
-   height: 75px;
-   width: 75px;
-   margin-bottom: 10px;
+/*CSS for who is new, who is online blocks in left sidebar*/
+#block-user-2, #block-user-3, #block-summary_reports-0 {
+    margin-top: 88px;
+    background: #8D9B87;
+    color: white;
 }
-ul.itp_list li {
-    list-style: none;
-    display: inline;
-}
-.lightboxicon {
-    height: 130px;
-    width: 130px;
-}
-.itp_table {
-    width: 300px;
-    overflow: scroll;
-    float: left;
-}
-.field-field-itp-mail-text {
-    float: right;
-    width: 380px;
-    height: 665px;
-    overflow: scroll;
-}
-.flag-itp-validated {
-    margin-left: 20px;
-}
-ul.links li.statistics_counter {
-    margin: 10px;
-    float: left;
-}
-table.itp_table, .itp_table tr td {
-    border: 0.5px solid silver;
-    margin-left: 1px;
-}
-#editablefields-form div input, #editablefields-form div.resizable-textarea, .editablefields form-item {
-    max-width: 150px;
-}
-.highlight {
-    background: yellow;
-}
-ul.itp_list {
-  /*  max-height: 60px;
-   overflow: hide; */
-}
-.location_itpview {
-    max-width: 85px;
-}
-.itp_table .clicktoedit, .itp_table td  {
-   max-width: 170px;
-   word-wrap: break-word;
-}
-.itp_table .form-text, .itp_table .form-autocomplete, html.js .itp_table input.form-autocomplete  {
-    max-width: 150px;
-    word-wrap: break-word;
-}
-.hide {
-    display: none;
-}
-.show  {
-    display: inline;
-}
-
-/*Handling validation flag*/
-.itp_content .validated, .itp_content .notvalidated {
-    width: 30px;
-    height: 30px;
-    float: left;
-}
-.itp_content {
-    line-height: 30px;
-    clear: both;
-    padding-bottom: 40px;
-}
-.itp_content .notvalidated  {
-    background: url(../images/not_validated.png);
-}
-.itp_content .validated  {
-    background: url(../images/validated.png);
-}
-/* no need of showing link atbottom of th epage */
-.links span.flag-itp-validated {
-    display: none;
-}
-.link_ss {
-    display: inline;
-}
-.slideshow {
-    margin-top: 5px;
-}
+/*CLOSURE*/
+/*CSS FOR BROWSE CONTENT*/
 .browse a {
     padding-left: 140px;
 }
@@ -2619,22 +2582,217 @@ ul.itp_list {
 .browse {
     position: absolute;
     top: 20px;
-    left: 400px;
+    left: 350px;
 }
-.hsbmitted, .hlcation, .hhl, .hhbitat, .hphbitat, .hsfamily, .htibe, .hltpe, .hnflorescence, .hfsze, .hftye, .hmscs {
-   background: lightgreen;
+
+/* CHECKLIST VIEW*/
+#ibp_credits {
+  margin-top:5px;
 }
-.highlightkey {
-    background: orange;
+.edit-taxa, .edit-term  {
+   clear:left;
 }
-//Fix issue with views Pager breaking up into 2 lines
-.item-list ul.pager li  {
-   padding: 0;
+.edit-field-checklist-reserves-value {
+   clear:right;
 }
-.item-list ul li {
- margin-left: 5px;
+.edit-title {
+    margin-left: 35px;
 }
-/*FIX THE WIDTH OF MISCELLANEOUS INPUT TO 150, otherwise it will explode in IE*/
-#edit-field-itp-miscellaneous-0-value  {
- width: 210px;
+div.views-exposed-widget {
+    margin-bottom: 20px;
+}
+#edit-submit-browse-checklists {
+    clear: left;
+    margin-left: 75px;
+}
+
+#species_proto {
+margin-left:24%;
+margin-right:auto;
+width:640px;
+}
+
+#species_proto img{
+width:640px;
+box-shadow:3px 3px 7px #777777;
+}
+
+.loginregister {
+padding: 10px;
+position: absolute;
+right: 20px;
+top: 0;
+z-index: 2000;
+}
+
+#species_main_wrapper {
+background-image:url(images/demo_corner.png); 
+background-repeat:no-repeat;
+background-position:0 0;
+}
+#species_main_wrapper h3  {
+    float:right;
+    margin-right:60px;
+}
+#species_main_wrapper .list{
+float:right;
+padding:10px;
+list-style:none;
+background-color: #fefefe;
+margin:10px;
+border-radius:7px;
+width:250px;
+}
+
+#species_main_wrapper .list ul{
+list-style:none;
+}
+
+#top_nav_bar {
+position:absolute;
+top:0;
+left:300px;
+font-size:1em;
+font-weight:bold;
+z-index:2000;
+}
+
+#top_nav_bar ul{
+list-style: none;
+}
+
+#top_nav_bar li{
+display: inline;
+padding:10px 10px 3px 10px;
+cursor:pointer;
+}
+
+#top_nav_bar li#maps_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #f0575a;
+}
+
+#top_nav_bar li#checklists_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #7764a2;
+}
+
+#top_nav_bar li#collaborate_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #145b9b;
+}
+
+#top_nav_bar li#species_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #00a4be;
+}
+
+#top_nav_bar li#themes_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #45a989;
+}
+
+#top_nav_bar li#about_nav_link:hover{
+background-color: #fafafa;
+border-bottom:3px solid #003846;
+}
+/* CSS for Species iframe*/
+iframe {
+    margin-left: -300px;
+    width: 977px;
+    height: 1700px;
+    margin-top: -120px;
+    z-index: 100000;
+    border:none;
+}
+#node-1719 iframe {
+    height: 3350px;
+}
+
+/*STYLES FOR ROADMAP*/
+.roadmap_table td    {
+  border: 1px solid white;
+}
+.roadmap_table tr.odd    {
+  background: #EEEEEE;
+}
+.roadmap_table tr.odd    {
+  background: #EEECCC;
+}
+.roadmap_table thead {
+  background-color: #CCCCCC;
+}
+/* STYLE for whats new */
+.whatsnew td {
+border: 1px solid lightgray;
+}
+p.table_caption {
+font-family: sans-serif;
+font-weight: bold;
+}
+/*TEAM PAGE*/
+ul.team li {
+    border-bottom: 1px solid gray;
+    margin-bottom: 10px;
+}
+ul.team {
+    list-style: none;
+}
+#contentDiv ul.team li img {
+        float:left;
+        margin: 20px 10px 3px 3px;
+        width: 100px;
+        height: auto;
+}
+span.bold   {
+        font-weight: bold;
+        color: black;
+        font-family: sans-serif;
+}
+/* FEEDBACK PAGE */
+#webform-client-form-1514 #edit-captcha-response {
+    width: 230px;
+}
+#webform-client-form-1514 #edit-submit {
+    float: right;
+    margin-right: 130px;
+}
+#webform-client-form-1514 .grippie {
+    display: none;
+}
+#webform-client-form-1514 .form-item textarea {
+    width: 400px;
+    height: 150px;
+    overflow: auto;
+    background: none repeat scroll 0 0 #E8ECED;
+    border: 1px solid #CCCCCC;
+    margin-right: 120px;
+    float: right;
+}
+#webform-client-form-1514 .form-item input {
+    float: right;
+    width: 395px;
+ margin-right: 120px;
+    background: none repeat scroll 0 0 #E8ECED;
+    border: 1px solid #CCCCCC;
+}
+#webform-client-form-1514 .form-item label {
+    float: left;
+}
+#webform-client-form-1514 fieldset.captcha {
+     clear: both;
+}
+#webform-client-form-1514 .captcha img  {
+      margin-left: 250px;
+}
+/* CSS for inline images*/
+.inline_image   {
+  float: right;
+}
+/* CSS changes for lef sidebar */
+#block-menu-menu-checklists li, #block-menu-menu-aboutmenu li, #block-menu-menu-collaborate li {
+ list-style: none;
+}
+#block-tagadelic-7, #block-tagadelic-5 {
+margin-top: 20px;
 }

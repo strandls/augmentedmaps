@@ -38,6 +38,13 @@ else {
 
 // Depending on the request include appripriate php file and return the result
 switch ($action) {
+  case 'getUserId':
+	$user = $GLOBALS['user'];
+	$user_id = $user->uid;
+	
+	print $user_id;
+	break;
+
   // save_info.php starts
   case 'savelayerfeaturedata':
     require_once("save_info.php");
