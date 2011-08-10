@@ -179,7 +179,9 @@ public class AMDB {
                         response.getOutputStream().write(rs.getString(1).getBytes());
 
                     response.getOutputStream().write("'".getBytes());
-                    response.getOutputStream().write(",".getBytes());
+
+                    if (!rs.isLast())
+                        response.getOutputStream().write(",".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
             
@@ -216,7 +218,9 @@ public class AMDB {
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write(":".getBytes());
                     response.getOutputStream().write(rs.getString(2).getBytes());
-                    response.getOutputStream().write(",".getBytes());
+
+                    if (!rs.isLast())
+                        response.getOutputStream().write(",".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
             
@@ -421,7 +425,10 @@ public class AMDB {
                         response.getOutputStream().write((columnName + ":'").getBytes());
                         if (rs.getString(i) != null)
                             response.getOutputStream().write(rs.getString(i).getBytes());
-                        response.getOutputStream().write("',".getBytes());
+                        response.getOutputStream().write("'".getBytes());
+                        
+                        if (i < column_count)
+                            response.getOutputStream().write(",".getBytes());
                     }
                 }
                 response.getOutputStream().write("}".getBytes());
@@ -467,7 +474,10 @@ public class AMDB {
                     response.getOutputStream().write(rs.getString(1).getBytes());
                     response.getOutputStream().write(":'".getBytes());
                     response.getOutputStream().write(rs.getString(2).getBytes());
-                    response.getOutputStream().write("',".getBytes());
+                    response.getOutputStream().write("'".getBytes());
+                    
+                    if (!rs.isLast())
+                        response.getOutputStream().write(",".getBytes());
                 }
                 response.getOutputStream().write("}".getBytes());
             

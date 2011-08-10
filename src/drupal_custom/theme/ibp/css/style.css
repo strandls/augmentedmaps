@@ -2555,3 +2555,16 @@ img.ui-datepicker-trigger {
 	/*top: 100px;*/
 
     }
+
+/*Show RSS FEED icon in the right side of footer*/
+.view-footer .rss {
+    float: right;
+}
+/*CSS for who is new, who is online blocks in left sidebar*/
+#block-user-2, #block-user-3, #block-summary_reports-0 {
+    margin-top: 88px;
+    background: #8D9B87;
+    color: white;
+}
+/*CLOSURE*/
+
