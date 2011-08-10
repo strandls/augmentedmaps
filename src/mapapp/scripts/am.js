@@ -1,7 +1,44 @@
 
+// indexOf is a recent addition to the ECMA-262 standard; as such it may not be present in all browsers.
+// You can work around this by inserting the following code at the beginning of your scripts, allowing use
+// of indexOf in implementations which do not natively support it.
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+        "use strict";
+        if (this === void 0 || this === null) {
+            throw new TypeError();
+        }
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = 0;
+        if (arguments.length > 0) {
+            n = Number(arguments[1]);
+            if (n !== n) { // shortcut for verifying if it's NaN
+                n = 0;
+            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
+                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+            }
+        }
+        if (n >= len) {
+            return -1;
+        }
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++) {
+            if (k in t && t[k] === searchElement) {
+                return k;
+            }
+        }
+        return -1;
+    }
+}
+
+
 function getHost() {
     //return document.domain;
-    return 'wgp.pamba.strandls.com';
+    return 'thewesternghats.in';
 }
 
 function getWorkspace() {
@@ -85,7 +122,8 @@ function getSummaryColumns(layer) {
                 return false;
             } else {
                 var cols = eval('(' + data + ')');
-                for (var i in cols)
+                var i;
+                for (i = 0; i < cols.length; i += 1)
                     summaryColumns.push(cols[i].replace(/'/g, ""));
                 return true;
             }
@@ -190,7 +228,7 @@ function getLayersByTheme(theme) {
         theme: theme
     };
 
-    var layers;
+    var layers = [];
     $.ajax({
         url: url,
         type: 'GET',
@@ -396,7 +434,7 @@ function getLayersAccessStatus() {
         service:'amdb',
         version:'1.0.0'
     };
-    
+	
     var layersAccess;
     $.ajax({
         url: url,
@@ -528,33 +566,25 @@ function AugmentedMap(map_div, options) {
     var toolbar_enabled = options.toolbar_enabled;
     var toolbar;
     var highlight_features = [];
+    var baselayer;
 
     this.map_div = map_div;
-    // adds google base layers to OpenLayers.Map
+    
+    // add only one google base layer at a time; if there are multiple google layers added
+    // to openlayers map at any given instance some random repaint issues are encountered
     function addBaseLayers() {
         var gphy = new OpenLayers.Layer.Google(
                 "Google Physical",
                 {type: google.maps.MapTypeId.TERRAIN, numZoomLevels: 19}            
             );
-            
-        var gsat = new OpenLayers.Layer.Google(
-                "Google Satellite",
-                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 19}
-            );
-
-         var ghyb = new OpenLayers.Layer.Google(
-                "Google Hybrid",
-                {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 19}
-            );
-
-        var osm = new OpenLayers.Layer.OSM();
-
-        map.addLayers([gphy, gsat, ghyb, osm]);
+           
+	setBaseLayer(gphy);
     }
 
     function addLayer(layer) {
         layer.displayInLayerSwitcher = false;
         map.addLayer(layer);
+        map.updateSize();
     }
 
     function removeLayer(layer_tablename) {
@@ -570,9 +600,11 @@ function AugmentedMap(map_div, options) {
         var i;
 
         var layers = getLayers();
-        for (i in layers){
+        
+        var i;
+        for (i = 0; i < layers.length; i += 1){
             if (layers[i].params.LAYERS !== undefined)
-            queryableLayers.push(layers[i].params.LAYERS);
+            	queryableLayers.push(layers[i].params.LAYERS);
         }
 
         return queryableLayers;
@@ -580,7 +612,9 @@ function AugmentedMap(map_div, options) {
 
     function getLayer(layer_tablename) {
         var layers = getLayers();
-        for (i in layers){
+
+        var i;
+        for (i = 0; i < layers.length; i += 1){
             if (layers[i].params.LAYERS !== undefined &&
                     layers[i].params.LAYERS === layer_tablename)
                 return layers[i];
@@ -624,7 +658,16 @@ function AugmentedMap(map_div, options) {
     function addFeatureInfoPanel(feature_info_panel_div, text) {
          document.getElementById(feature_info_panel_div).innerHTML = text;
          document.getElementById(feature_info_panel_div).style.display = 'block';
-         //XXX:this should not be here
+
+         //XXX:lines below should not be here
+         if (!$("#panel").is(":visible")) {
+            $("#panel_show_bttn").css('display', 'none');
+            $("#panel").show( "slide", {}, 500, function(){
+                    map.updateSize();
+                });
+	    $("#panel_hide_bttn").css('display', 'block');
+         }
+
          $(".side_panel").hide();    
          $('#' + feature_info_panel_div).fadeIn(500);    
     }
@@ -653,7 +696,8 @@ function AugmentedMap(map_div, options) {
     }
     
     function arrayContains(arr, val) {
-        for (var i in arr) {
+        var i;
+        for (i = 0; i < arr.length; i += 1) {
             if (arr[i] == val)
                 return true;
         }
@@ -677,20 +721,25 @@ function AugmentedMap(map_div, options) {
     }
 
     function createInfoPanelHTML(response) {
-        var featuresList = eval('(' + response.responseText + ')');
+
+	var processedResponse = '[' + response.responseText.replace(/,\s*$/, '') + ']';
+
+        var featuresList = eval('(' + processedResponse + ')');
         
         var html = '';
 	
 	clearHighlight();
-        for (var i in featuresList) {
+
+        var i;
+        for (i = 0; i < featuresList.length; i += 1) {
             highlightFeature(featuresList[i].layer, featuresList[i].featureid);
             var layerColumns = eval("(" + getLayerColumns(featuresList[i].layer) + ")");
             var summaryColumns = getSummaryColumns(featuresList[i].layer);
             
             var titleColumn = summaryColumns[0];
             var titleValue = featuresList[i][titleColumn];
-            var feature_id = getLayerTitle(getWorkspace() + ":" + featuresList[i].layer) + ":" + titleValue; 
-            var title_div = titleValue.replace(/ /g, "_");
+            var feature_id = getLayerTitle(getWorkspace() + ":" + featuresList[i].layer) + " : " + titleValue; 
+            var title_div = titleValue.replace(/ /g, "_").replace(/./g, "_");
             html = html + '<div class="layer_info_box">';
             html = html + '<span class="feature_title">' + feature_id + '</span>';
             var attribution_div_id = featuresList[i].layer + title_div + '_attribution';
@@ -699,7 +748,9 @@ function AugmentedMap(map_div, options) {
             //html = html + createAttributionBox(attribution_div_id, featuresList[i].layer);
             html = html + '<div id=\'' + featuresList[i].layer + title_div + '_summary_info\'>';
             html = html + '<table class="popup_table">';
-            for (var j in summaryColumns) {
+            
+            var j;
+            for (j = 0; j < summaryColumns.length; j += 1) {
                 var summaryColumn = summaryColumns[j]; 
                 //var title = getColumnTitle(featuresList[i].layer, summaryColumn);
 		var title = layerColumns[summaryColumn];
@@ -747,7 +798,8 @@ function AugmentedMap(map_div, options) {
 
 
     function setHTML(response) {
-
+	
+	popup_enabled = false; // disabling popups always; popups to be fixed
         if (popup_enabled) { 
             var text = createPopupHTML(response);
 
@@ -769,8 +821,9 @@ function AugmentedMap(map_div, options) {
     }
 
     function clearHighlight() {
-        
-        for (var i in highlight_features) {
+       
+	var i; 
+        for (i = 0; i < highlight_features.length; i += 1) {
             map.removeLayer(highlight_features[i]);
         }
 
@@ -877,7 +930,9 @@ function AugmentedMap(map_div, options) {
 
     function getLayers() {
         var layers = [];
-         for (i in map.layers){
+	
+	var i;
+         for (i = 0; i < map.layers.length; i += 1){
                if (map.layers[i].name !== 'highlight' && map.layers[i].params !== undefined)
                    layers.push(map.layers[i]);
          }
@@ -888,9 +943,17 @@ function AugmentedMap(map_div, options) {
     function getLayersName(layer) {
         return map.getLayersName(layer);
     }
-
+    
     function setBaseLayer(layer) {
+        if (baselayer !== undefined)
+            map.removeLayer(baselayer);
+
+        baselayer = layer;
+
+        map.addLayer(layer);
         map.setBaseLayer(layer);
+        map.setLayerIndex(layer, 0);
+
     }
 
     function updateSize() {
@@ -915,7 +978,7 @@ function AugmentedMap(map_div, options) {
 		    new OpenLayers.Control.PanZoomBar({zoomWorldIcon:true}),
 		    new OpenLayers.Control.ScaleLine(),
 		    new OpenLayers.Control.MousePosition(),
-		    new OpenLayers.Control.KeyboardDefaults(),
+		    new OpenLayers.Control.KeyboardDefaults()
 		],
              maxResolution: 156543.0339, // set the max resolution
              units: "m", // set the resolution units
@@ -992,16 +1055,16 @@ AugmentedMap.prototype = new OpenLayers.Map();
 
 function hasLayer(map, layer) {
     var layers = map.getQueryableLayers();
-    
+   
     var f = layers.indexOf(layer) !== -1;
     return f;
 }
 
 function getLatLonBBoxString(boundingBoxElement) {
-    var minx = boundingBoxElement.getAttribute("minx");
-    var miny = boundingBoxElement.getAttribute("miny");
-    var maxx = boundingBoxElement.getAttribute("maxx");
-    var maxy = boundingBoxElement.getAttribute("maxy");
+    var minx = boundingBoxElement.getAttribute("miny");
+    var miny = boundingBoxElement.getAttribute("minx");
+    var maxx = boundingBoxElement.getAttribute("maxy");
+    var maxy = boundingBoxElement.getAttribute("maxx");
 
     var bboxArr = [];
     bboxArr.push(minx);
@@ -1097,7 +1160,7 @@ function getStyleInfo(styleElement) {
             title = (title_node !== undefined)?title_node.nodeValue:'Default';
         } else if (childNodes[i].nodeName === "Abstract") {
             var abstrct_node = childNodes[i].childNodes[0];
-            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
+            abstrct = (abstrct_node !== undefined && abstrct_node !== null)?abstrct_node.nodeValue:'';
         } else if (childNodes[i].nodeName === "LegendURL") {
             legendURL = getLegendURL(childNodes[i]); 
         }
@@ -1107,6 +1170,42 @@ function getStyleInfo(styleElement) {
     }
 
     return {name: name, title: title, abstrct: abstrct, legendURL: legendURL};
+}
+
+function getLayerInfo_WMS_3(layerElement) {
+    var name;
+    var title;
+    var bbox;
+    var abstrct;
+    var keywords = [];
+    var styles = [];
+
+    var childNodes = layerElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "Name"){
+	    if (childNodes[i].childNodes[0] === undefined)
+		return;
+            name = childNodes[i].childNodes[0].nodeValue;
+        }else if (childNodes[i].nodeName === "Title"){
+	    if (childNodes[i].childNodes[0] === undefined || childNodes[i].childNodes[0] === null)
+		return;
+            title = childNodes[i].childNodes[0].nodeValue;
+        }else if (childNodes[i].nodeName === "Abstract") {
+            var abstrct_node = childNodes[i].childNodes[0];
+            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
+        }
+        else if (childNodes[i].nodeName === "BoundingBox"){
+            bbox = getLatLonBBoxString(childNodes[i]);
+        }else if (childNodes[i].nodeName === "KeywordList")
+            keywords = getLayerKeywords(childNodes[i]); 
+        else if (childNodes[i].nodeName === "Style") {
+            styles.push(getStyleInfo(childNodes[i]));
+        }
+    }
+
+    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords, styles: styles};
+
 }
 
 function getLayerInfo_WMS(layerElement) {
@@ -1151,10 +1250,12 @@ function parseWMSCapabilities(responseText) {
     var layersArray= responseText.getElementsByTagName("Layer");
    
     for (var i=0; i<layersArray.length; i++) {
-	var layer_info = getLayerInfo_WMS(layersArray[i]);
-	if (layer_info !== undefined)
+	var layer_info = getLayerInfo_WMS_3(layersArray[i]);
+	if (layer_info !== undefined){
         	layers.push(layer_info);
+	}
     }
+	
 
     return layers;
 }
@@ -1366,8 +1467,10 @@ function hideAttribution(divId) {
 function createKeywordLayersMap(layers) {
     var keywordLayersMap = {};
 
-    for (var i in layers){
-        for (var j in layers[i].keywords){
+    var i;
+    for (i = 0; i < layers.length; i += 1){
+        var j;
+        for (j = 0; j < layers[i].keywords.length; j += 1){
             if (keywordLayersMap[layers[i].keywords[j]] === undefined) {
                 keywordLayersMap[layers[i].keywords[j]] = [layers[i].name];
             } else {
@@ -1399,13 +1502,17 @@ function updateLayersListByTheme(theme) {
     var layers = document.layers;
 
     document.getElementById('layers_as_list_panel_title').innerHTML = theme;
-    for (var i in layers) {
+    
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         var layer = layers[i].name;
         document.getElementById(layer).style.display = 'none';
     }
     
     var layers_by_theme = getLayersByTheme(theme);
-    for (var i in layers_by_theme) {
+    
+    var i;
+    for (i = 0; i < layers_by_theme.length; i += 1) {
        var layer = getWorkspace() + ":" + layers_by_theme[i];
        var lyr_element = document.getElementById(layer);
 
@@ -1420,27 +1527,48 @@ function updateLayersList(tag) {
     document.getElementById('layers_as_list_panel_title').innerHTML = tag;
 
     if (tag === 'all') {
-        for (var i in layers) {
+        var i;
+        for (i = 0; i < layers.length; i += 1) {
             var layer = layers[i].name;
             document.getElementById(layer).style.display = 'block';
         }
 
         return;
+    }else  if (tag == 'new') {
+        var j;
+        for (j = 0; j < layers.length; j += 1) {
+            var layer = layers[j].name;
+            document.getElementById(layer).style.display = 'none';
+
+        }
+
+        var new_layers = ['wgp:lyr_210_india_checklists','wgp:lyr_212_wg_fire_2002','wgp:lyr_213_wg_fire_2003','wgp:lyr_214_wg_fire_2010','wgp:lyr_215_wg_fire_2007','wgp:lyr_216_wg_fire_2004','wgp:lyr_217_wg_fire_2008','wgp:lyr_218_wg_fire_2005','wgp:lyr_219_wg_fire_2006','wgp:lyr_220_wg_fire_2001','wgp:lyr_221_wg_fire_2000','wgp:lyr_222_wg_fire_2009'];
+        var k;
+        for (k = 0; k < new_layers.length; k += 1) {
+           var layer = new_layers[k];
+           document.getElementById(layer).style.display = 'block';
+        }
     }
 
+
+    /*
     var keywordLayersMap = document.keywordLayersMap;
-   
-    for (var i in layers) {
-        var layer = layers[i].name;
+  
+    var j; 
+    for (j = 0; j < layers.length; j += 1) {
+        var layer = layers[j].name;
         document.getElementById(layer).style.display = 'none';
 
     }
 
     var keyword_layers =  keywordLayersMap[tag];
-    for (var i in keyword_layers) {
-       var layer = keyword_layers[i];
+    
+    var k;
+    for (k = 0; k < keyword_layers.length; k += 1) {
+       var layer = keyword_layers[k];
        document.getElementById(layer).style.display = 'block';
     }
+    */
 }
 
 function showDiv(divId, effect, duration) {
@@ -1470,12 +1598,13 @@ function createLayerExplorerLinks(layers) {
     html = html + '<div id="layer_explorer_sidebar">';
     html = html + '<ul class="layer_explorer_sidebar_items">';
 
+    html = html + '<li><a href="#" onClick="updateLayersList(\'new\')" style="font-weight:normal; text-decoration:underline; font-style: italic; ">New layers</a></li>';
     html = html + '<li><a href="#" onClick="updateLayersList(\'all\')">All layers</a></li>';
     html = html + '<li><div class="collapsible_box"><a class="collapsible_box_title" href="#" onClick="toggleDiv(\'layers_by_theme\', \'fade\'); hideDiv(\'layers_by_geography\', \'fade\', 1);">By theme</a>';
     html = html + '<div id="layers_by_theme">';
     html = html + '<ul class="layer_explorer_sidebar_subitems">';
     var themes = getThemeNames(1);
-    for (var i in themes) {
+    for (var i = 0; i < themes.length; i += 1) {
         html = html + '<li><a id="tag_link" href="#" onClick="updateLayersListByTheme(\'' + themes[i] + '\')">' + themes[i] + '</a></li>';
 
     }
@@ -1485,7 +1614,7 @@ function createLayerExplorerLinks(layers) {
     html = html + '<div id="layers_by_geography" style="display:none;">';
     html = html + '<ul class="layer_explorer_sidebar_subitems">';
     var geography = getThemeNames(2);
-    for (var i in geography) {
+    for (var i = 0; i < geography.length; i += 1) {
         html = html + '<li><a id="tag_link" href="#" onClick="updateLayersListByTheme(\'' + geography[i] + '\')">' + geography[i] + '</a></li>';
 
     }
@@ -1513,7 +1642,8 @@ function createAllKeywordsLinks(layers) {
     html = html + '<li><a href="#" onClick="toggleDiv(\'layer_themes\')">By theme</a>';
     html = html + '<div id="layer_themes">';
     html = html + '<ul class="layer_explorer_sidebar_subitems">';
-    for (var i in allKeywords) {
+    var i;
+    for (i = 0; i < allKeywords.length; i += 1) {
         html = html + '<li><a id="tag_link" href="#" onClick="updateLayersList(\'' + allKeywords[i] + '\')">' + allKeywords[i] + '</a></li>';
 
     }
@@ -1536,7 +1666,9 @@ function createAllKeywordsCombobox(layers) {
    
     html = html + '<div class="layer_explorer_topbar">';
     html = html + '<select id="allKeywordsList" onChange="updateLayersListPanel();">';
-    for (var i in allKeywords) {
+ 
+    var i;
+    for (i = 0; i < allKeywords.length; i += 1) {
         html = html + '<option value="' + allKeywords[i] + '">' + allKeywords[i] + '</option>';
     }
     html = html + '</select>';
@@ -1564,7 +1696,9 @@ function generateHTMLForLayersAsList(layers, hasMap) {
 
     html = html + '<div id="layers_as_list_panel">';
     html = html + '<ul>';
-    for (var i in layers) {
+    
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         html = html + '<li id="' + layers[i].name + '" class="layer_in_list_panel">';
         html = html + '<span class="feature_title">' + layers[i].title + '</span>';
         var attribution_div_id = 'layer_attribution_' + i;
@@ -1576,7 +1710,7 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         html = html + '<ul class="layer_options">';
         html = html + '<li class="layer_details_link" onclick="toggleLayerDetails(\'layer_details_' + i + '\',\'' + layers[i].name + '\');">details</li>';
         html = html + '<div id="layer_details_' + i + '" style="display:none;" class="layer_details_box"></div>';
-
+	
         if (layers[i].name !== undefined && layers_access[layers[i].name.replace(getWorkspace()+":", "")]) {
             var layer_download_div = 'layer_download_box_' + i;
             html = html + '<li id=\'' + layer_download_div + '_link\' class="layer_download_link" onclick="toggleDownloadBox(\'' + layer_download_div + '\',\'' + layers[i].name + '\',' + isAuthorised + ');">download</li>';
@@ -1584,7 +1718,7 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         }
         html = html + '</ul>';
 
-        html = html + '<ul class="layer_options" style="text-align:right;">';
+        html = html + '<ul class="layer_options layer_actions" style="text-align:right;">';
         //if map component is present add links to add/remove layers
         if (hasMap) { 
             html = html + '<li id=\'' + layers[i].name + '_zoom_to_extent\' class="first zoom_to_extent" onclick="zoomToLayerExtent(\'' + layers[i].name + '\');">zoom to extent</li>';
@@ -1648,7 +1782,8 @@ function createAttributionBox(divId, layer) {
 function showLayersExplorer(layers_explorer_div, map) {
 
     function initializeView(layers) {
-        for (var i in layers) {
+        var i;
+        for (i = 0; i < layers.length; i += 1) {
             if (hasLayer(map, layers[i].name)) {
                 setElementVisible(layers[i].name + '_a_add', false);
                 setElementVisible(layers[i].name + '_a_remove', true);
@@ -1659,13 +1794,15 @@ function showLayersExplorer(layers_explorer_div, map) {
                 setElementVisible(layers[i].name + '_zoom_to_extent', false);
             }
         }
+	
+	updateLayersList("new");
     }
 
     var params = {
         //service: "wfs",
         service: "wms",
         //version: "1.1.0",
-        version: "1.1.1",
+        version: "1.3.0",
         request: "getCapabilities"
         };
 
@@ -1675,6 +1812,29 @@ function showLayersExplorer(layers_explorer_div, map) {
     var xmlhttp = OpenLayers.loadURL(getWorkspaceWMS(), params, null);
     xmlhttp.onreadystatechange=function() {
         if (xmlhttp.readyState==4) {
+                //var doc;
+                var doc = OpenLayers.parseXMLString(xmlhttp.responseText);
+                /*
+		if (window.DOMParser)
+		  {
+		  parser=new DOMParser();
+		  doc=parser.parseFromString(xmlhttp.responseText,"text/xml");
+		  }
+		else // Internet Explorer
+		  {
+		  doc=new ActiveXObject("Microsoft.XMLDOM");
+		  doc.async=false;
+	          doc.validateOnParse=false;
+		  doc.loadXML(xmlhttp.responseText); 
+		  }
+		*/
+            var layers = parseWMSCapabilities(doc);
+
+            window.layers =layers;
+            var html = generateHTMLForLayersAsList(layers, map !== undefined);
+            document.getElementById(layers_explorer_div).innerHTML = html;
+            initializeView(layers);
+	    /*
             var doc = OpenLayers.parseXMLString(xmlhttp.responseText);
             //var layers = parseWFSCapabilities(xmlhttp.responseXML);
             var layers = parseWMSCapabilities(doc);
@@ -1682,6 +1842,7 @@ function showLayersExplorer(layers_explorer_div, map) {
             var html = generateHTMLForLayersAsList(layers, map !== undefined);
             document.getElementById(layers_explorer_div).innerHTML = html;
             initializeView(layers);
+	    */
         }
     }
 }
@@ -1692,12 +1853,12 @@ function getFullMapOptions(options) {
             tiled: options.tiled || false,
             popup_enabled: options.popup_enabled || false,
             toolbar_enabled: options.toolbar_enabled || false,
+            baselayers_switcher_enabled: options.baselayers_switcher_enabled || false,
             bbox: options.bbox,
             feature_info_panel_div: options.feature_info_panel_div,
             features_list_panel_enabled: options.features_list_panel_enabled || false,
             features_list_panel_div: options.features_list_panel_div || 'features_list_panel_div' + (new Date).getTime(),
-            features_list_panel_div_css: options.features_list_panel_div_css || 'border:1px solid #999999; width:250px; height:450px; margin-left:auto; margin-right:auto;overflow:auto;margin-top:10px;position:relative; top:-700px; left:500px;',
-
+            features_list_panel_div_css: options.features_list_panel_div_css || 'border:1px solid #999999; width:250px; height:450px; margin-left:auto; margin-right:auto;overflow:auto;margin-top:10px;position:relative; top:-700px; left:500px;'
     };
 
     return fullOptions;
@@ -1723,7 +1884,10 @@ function getWMSLayer(map, layers, styles, title, opacity) {
 function getLayers(map, layersOptions) {
     var layersArray = [];
 
-    for (layerNum in layersOptions) {
+    if (layersOptions === undefined)
+	return layersArray;
+
+    for (var layerNum = 0; layerNum < layersOptions.length; layerNum += 1) {
         var title = layersOptions[layerNum].title;
         var layers = layersOptions[layerNum].layers;
         var styles = layersOptions[layerNum].styles || '';
@@ -1767,16 +1931,39 @@ function resetMap() {
     var map = window.map;
 
     var layers = map.getQueryableLayers();
-    for (var i in layers)
+    
+    var i;
+    for (i = 0; i < layers.length; i += 1)
         removeLayer(layers[i]);
     
 }
 
 function setBaseLayer(layer) {
-  var map = window.map;
-  var obj = map.getLayersByName(layer);
-  map.setBaseLayer(obj[0]);
-  map.updateSize();
+
+    var map = window.map;
+
+    if (layer == "Google Physical") {
+           var gphy = new OpenLayers.Layer.Google(
+                "Google Physical",
+                {type: google.maps.MapTypeId.TERRAIN, numZoomLevels: 19}            
+            );
+    	map.setBaseLayer(gphy);
+    } else if (layer == "Google Satellite") {
+        var gsat = new OpenLayers.Layer.Google(
+                "Google Satellite",
+                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 19}
+            );
+    	map.setBaseLayer(gsat);
+    } else if (layer == "Google Hybrid") {
+         var ghyb = new OpenLayers.Layer.Google(
+                "Google Hybrid",
+                {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 19}
+            );
+    	map.setBaseLayer(ghyb);
+    } else if (layer == "OpenStreetMap") {
+        var osm = new OpenLayers.Layer.OSM();
+    	map.setBaseLayer(osm);
+    }
 }
 
 function createBaseLayerSwitcher() {
@@ -1784,8 +1971,9 @@ function createBaseLayerSwitcher() {
 
     var html = '<div style="position:absolute;right:20px;top:100px;z-index:2000;">';
     html = html + '<select id="ddlBaseLayer" onchange="setBaseLayer(options[selectedIndex].value)">';
-    
-    for (var i in base_layers) {
+   
+    var i; 
+    for (i = 0; i < base_layers.length; i += 1) {
         html = html + '<option value="' + base_layers[i] + '">' + base_layers[i] + '</option>';
     }
 
@@ -1798,10 +1986,13 @@ function createBaseLayerSwitcher() {
 //create a div; add map to the div  
 function showMap(map_div, mapOptions, layersOptions) {
 
-    var base_layers_switcher = createBaseLayerSwitcher();
-    $('#' + map_div).before(base_layers_switcher);
-
     var fullOptions = getFullMapOptions(mapOptions);
+
+    if (fullOptions.baselayers_switcher_enabled) {
+    	var base_layers_switcher = createBaseLayerSwitcher();
+    	$('#' + map_div).before(base_layers_switcher);
+    }
+
 
     var map = new AugmentedMap(map_div, fullOptions);
     var layers = getLayers(map, layersOptions);
@@ -1919,7 +2110,8 @@ function setLayerOpacity(layer_id, value) {
 function getLayerTitle(layer) {
     var layers = window.layers;
 
-    for (var i in layers) {
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (layers[i].name === layer) {
             return layers[i].title;
         }
@@ -1929,7 +2121,8 @@ function getLayerTitle(layer) {
 function getLayerBoundingBoxString(layer) {
     var layers = window.layers;
 
-    for (var i in layers) {
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (layers[i].name === layer) {
             return layers[i].bbox;
         }
@@ -1939,7 +2132,8 @@ function getLayerBoundingBoxString(layer) {
 function getLayerBoundingBox(layer) {
     var layers = window.layers;
 
-    for (var i in layers) {
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (layers[i].name === layer) {
             return new OpenLayers.Bounds.fromString(layers[i].bbox);
         }
@@ -1974,7 +2168,8 @@ function getLayerStyles(layer) {
 
     var layers = window.layers;
 
-    for (var i in layers) {
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (layers[i].name === layer) {
             var s = layers[i].styles;
             for (var j in s) {
@@ -1991,7 +2186,8 @@ function updateSelectedLayersPanel(selected_layers_div) {
     var layers = map.getLayers();
     var html = '';
 
-    for (var i in layers) {
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (!layers[i].isBaseLayer) {
             var selected_layer_div_id = 'selected_layer_' + i;
             html = html + '<div class="selected_layer_pane" id="' + selected_layer_div_id + '">';
@@ -2058,7 +2254,9 @@ function generateEmbeddableMapCode(map) {
     var layers = map.getLayers();
     
     html = html + 'var layersOptions = [';
-    for (var i in layers) {
+    
+    var i;
+    for (i = 0; i < layers.length; i += 1) {
         if (!layers[i].isBaseLayer) {
             html = html + getLayerOptionsAsString(layers[i]) + ', '; 
         }
