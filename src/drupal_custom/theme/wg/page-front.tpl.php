@@ -4,12 +4,17 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php print $language->language ?>" lang="<?php print $language->language ?>" dir="<?php print $language->dir ?>">
 	<head>
-		<title>India Biodiversity Portal</title>
+		<title>Western Ghats Portal</title>
     <meta name="robots" content="noarchive"> <!-- No caching of page in Google. http://www.google.com/support/webmasters/bin/answer.py?answer=35306&topic=13511 -->
 		<?php print $head; ?>
 		<?php print $styles; ?>
 		<?php print $scripts; ?>
 		<?php flush(); ?>
+    		<script type="text/javascript" src="/augmentedmaps/sites/all/themes/wg/js/jquery-1.3.2.min.js"></script>
+                <script type="text/javascript" src="/augmentedmaps/sites/all/themes/wg/js/jquery.easing.1.3.js"></script>
+                <script type="text/javascript" src="/augmentedmaps/sites/all/themes/wg/js/jquery.coda-slider-2.0.js"></script>
+
+		<script type="text/javascript" src="/sites/all/themes/wg/js/wg.js"></script>
 	</head>
 
 	<body id="home">
@@ -18,7 +23,7 @@
 		
 			<!-- Main menu -->
 			<div id="menus">
-				<div id="homeMainMenu">
+				<div id="mainMenu">
 					<?php if($main_menu): ?>
 					<?php print $main_menu; ?>
 					<?php endif; ?>
@@ -42,67 +47,52 @@
 			<!-- Main menu ends -->
 			
 			<!-- Branding -->
-			<div id="homeBranding" style="width:0px;">
+			<div id="homeBranding" style="width:100%;">
 				<!-- Logo -->
 				<div id="logo">
 					<a href="<?php print check_url($front_page)?>">
-						<!--<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="logo"/>-->
+						<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/map-logo.gif" alt="logo"/>
 						<div></div>
 					</a>
 				</div>
 				<!-- Logo ends -->
 			</div>
 			<!-- Branding ends -->
-		
-			
-			<!-- Home Container -->
-			<div id="homeContainer">
-				
-		
-				<!-- Left Sidebar -->
-				<div id="homeLeft" class="column">
-					<?php if($home_left): ?>
-						<?php print $home_left; ?>
-					<?php endif;?> 
-				</div>
-				<!-- Left Sidebar ends -->
-				
-				<!-- Content -->
-				<div id="homeContent" class="column">
-				
-					<div id="explore">
-						<a href="<?php print check_url($front_page)?>map" class="exploreMap">
-							<!--<img src="<?php print check_url($front_page)?><?php print check_url(path_to_theme())?>/images/begin-exploring.gif" alt="Explore"/>-->
-							<div></div>
-						</a>
-					</div>
-				
-					<?php if ($tabs): print '<div id="tabs-wrapper" class="clear-block">'; endif; ?>
-					<?php if ($title): print '<h2'. ($tabs ? ' class="with-tabs"' : '') .'>'. $title .'</h2>'; endif; ?>
-					<?php if ($tabs): print '<ul class="tabs primary">'. $tabs .'</ul></div>'; endif; ?>
-					<?php if ($tabs2): print '<ul class="tabs secondary">'. $tabs2 .'</ul>'; endif; ?>
-					<?php if ($show_messages && $messages): print $messages; endif; ?>
-					<?php print $help; ?>
-					
-					<?php print $content;?>
-				</div>
-				<!-- Content ends -->
-				
-				<!-- Right sidebar -->
-				<div id="homeRight" class="column">
-					<?php if($home_right): ?>
-						<?php print $home_right;?>
-					<?php endif; ?>
-				</div>
-				<!-- Right Sidebar ends -->
-			
+                       <div style="clear:both;"></div>
+ <?php if ($show_messages && $messages): print $messages; endif; ?>
+                        <div id="main-content">
+                    	<div class="navbar">
+                        		<div id="explore" onclick="location.href='<?php print check_url($front_page)?>map'";></div>
+                                        <div id="checklists" onclick="location.href='<?php print check_url($front_page)?>browsechecklists'"></div>
+                                        <div id="collaborate" onclick="location.href='<?php print check_url($front_page)?>collaborate-wg'"><div id="collaborate-links"></div></div>
+                        </div><!-- navbar --> 
+
+			<div class="navbar">
+                        		<div id="species_entry" onclick="location.href='<?php print check_url($front_page)?>species'";></div>
+                                        <div id="themes_entry"></div>
+                                        <div id="aboutus_entry" onclick="location.href='<?php print check_url($front_page)?>about/western-ghats'"><div id="collaborate-links"></div></div>
+                        </div><!-- navbar --> 
+
+
+			</div><!-- main-content -->
+ 			
+			<div>
+			<ul id="whatsnew">
+			<li id="new-whatsnew">New</li>
+			<li>
+			<a href="/cepf_grantee_database">Western Ghats CEPF Projects</a>
+			</li>
+			</ul>
 			</div>
-			<!-- Home Container ends -->
+
+ 
+                       <div style="clear:both;"></div>
+			
 			
 			<!-- Footer -->
 			<div id="pageFooter">
 				<?php if($footer): ?>
-				<!--?php print $footer;?-->
+				<?php print $footer;?>
 				<?php endif; ?>
 			</div>
 			<!-- Footer ends -->
@@ -119,9 +109,9 @@
       }
 
       jQuery(document).ready(function(){
-        setMainDivSize();
+        //setMainDivSize();
         //chkBrowserCompatibility();
-        chkFlashVersion();
+        //chkFlashVersion();
       });
     </script>
 	</body>
