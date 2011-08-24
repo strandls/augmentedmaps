@@ -1,6 +1,26 @@
 <?php
 //This module holds all the utility methods, required for the wgp code
 
+//add the jquery and gallery java script code
+//this is right now added from module as we don't want to introduce theme dependency on functionality 
+//drupal_add_js(drupal_get_path('theme', 'wg') .'/scripts/jquery-1.6.1.min.js');
+//drupal_add_js(drupal_get_path('module', 'wgp_utils') .'/galleria/galleria-1.2.5.min.js');
+//add the custom gallery implementation
+//drupal_add_js(drupal_get_path('module', 'wgp_utils') .'/galleria/custom-gallery.js');
+
+/**
+* Implement hook_init
+*/
+function wgp_utils_init() {
+  global $user;
+  //Pass the current user to java script
+  //drupal_add_js(array('currentUser' => $user->uid), 'setting');
+  $js_settings = array();
+  $js_settings['uid'] = $user->uid;
+  drupal_add_js(array('wgp_utils' => $js_settings), 'setting');
+
+}
+
 /**
  * function to return the links to be placed for browsing between nodes
  * else return link to the next/previous node of the same type
