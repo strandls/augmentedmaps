@@ -1,4 +1,9 @@
 <?php
+
+//define the jetty url to fetch species content from
+//important trailing slash
+define("JETTY_URL", "http://saturn.strandls.com:8080/");
+
 /**
 * Implementation of hook_menu()
 **/
@@ -49,7 +54,7 @@ function get_jetty_parameters()     {
 
 //Species landing page
 function get_species_list() {
-    $url = "http://saturn.strandls.com:8080/speciespage/species/list".get_jetty_parameters(); 
+    $url = JETTY_URL."speciespage/species/list".get_jetty_parameters(); 
     $output = fetch_content($url);
     return ($output);
 
@@ -64,7 +69,7 @@ function get_speciesid($url) {
 
 //code for generating inidividual species pages.
 function species_page($id)   {
-    $url = "http://saturn.strandls.com:8080/speciespage/species/show/".get_speciesid(request_uri());
+    $url = JETTY_URL."speciespage/species/show/".get_speciesid(request_uri());
     $output = fetch_content($url);
     return ($output);
 }
