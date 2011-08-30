@@ -12,14 +12,95 @@ function species_pages_menu() {
     'page callback' => 'species_pages_display',
     'type' => MENU_SUGGESTED_ITEM,
   );
+ 
+// Species pages display 
+  $items['speciespage/species/list'] = array(
+    'title' => 'Species Pages',
+    'access arguments' => array('access content'),
+    'page callback' => 'get_species_list',
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+
+ 
+  // Species display 
+  $items['speciespage/species/show/%'] = array(
+    'title' => 'Species Page',
+    'access arguments' => array('access content'),
+    'page callback' => 'species_page',
+    'page arguments' => array(1),
+    'type' => MENU_SUGGESTED_ITEM,
+  );
 
   return $items;
+}
+
+//function to pass parameter string while calling jetty
+function get_jetty_parameters()     {
+    global $_GET;
+    $offset=0;
+    $max=10;
+    if(!empty($_GET['offset']))
+        $offset = $_GET['offset'];
+    if(!empty($_GET['max']))
+        $max = $_GET['max'];
+    //return the string containing parameters to pass to jetty
+    return "?offset=$offset&max=$max";
+}
+
+//Species landing page
+function get_species_list() {
+    $url = "http://saturn.strandls.com:8080/speciespage/species/list".get_jetty_parameters(); 
+    $output = fetch_content($url);
+    return ($output);
+
+}
+
+/* get species id from the url passed */
+function get_speciesid($url) {
+    $start = strrpos($url, "/");
+    $id = substr($url, $start+1, strlen($url)-$start); 
+    return $id;
+}
+
+//code for generating inidividual species pages.
+function species_page($id)   {
+    $url = "http://saturn.strandls.com:8080/speciespage/species/show/".get_speciesid(request_uri());
+    $output = fetch_content($url);
+    return ($output);
+}
+
+//fetch content of the web url
+function fetch_content($web_url) {
+    $curl = curl_init();
+    $options = array(
+        CURLOPT_RETURNTRANSFER => true,     // return web page
+        CURLOPT_HEADER         => false,    // don't return headers
+        CURLOPT_FOLLOWLOCATION => true,     // follow redirects
+        CURLOPT_ENCODING       => "",       // handle all encodings
+        CURLOPT_USERAGENT      => "spider", // who am i
+        CURLOPT_AUTOREFERER    => true,     // set referer on redirect
+        CURLOPT_CONNECTTIMEOUT => 120,      // timeout on connect
+        CURLOPT_TIMEOUT        => 120,      // timeout on response
+        CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
+    );
+
+    curl_setopt_array( $curl, $options );
+    curl_setopt($curl, CURLOPT_URL, $web_url);
+    curl_setopt($curl, CURLOPT_POSTFIELDS);
+
+    $content = curl_exec ($curl);
+    curl_close ($curl);
+    
+    return $content;
 }
 
 /**
 *  Page callback
 **/
-function species_pages_display($arg){
+function species_pages_display(){
+/*
+return (fetch_content("http://saturn.strandls.com:8080/species/species/listXML"));
+*/
   $output = <<<EOD
 <div id="species_main_wrapper">
 
