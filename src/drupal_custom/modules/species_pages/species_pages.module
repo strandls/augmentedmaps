@@ -10,7 +10,8 @@ define("JETTY_URL", "http://saturn.strandls.com:8080/");
 function species_pages_menu() {
   $items = array();
 
-  // Species pages display 
+  // Species pages display
+  //TODO CLEAN up older links, which are no more used 
   $items['species'] = array(
     'title' => 'Species Pages',
     'access arguments' => array('access content'),
@@ -36,6 +37,15 @@ function species_pages_menu() {
     'type' => MENU_SUGGESTED_ITEM,
   );
 
+// Species pages display 
+  $items['speciespage/species/listHierarchy'] = array(
+    'title' => 'Species Pages',
+    'access arguments' => array('access content'),
+    'page callback' => 'get_species_listHierarchy',
+    'type' => MENU_SUGGESTED_ITEM,
+  );
+
+
   return $items;
 }
 
@@ -49,17 +59,27 @@ function get_jetty_parameters()     {
     if(!empty($_GET['max']))
         $max = $_GET['max'];
     //return the string containing parameters to pass to jetty
-    return "?offset=$offset&max=$max";
+    //return "?offset=$offset&max=$max";
+	return html_entity_decode(http_build_query($_GET));
 }
 
 //Species landing page
 function get_species_list() {
-    $url = JETTY_URL."speciespage/species/list".get_jetty_parameters(); 
+    $url = JETTY_URL."speciespage/species/list?".get_jetty_parameters(); 
     $output = fetch_content($url);
     return ($output);
 
 }
 
+//Species landing page
+function get_species_listHierarchy() {
+    $queryStr = get_jetty_parameters();
+    $url = JETTY_URL."speciespage/species/listHierarchy?".$queryStr; 
+    $output = fetch_content($url);
+print $output;
+    return ($output);
+
+}
 /* get species id from the url passed */
 function get_speciesid($url) {
     $start = strrpos($url, "/");
