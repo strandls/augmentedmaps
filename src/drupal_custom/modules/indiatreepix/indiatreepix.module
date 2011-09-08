@@ -84,7 +84,7 @@ function indiatreepix_cron() {
   $handle = opendir($directory);
   $count = 0;
   //Create Nodes for each mail fetched
-  while (false !== ($file = readdir($handle)) && $count<10000){
+  while (false !== ($file = readdir($handle)) && $count<30000){
     $extension = substr($file, strrpos($file, '.') + 1);
 
     if($file != "." && $file != ".." && $extension == 'xml'){
@@ -96,7 +96,7 @@ function indiatreepix_cron() {
   }
    
   //DONE
-  closedir($handler);
+  closedir($handle);
 
 }
 
