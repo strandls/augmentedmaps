@@ -10,12 +10,6 @@
 <link rel="stylesheet" type="text/css" href="/sites/all/themes/wg/css/jquery-ui-1.8.13.custom.css" />
 <link rel="stylesheet" type="text/css" href="/sites/all/themes/wg/css/am.css" />
 
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
-<script type="text/javascript" src="/sites/all/themes/wg/scripts/OpenLayers-2.10/OpenLayers.js"></script> 
-<script type="text/javascript" src="/sites/all/themes/wg/scripts/jquery-1.6.1.min.js"></script> 
-<script type="text/javascript" src="/sites/all/themes/wg/scripts/jquery-ui-1.8.13.custom.min.js"></script> 
-<script type="text/javascript" src="/sites/all/themes/wg/scripts/am.js"></script> 
-<script type="text/javascript" src="/sites/all/themes/wg/scripts/mapapp.js"></script> 
 
 </head>
     
@@ -60,7 +54,7 @@
 <li id="maps_nav_link" title="Maps" onclick="location.href='<?php print check_url($front_page)?>map'">Maps</li>
 <li id="checklists_nav_link" title="Checklists" onclick="location.href='<?php print check_url($front_page)?>browsechecklists'">Checklists</li>
 <li id="collaborate_nav_link" title="Collaborate" onclick="location.href='<?php print check_url($front_page)?>collaborate-wg'">Collaborate</li>
-<li id="species_nav_link" title="Species" onclick="location.href='<?php print check_url($front_page)?>species'">Species</li>
+<li id="species_nav_link" title="Species" onclick="location.href='<?php print check_url($front_page)?>speciespage/species/list'">Species</li>
 <li id="themes_nav_link" title="Themes">Themes</li>
 <li id="about_nav_link" title="About" onclick="location.href='<?php print check_url($front_page)?>about/western-ghats'">About</li>
 </ul>
@@ -109,15 +103,34 @@
 </div>
 
 <div>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
+<script type="text/javascript" src="/sites/all/themes/wg/scripts/OpenLayers-2.10/OpenLayers.js"></script> 
+<script type="text/javascript" src="/sites/all/themes/wg/scripts/jquery-1.6.1.min.js"></script> 
+<script type="text/javascript" src="/sites/all/themes/wg/scripts/jquery-ui-1.8.13.custom.min.js"></script> 
+<script type="text/javascript" src="/misc/drupal.js"></script> 
+<script type="text/javascript" src="/sites/all/themes/wg/scripts/am.js"></script> 
+<script type="text/javascript" src="/sites/all/themes/wg/scripts/mapapp.js"></script> 
+
 <script id="text/javascript">
 var mapOptions = {
-    popup_enabled: false,
+    popup_enabled: true,
     toolbar_enabled: true,
     baselayers_switcher_enabled: true,
     feature_info_panel_div: 'feature_info_panel'
 };
 
-var map = showMap('map', mapOptions);
+var layerOptions = [
+    {
+        title:'Occurrence',
+        layers:'wgp:occurrence',
+        styles:'',
+        cql_filter:"species_name='Acrocarpus fraxinifolius'",
+        opacity:0.7
+    }
+]
+
+
+var map = showMap('map', mapOptions, layerOptions);
 showLayersExplorer('layers_list_panel', map);
 addSearchBox('search_box');
 addSearchResultsPanel('search_results_panel');

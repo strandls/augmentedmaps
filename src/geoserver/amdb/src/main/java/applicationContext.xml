@@ -32,6 +32,7 @@
                 <value>getLayerSummary</value>
                 <value>getLayerLinkTables</value>
                 <value>getLayersAccessStatus</value>
+                <value>getOccurrenceCount</value>
             </list>
         </constructor-arg>
 

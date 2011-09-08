@@ -1,63 +1,11 @@
 
-// indexOf is a recent addition to the ECMA-262 standard; as such it may not be present in all browsers.
-// You can work around this by inserting the following code at the beginning of your scripts, allowing use
-// of indexOf in implementations which do not natively support it.
-if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
-        "use strict";
-        if (this === void 0 || this === null) {
-            throw new TypeError();
-        }
-        var t = Object(this);
-        var len = t.length >>> 0;
-        if (len === 0) {
-            return -1;
-        }
-        var n = 0;
-        if (arguments.length > 0) {
-            n = Number(arguments[1]);
-            if (n !== n) { // shortcut for verifying if it's NaN
-                n = 0;
-            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
-                n = (n > 0 || -1) * Math.floor(Math.abs(n));
-            }
-        }
-        if (n >= len) {
-            return -1;
-        }
-        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-        for (; k < len; k++) {
-            if (k in t && t[k] === searchElement) {
-                return k;
-            }
-        }
-        return -1;
-    }
-}
-
-
 function getHost() {
-    //return document.domain;
-    return 'thewesternghats.in';
+    return document.domain;
+    //return 'wgp.saturn.strandls.com';
 }
 
 function getWorkspace() {
     return 'wgp';
-}
-
-function getMaxExtent() {
-    var ext = "5801108.428222222,-7.081154550627198, 12138100.077777777, 4439106.786632658";
-    return new OpenLayers.Bounds.fromString(ext);
-}
-
-function getMapExtent() {
-    var ext = "6567849.955888889,1574216.547942332,11354588.059333334,3763310.626620795";
-    return new OpenLayers.Bounds.fromString(ext);
-}
-
-function getRestrictedExtent() {
-    var ext = "5801108.428222222,674216.547942332, 12138100.077777777, 4439106.786632658";
-    return new OpenLayers.Bounds.fromString(ext);
 }
 
 function getWWWBase() {
@@ -85,14 +33,6 @@ function getWorkspaceOWS() {
 function getWFS() {
     var wfs = 'http://' + getHost() + '/geoserver/' + getWorkspace() + '/wfs';
     return wfs;
-}
-
-//add style for map div
-function addStyle(divId, css) {
-    document.write("<style>");
-    document.write("#" + divId);
-    document.write("{" + css + "}");
-    document.write("</style>");
 }
 
 function getSummaryColumns(layer) {
@@ -459,6 +399,307 @@ function getLayersAccessStatus() {
     return layersAccess;
 }
 
+function getLatLonBBoxString(boundingBoxElement) {
+    var minx = boundingBoxElement.getAttribute("miny");
+    var miny = boundingBoxElement.getAttribute("minx");
+    var maxx = boundingBoxElement.getAttribute("maxy");
+    var maxy = boundingBoxElement.getAttribute("maxx");
+
+    var bboxArr = [];
+    bboxArr.push(minx);
+    bboxArr.push(miny);
+    bboxArr.push(maxx);
+    bboxArr.push(maxy);
+
+    return bboxArr.join(',');
+}
+
+function getBBoxString(boundingBoxElement) {
+    var bbox_lower_corner = boundingBoxElement.childNodes[0].childNodes[0].nodeValue;
+    var bbox_upper_corner = boundingBoxElement.childNodes[1].childNodes[0].nodeValue;
+
+    var bbox = bbox_lower_corner.replace(" ", ",") +
+                "," +
+                bbox_upper_corner.replace(" ", ",");
+
+    return bbox;
+}
+
+function getLayerInfo_WFS(featureTypeElement) {
+    var name;
+    var title;
+    var bbox;
+    var abstrct;
+    var keywords = [];
+
+    var childNodes = featureTypeElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "Name")
+            name = childNodes[i].childNodes[0].nodeValue;
+        else if (childNodes[i].nodeName === "Title")
+            title = childNodes[i].childNodes[0].nodeValue;
+        else if (childNodes[i].nodeName === "Abstract") {
+            var abstrct_node = childNodes[i].childNodes[0];
+            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
+        }
+        else if (childNodes[i].nodeName === "ows:WGS84BoundingBox")
+            bbox = getBBoxString(childNodes[i]);
+        else if (childNodes[i].nodeName === "ows:Keywords")
+            keywords = getLayerKeywords(childNodes[i]); 
+    }
+    
+    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords};
+
+}
+
+function getLegendURL(legendURLElement) {
+
+    var childNodes = legendURLElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "OnlineResource") {
+            var url = childNodes[i].getAttribute("xlink:href");
+            return url;
+        }
+    }
+}
+
+function getStyleInfo(styleElement) {
+    var name;
+    var title;
+    var abstrct;
+    var legendURL;
+
+    var childNodes = styleElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "Name")
+            name = childNodes[i].childNodes[0].nodeValue;
+        else if (childNodes[i].nodeName === "Title") {
+            var title_node = childNodes[i].childNodes[0];
+            title = (title_node !== undefined)?title_node.nodeValue:'Default';
+        } else if (childNodes[i].nodeName === "Abstract") {
+            var abstrct_node = childNodes[i].childNodes[0];
+            abstrct = (abstrct_node !== undefined && abstrct_node !== null)?abstrct_node.nodeValue:'';
+        } else if (childNodes[i].nodeName === "LegendURL") {
+            legendURL = getLegendURL(childNodes[i]); 
+        }
+
+        
+
+    }
+
+    return {name: name, title: title, abstrct: abstrct, legendURL: legendURL};
+}
+
+function getLayerInfo_WMS_3(layerElement) {
+    var name;
+    var title;
+    var bbox;
+    var abstrct;
+    var keywords = [];
+    var styles = [];
+
+    var childNodes = layerElement.childNodes;
+
+    var occurrence = getWorkspace() + ":occurrence";
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "Name"){
+	    if (childNodes[i].childNodes[0] === undefined)
+		return;
+            name = childNodes[i].childNodes[0].nodeValue;
+	    if (name === occurrence)
+		return;
+        }else if (childNodes[i].nodeName === "Title"){
+	    if (childNodes[i].childNodes[0] === undefined || childNodes[i].childNodes[0] === null)
+		return;
+            title = childNodes[i].childNodes[0].nodeValue;
+        }else if (childNodes[i].nodeName === "Abstract") {
+            var abstrct_node = childNodes[i].childNodes[0];
+            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
+        }
+        else if (childNodes[i].nodeName === "BoundingBox"){
+            bbox = getLatLonBBoxString(childNodes[i]);
+        }else if (childNodes[i].nodeName === "KeywordList")
+            keywords = getLayerKeywords(childNodes[i]); 
+        else if (childNodes[i].nodeName === "Style") {
+            styles.push(getStyleInfo(childNodes[i]));
+        }
+    }
+
+    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords, styles: styles};
+
+}
+
+function getLayerInfo_WMS(layerElement) {
+    var name;
+    var title;
+    var bbox;
+    var abstrct;
+    var keywords = [];
+    var styles = [];
+
+    var childNodes = layerElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].nodeName === "Name"){
+	    if (childNodes[i].childNodes[0] === undefined)
+		return;
+            name = childNodes[i].childNodes[0].nodeValue;
+        }else if (childNodes[i].nodeName === "Title"){
+	    if (childNodes[i].childNodes[0] === undefined)
+		return;
+            title = childNodes[i].childNodes[0].nodeValue;
+        }else if (childNodes[i].nodeName === "Abstract") {
+            var abstrct_node = childNodes[i].childNodes[0];
+            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
+        }
+        else if (childNodes[i].nodeName === "LatLonBoundingBox")
+            bbox = getLatLonBBoxString(childNodes[i]);
+        else if (childNodes[i].nodeName === "KeywordList")
+            keywords = getLayerKeywords(childNodes[i]); 
+        else if (childNodes[i].nodeName === "Style") {
+            styles.push(getStyleInfo(childNodes[i]));
+        }
+    }
+    
+    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords, styles: styles};
+
+}
+
+
+function parseWMSCapabilities(responseText) {
+    var layers = [];
+    var layersArray= responseText.getElementsByTagName("Layer");
+   
+    for (var i=0; i<layersArray.length; i++) {
+	var layer_info = getLayerInfo_WMS_3(layersArray[i]);
+	if (layer_info !== undefined){
+        	layers.push(layer_info);
+	}
+    }
+	
+
+    return layers;
+}
+
+function parseWFSCapabilities(responseText) {
+    var layers = [];
+    var featureTypes = responseText.getElementsByTagName("FeatureType");
+   
+    for (var i=0; i<featureTypes.length; i++) {
+        layers.push(getLayerInfo_WFS(featureTypes[i]));
+        
+        /*
+
+        var name = responseText.getElementsByTagName("Name")[i].childNodes[0].nodeValue;
+        var title = responseText.getElementsByTagName("Title")[i].childNodes[0].nodeValue;
+        
+        var abstrct_node = responseText.getElementsByTagName("Abstract")[i].childNodes[0];
+        var abstrct = (abstrct_node)?abstrct_node.nodeValue:'';
+
+        var bbox = getBBoxString(responseText.getElementsByTagName("ows:WGS84BoundingBox")[i]);
+        var keywords = getLayerKeywords(responseText.getElementsByTagName("ows:Keywords")[i]);
+
+        layers.push({
+            name: name,
+            title: title,
+            abstrct: abstrct,
+            bbox: bbox
+        });
+        */
+    }
+
+    /*
+    var layers = [];
+    var data = new OpenLayers.Format.WFSCapabilities().read(responseText);
+    
+    var featureTypeList = data.featureTypeList;
+    var featureTypes = featureTypeList.featureTypes;
+
+    for (var i in featureTypes) {
+        layers.push({
+            name: 'ibp:' + featureTypes[i].name,
+            title: featureTypes[i].title,
+            abstrct: featureTypes[i]['abstract']
+                });
+    }
+    */
+
+    return layers;
+}
+
+
+/**
+ * @requires OpenLayers-2.10/OpenLayers.js
+ * @requires jquery.js
+ * @requires jquery-ui.js
+ * @requires geoserver-utils.js
+ */
+
+// indexOf is a recent addition to the ECMA-262 standard; as such it may not be present in all browsers.
+// You can work around this by inserting the following code at the beginning of your scripts, allowing use
+// of indexOf in implementations which do not natively support it.
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+        "use strict";
+        if (this === void 0 || this === null) {
+            throw new TypeError();
+        }
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = 0;
+        if (arguments.length > 0) {
+            n = Number(arguments[1]);
+            if (n !== n) { // shortcut for verifying if it's NaN
+                n = 0;
+            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
+                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+            }
+        }
+        if (n >= len) {
+            return -1;
+        }
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++) {
+            if (k in t && t[k] === searchElement) {
+                return k;
+            }
+        }
+        return -1;
+    }
+}
+
+
+
+function getMaxExtent() {
+    var ext = "5801108.428222222,-7.081154550627198, 12138100.077777777, 4439106.786632658";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+function getMapExtent() {
+    var ext = "6567849.955888889,1574216.547942332,11354588.059333334,3763310.626620795";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+function getRestrictedExtent() {
+    var ext = "5801108.428222222,674216.547942332, 12138100.077777777, 4439106.786632658";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+
+//add style for map div
+function addStyle(divId, css) {
+    document.write("<style>");
+    document.write("#" + divId);
+    document.write("{" + css + "}");
+    document.write("</style>");
+}
+
 function getUrlData(url) {
     var url_data;
 
@@ -621,6 +862,26 @@ function AugmentedMap(map_div, options) {
         }
     }
 
+    function getCQLFilter() {
+        var cql_filters = [];
+        var i;
+
+        var layers = getLayers();
+        
+        var i;
+        for (i = 0; i < layers.length; i += 1){
+            if (layers[i].params.LAYERS !== undefined){
+                if (layers[i].params.CQL_FILTER !== undefined)
+            	    cql_filters.push(layers[i].params.CQL_FILTER);
+                else
+            	    cql_filters.push('INCLUDE');
+            }
+        }
+
+        return cql_filters.join(";");
+
+    }
+
     function getQueryableLayersAsString() {
         var queryableLayers = getQueryableLayers(); 
         return queryableLayers.join(',');
@@ -651,7 +912,7 @@ function AugmentedMap(map_div, options) {
 					);
         popup.setBackgroundColor("#bcd2ee");
         popup.setOpacity(.9);
-        popup.maxSize = new OpenLayers.Size(300,380);
+        popup.maxSize = new OpenLayers.Size(400,380);
         map.addPopup(popup);
     }
 
@@ -672,25 +933,64 @@ function AugmentedMap(map_div, options) {
          $('#' + feature_info_panel_div).fadeIn(500);    
     }
 
-    function createPopupHTML(response) {
-        var featuresList = eval('(' + response.responseText + ')');
-        
+    function processed_source(source){
+        if (source === undefined)
+            return '';
+
+        var d = source.split(":");
+
+        if (d.length === 3 && d[0] === "checklist"){
+                var url = "http://" + getHost() + "/node/" + d[2];
+                return "<a href='" + url + "'>" + d[1] + "</a>";
+        }
+
+        if (d.length === 5 && d[0] === "link_table"){
+                return  "Layer : " + d[1];
+        }
+
+        return source;
+    }
+
+    function popup_table(feature){
+        highlightFeature(feature.layer, feature.featureid);
+        var summaryColumns = getSummaryColumns(feature.layer);
+       
         var html = '';
+        html = html + '<table class="popup_table">';
+        for (var j in summaryColumns) {
+            var summaryColumn = summaryColumns[j]; 
+            var title = getColumnTitle(feature.layer, 
+                    summaryColumn);
+		
+            var value = feature[summaryColumn];
+
+	    if (summaryColumn == "source") {
+		value = processed_source(value);	
+	    }
+
+            html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
+        }
+        html = html + '</table>';
+
+        return html;
+    }
+
+    function createPopupHTML(response) {
+        var html = '';
+        
+        if (response.responseText === '')
+            return html;
+
+	var processedResponse = '[' + response.responseText.replace(/,\s*$/, '') + ']';
+        var featuresList = eval('(' + processedResponse + ')');
+
+
+        html = html + '<script>' + 'var popup_feature_list = ' + processedResponse + '</script>';
 
         var lyr;
         for (var i in featuresList) {
-            highlightFeature(featuresList[i].layer, featuresList[i].featureid);
-            var summaryColumns = getSummaryColumns(featuresList[i].layer);
-
-            html = html + '<table class="popup_table">';
-            for (var j in summaryColumns) {
-                var summaryColumn = summaryColumns[j]; 
-                var title = getColumnTitle(featuresList[i].layer, 
-                        summaryColumn);
-                var value = featuresList[i][summaryColumn];
-                html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
-            }
-            html = html + '</table>';
+            html = html + popup_table(featuresList[i]);
+            break;
         }
         return html;
     }
@@ -799,7 +1099,7 @@ function AugmentedMap(map_div, options) {
 
     function setHTML(response) {
 	
-	popup_enabled = false; // disabling popups always; popups to be fixed
+	//popup_enabled = false; // disabling popups always; popups to be fixed
         if (popup_enabled) { 
             var text = createPopupHTML(response);
 
@@ -807,9 +1107,7 @@ function AugmentedMap(map_div, options) {
                 addPopup(text);
             else
                 clearHighlight();
-        }
-
-        if (feature_info_panel_div !== undefined) {
+        } else if (feature_info_panel_div !== undefined) {
             var html = createInfoPanelHTML(response);
 
             if (html !== '')
@@ -872,6 +1170,7 @@ function AugmentedMap(map_div, options) {
 	    FEATURE_COUNT: 50,
 	    WIDTH: map.size.w,
 	    HEIGHT: map.size.h,
+            cql_filter: getCQLFilter(),
 	    srs: map.layers[0].projection};
     
         OpenLayers.loadURL(getWMS(), params, this, setHTML, setHTML);
@@ -971,6 +1270,7 @@ function AugmentedMap(map_div, options) {
     this.getLayersName = getLayersName;
     this.setBaseLayer = setBaseLayer;
     this.updateSize = updateSize;
+    this.getCQLFilter = getCQLFilter;
 
     map = new OpenLayers.Map(this.map_div, {
             controls: [
@@ -1060,31 +1360,6 @@ function hasLayer(map, layer) {
     return f;
 }
 
-function getLatLonBBoxString(boundingBoxElement) {
-    var minx = boundingBoxElement.getAttribute("miny");
-    var miny = boundingBoxElement.getAttribute("minx");
-    var maxx = boundingBoxElement.getAttribute("maxy");
-    var maxy = boundingBoxElement.getAttribute("maxx");
-
-    var bboxArr = [];
-    bboxArr.push(minx);
-    bboxArr.push(miny);
-    bboxArr.push(maxx);
-    bboxArr.push(maxy);
-
-    return bboxArr.join(',');
-}
-
-function getBBoxString(boundingBoxElement) {
-    var bbox_lower_corner = boundingBoxElement.childNodes[0].childNodes[0].nodeValue;
-    var bbox_upper_corner = boundingBoxElement.childNodes[1].childNodes[0].nodeValue;
-
-    var bbox = bbox_lower_corner.replace(" ", ",") +
-                "," +
-                bbox_upper_corner.replace(" ", ",");
-
-    return bbox;
-}
 
 function getLayerKeywords(keywordsElement) {
     var keywords = [];
@@ -1102,209 +1377,6 @@ function getLayerKeywords(keywordsElement) {
     return keywords;
 }
 
-function getLayerInfo_WFS(featureTypeElement) {
-    var name;
-    var title;
-    var bbox;
-    var abstrct;
-    var keywords = [];
-
-    var childNodes = featureTypeElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].nodeName === "Name")
-            name = childNodes[i].childNodes[0].nodeValue;
-        else if (childNodes[i].nodeName === "Title")
-            title = childNodes[i].childNodes[0].nodeValue;
-        else if (childNodes[i].nodeName === "Abstract") {
-            var abstrct_node = childNodes[i].childNodes[0];
-            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
-        }
-        else if (childNodes[i].nodeName === "ows:WGS84BoundingBox")
-            bbox = getBBoxString(childNodes[i]);
-        else if (childNodes[i].nodeName === "ows:Keywords")
-            keywords = getLayerKeywords(childNodes[i]); 
-    }
-    
-    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords};
-
-}
-
-function getLegendURL(legendURLElement) {
-
-    var childNodes = legendURLElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].nodeName === "OnlineResource") {
-            var url = childNodes[i].getAttribute("xlink:href");
-            return url;
-        }
-    }
-
-     
-}
-
-function getStyleInfo(styleElement) {
-    var name;
-    var title;
-    var abstrct;
-    var legendURL;
-
-    var childNodes = styleElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].nodeName === "Name")
-            name = childNodes[i].childNodes[0].nodeValue;
-        else if (childNodes[i].nodeName === "Title") {
-            var title_node = childNodes[i].childNodes[0];
-            title = (title_node !== undefined)?title_node.nodeValue:'Default';
-        } else if (childNodes[i].nodeName === "Abstract") {
-            var abstrct_node = childNodes[i].childNodes[0];
-            abstrct = (abstrct_node !== undefined && abstrct_node !== null)?abstrct_node.nodeValue:'';
-        } else if (childNodes[i].nodeName === "LegendURL") {
-            legendURL = getLegendURL(childNodes[i]); 
-        }
-
-        
-
-    }
-
-    return {name: name, title: title, abstrct: abstrct, legendURL: legendURL};
-}
-
-function getLayerInfo_WMS_3(layerElement) {
-    var name;
-    var title;
-    var bbox;
-    var abstrct;
-    var keywords = [];
-    var styles = [];
-
-    var childNodes = layerElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].nodeName === "Name"){
-	    if (childNodes[i].childNodes[0] === undefined)
-		return;
-            name = childNodes[i].childNodes[0].nodeValue;
-        }else if (childNodes[i].nodeName === "Title"){
-	    if (childNodes[i].childNodes[0] === undefined || childNodes[i].childNodes[0] === null)
-		return;
-            title = childNodes[i].childNodes[0].nodeValue;
-        }else if (childNodes[i].nodeName === "Abstract") {
-            var abstrct_node = childNodes[i].childNodes[0];
-            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
-        }
-        else if (childNodes[i].nodeName === "BoundingBox"){
-            bbox = getLatLonBBoxString(childNodes[i]);
-        }else if (childNodes[i].nodeName === "KeywordList")
-            keywords = getLayerKeywords(childNodes[i]); 
-        else if (childNodes[i].nodeName === "Style") {
-            styles.push(getStyleInfo(childNodes[i]));
-        }
-    }
-
-    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords, styles: styles};
-
-}
-
-function getLayerInfo_WMS(layerElement) {
-    var name;
-    var title;
-    var bbox;
-    var abstrct;
-    var keywords = [];
-    var styles = [];
-
-    var childNodes = layerElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].nodeName === "Name"){
-	    if (childNodes[i].childNodes[0] === undefined)
-		return;
-            name = childNodes[i].childNodes[0].nodeValue;
-        }else if (childNodes[i].nodeName === "Title"){
-	    if (childNodes[i].childNodes[0] === undefined)
-		return;
-            title = childNodes[i].childNodes[0].nodeValue;
-        }else if (childNodes[i].nodeName === "Abstract") {
-            var abstrct_node = childNodes[i].childNodes[0];
-            abstrct = (abstrct_node !== undefined)?abstrct_node.nodeValue:'';
-        }
-        else if (childNodes[i].nodeName === "LatLonBoundingBox")
-            bbox = getLatLonBBoxString(childNodes[i]);
-        else if (childNodes[i].nodeName === "KeywordList")
-            keywords = getLayerKeywords(childNodes[i]); 
-        else if (childNodes[i].nodeName === "Style") {
-            styles.push(getStyleInfo(childNodes[i]));
-        }
-    }
-    
-    return {name: name, title: title, bbox: bbox, abstrct: abstrct, keywords: keywords, styles: styles};
-
-}
-
-
-function parseWMSCapabilities(responseText) {
-    var layers = [];
-    var layersArray= responseText.getElementsByTagName("Layer");
-   
-    for (var i=0; i<layersArray.length; i++) {
-	var layer_info = getLayerInfo_WMS_3(layersArray[i]);
-	if (layer_info !== undefined){
-        	layers.push(layer_info);
-	}
-    }
-	
-
-    return layers;
-}
-
-function parseWFSCapabilities(responseText) {
-    var layers = [];
-    var featureTypes = responseText.getElementsByTagName("FeatureType");
-   
-    for (var i=0; i<featureTypes.length; i++) {
-        layers.push(getLayerInfo_WFS(featureTypes[i]));
-        
-        /*
-
-        var name = responseText.getElementsByTagName("Name")[i].childNodes[0].nodeValue;
-        var title = responseText.getElementsByTagName("Title")[i].childNodes[0].nodeValue;
-        
-        var abstrct_node = responseText.getElementsByTagName("Abstract")[i].childNodes[0];
-        var abstrct = (abstrct_node)?abstrct_node.nodeValue:'';
-
-        var bbox = getBBoxString(responseText.getElementsByTagName("ows:WGS84BoundingBox")[i]);
-        var keywords = getLayerKeywords(responseText.getElementsByTagName("ows:Keywords")[i]);
-
-        layers.push({
-            name: name,
-            title: title,
-            abstrct: abstrct,
-            bbox: bbox
-        });
-        */
-    }
-
-    /*
-    var layers = [];
-    var data = new OpenLayers.Format.WFSCapabilities().read(responseText);
-    
-    var featureTypeList = data.featureTypeList;
-    var featureTypes = featureTypeList.featureTypes;
-
-    for (var i in featureTypes) {
-        layers.push({
-            name: 'ibp:' + featureTypes[i].name,
-            title: featureTypes[i].title,
-            abstrct: featureTypes[i]['abstract']
-                });
-    }
-    */
-
-    return layers;
-}
 
 function isEven(value) {
     return (value%2 == 0);
@@ -1340,7 +1412,6 @@ function createLinkTableHTML(fid, layer, lnk_table) {
     return html;
 }
 
-
 function showLinkTable(lnk_table_div, fid, layer, lnk_table, title) {
     var elem = document.getElementById(lnk_table_div);
 
@@ -1350,10 +1421,12 @@ function showLinkTable(lnk_table_div, fid, layer, lnk_table, title) {
     $( "#" + lnk_table_div ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 480, modal:true, zIndex: 3999});
 }
 
-
+// using pre-generated thumbnails instead of querying wms and getting new image every time
+// this should make use of browser caching and decrease load time of the page
 function getMapThumbnail(layer_tablename) {
     var html = '<div class="map_thumbnail">';
-    html = html + '<img src="' + getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers=' + layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width=80&height=80&srs=EPSG:4326&format=image/gif&FORMAT_OPTIONS=antialias:none&transparent=true"/>'; 
+    html = html + '<img src="/sites/default/files/map_thumbnails/' + layer_tablename + '_thumb.gif" onerror="this.src = \'/sites/default/files/map_thumbnails/no_preview.png\'"/>'; 
+    //html = html + '<img src="' + getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers=' + layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width=80&height=80&srs=EPSG:4326&format=image/gif&FORMAT_OPTIONS=antialias:none&transparent=true"/>'; 
     html = html + '</div>';
 
     return html;
@@ -1704,7 +1777,9 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         var attribution_div_id = 'layer_attribution_' + i;
         html = html + '<div class="attribution_link" onclick="toggleAttribution(\'' + attribution_div_id + '\', \'' + layers[i].name + '\');"></div>';
         html = html + '<div class="attribution_box" id="' + attribution_div_id + '" style="display:none;"></div>';
-        html = html + getMapThumbnail(layers[i].name);
+        //html = html + getMapThumbnail(layers[i].name);
+        if (layers[i].name !== undefined)
+            html = html + getMapThumbnail(layers[i].name.replace(getWorkspace()+":", ""));
         html = html + '<div id="abstrct"><p>' + layers[i]['abstrct'] + '</p></div>';
         html = html + '<div style="clear:both;">';
         html = html + '<ul class="layer_options">';
@@ -1864,6 +1939,26 @@ function getFullMapOptions(options) {
     return fullOptions;
 }
 
+function getWMSLayer_Filter(map, layers, styles, title, opacity, cql_filter) {
+
+    var layer = new OpenLayers.Layer.WMS( title,
+            getWMS(), 
+            {layers:layers,
+            format: "image/png",
+            styles: styles,
+            tiled: true,
+            cql_filter:cql_filter,
+            tilesOrigin:map.maxExtent.left + ',' + map.maxExtent.bottom, transparent:true},
+            {buffer: 0,
+            displayOutsideMaxExtent: true,
+            isBaseLayer: false,
+            opacity:opacity
+            });
+
+    return layer;
+}
+
+
 function getWMSLayer(map, layers, styles, title, opacity) {
     var layer = new OpenLayers.Layer.WMS( title,
             getWMS(), 
@@ -1891,10 +1986,16 @@ function getLayers(map, layersOptions) {
         var title = layersOptions[layerNum].title;
         var layers = layersOptions[layerNum].layers;
         var styles = layersOptions[layerNum].styles || '';
+        var cql_filter = layersOptions[layerNum].cql_filter;
         var opacity = layersOptions[layerNum].opacity || 0.7;
-       
-        var layer = getWMSLayer(map, layers, styles, title, opacity);
-        layersArray.push(layer);
+      
+        if (cql_filter !== undefined) {
+            var layer = getWMSLayer_Filter(map, layers, styles, title, opacity, cql_filter);
+            layersArray.push(layer);
+        } else {
+            var layer = getWMSLayer(map, layers, styles, title, opacity);
+            layersArray.push(layer);
+        }
     }
 
     return layersArray;
@@ -1985,7 +2086,7 @@ function createBaseLayerSwitcher() {
 
 //create a div; add map to the div  
 function showMap(map_div, mapOptions, layersOptions) {
-
+    //alert(Drupal.settings.toSource());
     var fullOptions = getFullMapOptions(mapOptions);
 
     if (fullOptions.baselayers_switcher_enabled) {

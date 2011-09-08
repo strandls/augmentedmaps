@@ -489,4 +489,44 @@ public class AMDB {
                 closeResources(rs, st, c);
             }
     }
+
+    /**
+     * get number of occurrences of a species
+     */
+    public void getOccurrenceCount(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+            
+            Connection c = null;
+            Statement st = null;
+            ResultSet rs = null;
+        
+            String species_name = request.getParameter("species_name");
+
+            if (species_name == null)
+                return;
+
+            try {
+                c = getConnection();
+
+                if (c == null)
+                    return;
+
+                st = c.createStatement();
+                rs = st.executeQuery("select count(species_name) from occurrence where species_name='" +  species_name + "'");
+                
+                response.getOutputStream().write("getOccurrenceCount({count:".getBytes());
+                while (rs.next()) {
+
+                    response.getOutputStream().write(rs.getString(1).getBytes());
+                 }
+                response.getOutputStream().write("});".getBytes());
+            } catch (SQLException se) {
+                se.printStackTrace();
+            
+            }
+            finally { //to ensure that the connection is closed even if an exception occurs during JDBC processing
+                closeResources(rs, st, c);
+            }
+
+    }
 }

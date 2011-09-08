@@ -24,7 +24,7 @@ display:none;
 }
 
 #header {
-background-color: #F7F7F7;
+background-color: #ECE9B7;
 width: 100%;
 height: 80px;
 z-index: 2000;
@@ -42,6 +42,8 @@ position: absolute;
 right: 20px;
 top: 0;
 z-index: 2000;
+font-size:8pt;
+font-weight:bold;
 }
 
 #parent_panel {
@@ -53,7 +55,6 @@ float:left;
 #panel {
 width:36em;      
 height:95%;      
-background-color:#ffffff;
 }
 
 #map {
@@ -71,21 +72,18 @@ float:left;
 li.layer_in_list_panel {
 list-style: none;
 padding: 10px;
-border-top: 1px solid #eeeeee;         
-border-bottom: 1px solid #eeeeee;         
+border-top: 1px solid #ede4d2;         
+border-bottom: 1px solid #ede4d2;         
 margin-bottom: 0;        
 margin-right:10px;
 min-height:150px;
 position:relative;
--moz-box-shadow:inset 0 0 10px #999;
--webkit-box-shadow:inset 0 0 10px #999;
-box-shadow:inset 0 0 10px #999;
 }
 
 li.layer_in_list_panel:hover {
-background-color: #f5f5f5;    
-border-top: 1px solid #e5e5e5;         
-border-bottom: 1px solid #e5e5e5;         
+background-color: #f2f0cc;    
+border-top: 1px solid #A5833E;         
+border-bottom: 1px solid #A5833E;         
 }
 
 li.layer_in_list_panel h3{
@@ -252,14 +250,14 @@ overflow:auto;
 
 .selected_layer_pane {
 padding:10px;
-background-color: #f7f7f7;        
+background-color: #eceac7;        
 margin-top:10px;
 border-radius:7px;
 position:relative;
 }
 
 .selected_layer_pane:hover {
-background-color: #e5e5e5;        
+background-color: #f2f0cc;        
 }
 
 .selected_layer_title {
@@ -275,12 +273,6 @@ font-size: 0.7em;
 padding:10px;
 height:85%;
 overflow:auto;       
-}
-
-#layers_as_list_panel ul.layer_actions {
-padding:10px;
-background-color: #e7e7e7;
-border-radius: 7px;
 }
 
 .layer_options ul {
@@ -360,7 +352,7 @@ font-weight:normal;
 margin-top:10px;    
 border-radius: 7px;       
 padding:10px;
-background-color: #D4EDC9;        
+background-color: #ECE9B7;        
 }
 
 .collapsible_box_title {
@@ -370,7 +362,6 @@ background-repeat: no-repeat;
 
 a.collapsible_box_title {
 padding-left:15px;    
-color:#5e5e5e;
 }
 
 .legend_title {
@@ -516,7 +507,7 @@ width:36em;
 }
 
 .layer_info_box {
-background-color:#f7f7f7;
+background-color:#eceac7;
 margin:10px;
 padding:10px 10px 25px 10px;       
 border-radius:7px;        
@@ -524,7 +515,7 @@ position:relative;
 }
 
 .layer_info_box:hover {
-background-color:#e7e7e7;
+background-color:#f2f0cc;
 }
 
 .more_less_link {

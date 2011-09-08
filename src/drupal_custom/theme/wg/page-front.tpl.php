@@ -61,6 +61,7 @@
                        <div style="clear:both;"></div>
  <?php if ($show_messages && $messages): print $messages; endif; ?>
                         <div id="main-content">
+			<div id="navbars">
                     	<div class="navbar">
                         		<div id="explore" onclick="location.href='<?php print check_url($front_page)?>map'";></div>
                                         <div id="checklists" onclick="location.href='<?php print check_url($front_page)?>browsechecklists'"></div>
@@ -68,25 +69,66 @@
                         </div><!-- navbar --> 
 
 			<div class="navbar">
-                        		<div id="species_entry" onclick="location.href='<?php print check_url($front_page)?>species'";></div>
+                        		<div id="species_entry" onclick="location.href='<?php print check_url($front_page)?>speciespage/species/list'";></div>
                                         <div id="themes_entry"></div>
                                         <div id="aboutus_entry" onclick="location.href='<?php print check_url($front_page)?>about/western-ghats'"><div id="collaborate-links"></div></div>
                         </div><!-- navbar --> 
+			</div>
 
+			<div id="statistics_box"></div>
 
 			</div><!-- main-content -->
  			
-			<div>
+			<div style="clear:both;">
 			<ul id="whatsnew">
 			<li id="new-whatsnew">New</li>
 			<li>
 			<a href="/cepf_grantee_database">Western Ghats CEPF Projects</a>
+			</li>
+			<li>
+			<a href="/collaborate/partners">Portal Partners</a>
 			</li>
 			</ul>
 			</div>
 
  
                        <div style="clear:both;"></div>
+                       <div class="shadow_bar"></div>
+
+			<div style="width:100%;height:200px;background-color:#fefefe;">
+			<div id="links_box">
+				<div class="links_box_column">
+				<ul>
+				<li class="bold"><a href='/map'>Explore maps</a></li>
+				<li class="bold"><a href='/browsechecklists'>Browse checklists</a></li>
+				<li class="bold"><a href='/speciespage/species/list'>Browse species</a></li>
+				<li><a href='/about/whats-new'>What's new?</a></li>
+				<li><a href='/about/technology'>Technology</a></li>
+				<li><a href='/about/roadmap1'>Roadmap</a></li>
+				</ul>
+				</div>
+				<div class="links_box_column">
+				<ul>
+				<li class="bold"><a href='/collaborate-wg'>Collaborate</a></li>
+				<li><a href='/cepf_grantee_database'>Western Ghats CEPF Projects</a></li>
+				<li><a href='/collaborate/partners'>Portal Partners</a></li>
+				</ul>
+				</div>
+				<div class="links_box_column">
+				<ul>
+				<li class="bold"><a href='/about/western-ghats'>About</a></li>
+				<li><a href='/about/western-ghats'>The Western Ghats</a></li>
+				<li><a href='/about/what-are-biodiversity-hotspots'>What are Biodiversity Hotspots?</a></li>
+				<li><a href='/about/portal-objectives'>Portal Objectives</a></li>
+				<li><a href='/about/data-sharing-guidelines'>Data Sharing Guidelines</a></li>
+				<li><a href='/about/participation-and-action'>Participation and Action</a></li>
+				<li><a href='/about/team'>Team</a></li>
+				</ul>
+				</div>
+
+			</div>
+			</div>
+                       <div class="shadow_bar flip-vertical"></div>
 			
 			
 			<!-- Footer -->
