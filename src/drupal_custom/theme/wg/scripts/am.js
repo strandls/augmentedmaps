@@ -1,7 +1,7 @@
 
 function getHost() {
     return document.domain;
-    //return 'wgp.saturn.strandls.com';
+    //return 'thewesternghats.in';
 }
 
 function getWorkspace() {
@@ -509,8 +509,8 @@ function getLayerInfo_WMS_3(layerElement) {
 	    if (childNodes[i].childNodes[0] === undefined)
 		return;
             name = childNodes[i].childNodes[0].nodeValue;
-	    if (name === occurrence)
-		return;
+            if (name === occurrence)
+	         return;
         }else if (childNodes[i].nodeName === "Title"){
 	    if (childNodes[i].childNodes[0] === undefined || childNodes[i].childNodes[0] === null)
 		return;
@@ -794,6 +794,16 @@ function isAuthorisedUser() {
     return userid > 0;
 }
 
+function arrayContains(arr, val) {
+    var i;
+    for (i = 0; i < arr.length; i += 1) {
+        if (arr[i] == val)
+            return true;
+    }
+
+    return false;
+}
+
 function AugmentedMap(map_div, options) {
      
     var map;
@@ -867,14 +877,18 @@ function AugmentedMap(map_div, options) {
         var i;
 
         var layers = getLayers();
-        
+
         var i;
         for (i = 0; i < layers.length; i += 1){
             if (layers[i].params.LAYERS !== undefined){
                 if (layers[i].params.CQL_FILTER !== undefined)
             	    cql_filters.push(layers[i].params.CQL_FILTER);
-                else
-            	    cql_filters.push('INCLUDE');
+                else {
+                    var layers_cnt = layers[i].params.LAYERS.split(",").length;
+                    for (var j=0; j < layers_cnt; j += 1) {
+            	        cql_filters.push('INCLUDE');
+                    }
+                }
             }
         }
 
@@ -934,21 +948,26 @@ function AugmentedMap(map_div, options) {
     }
 
     function processed_source(source){
-        if (source === undefined)
-            return '';
+	if (source === undefined)
+		return '';
+	
+	var d = source.split(":");
 
-        var d = source.split(":");
-
-        if (d.length === 3 && d[0] === "checklist"){
-                var url = "http://" + getHost() + "/node/" + d[2];
-                return "<a href='" + url + "'>" + d[1] + "</a>";
+	if (d.length === 2 && d[0] === "observation"){
+		var url = "http://" + getHost() + "/biodiv/observation/show/" + d[1];
+		return "<a href='" + url + "'>Observation</a>";			
         }
 
-        if (d.length === 5 && d[0] === "link_table"){
-                return  "Layer : " + d[1];
-        }
+	if (d.length === 3 && d[0] === "checklist"){
+		var url = "http://" + getHost() + "/node/" + d[2];
+		return "<a href='" + url + "'>" + d[1] + "</a>";			
+	}
 
-        return source;
+	if (d.length === 5 && d[0] === "link_table"){
+		return  "Layer : " + d[1];	
+	}
+
+	return source;
     }
 
     function popup_table(feature){
@@ -957,11 +976,11 @@ function AugmentedMap(map_div, options) {
        
         var html = '';
         html = html + '<table class="popup_table">';
-        for (var j in summaryColumns) {
+        for (var j=0; j<summaryColumns.length; j += 1) {
             var summaryColumn = summaryColumns[j]; 
             var title = getColumnTitle(feature.layer, 
                     summaryColumn);
-		
+	
             var value = feature[summaryColumn];
 
 	    if (summaryColumn == "source") {
@@ -995,15 +1014,6 @@ function AugmentedMap(map_div, options) {
         return html;
     }
     
-    function arrayContains(arr, val) {
-        var i;
-        for (i = 0; i < arr.length; i += 1) {
-            if (arr[i] == val)
-                return true;
-        }
-
-        return false;
-    }
 
 
     function createLinkTableLinks(layer, feature_id, title) {
@@ -1095,7 +1105,12 @@ function AugmentedMap(map_div, options) {
 
         return html;
     }
-
+    function clearFeatureInfoPanel() {
+        if (feature_info_panel_div !== undefined) {
+            var msg = '<p style="padding:10px"><span class="info_msg">No features selected</span></p>';
+            addFeatureInfoPanel(feature_info_panel_div, msg);
+        }
+    }
 
     function setHTML(response) {
 	
@@ -1112,8 +1127,10 @@ function AugmentedMap(map_div, options) {
 
             if (html !== '')
                 addFeatureInfoPanel(feature_info_panel_div, html);
-            else
+            else {
                 clearHighlight();
+                clearFeatureInfoPanel();
+            }
 
         }
     }
@@ -1271,6 +1288,7 @@ function AugmentedMap(map_div, options) {
     this.setBaseLayer = setBaseLayer;
     this.updateSize = updateSize;
     this.getCQLFilter = getCQLFilter;
+    this.clearFeatureInfoPanel = clearFeatureInfoPanel;
 
     map = new OpenLayers.Map(this.map_div, {
             controls: [
@@ -1432,6 +1450,31 @@ function getMapThumbnail(layer_tablename) {
     return html;
 }
 
+var india_baundary_lyr = getWorkspace() + ':lyr_121_india_boundary';
+
+function getMapImage(layer_tablename, cql_filter, width, height, format) {
+    
+
+    if (width === undefined)
+        width = 80;
+
+    if (height === undefined)
+        height = 80;
+
+    if (format === undefined)
+        format = 'image/gif';
+
+    var html = '<div class="map_image">';
+    var uri = getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers='+ india_baundary_lyr +','+ layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width='+ width +'&height='+ height +'&srs=EPSG:4326&format='+ format +'&FORMAT_OPTIONS=antialias:none&transparent=true&cql_filter=INCLUDE;' + cql_filter;
+     uri = uri.replace(/\\x27/g, "'");
+
+    html = html + '<img src="' + encodeURI(uri) + '"/>'; 
+    html = html + '</div>';
+
+    return html;
+}
+
+
 function processLayerSummary(layer_summary) {
     var html = '<table class="summary_table">';
     
@@ -1537,6 +1580,32 @@ function hideAttribution(divId) {
     $('#' + divId).hide('fade', 500);
 }
 
+function createLayerLinkBox(divId, layer, title) {
+    var html = '';
+
+    html = html + '<a style="float:right;" href="#" onclick="hideLayerLinkBox(\'' + divId + '\')">close</a>';
+    html = html + '<span style="font-weight:bold;">Direct URL link to this layer</span><br>';
+    var url = 'http://' + getHost() + '/map?layers=' + layer + '&title=' + title;
+    html = html + '<textarea rows=3 cols=30>' + url + '</textarea>';
+
+    return html;
+}
+
+function toggleLayerLink(divId, layer, title) {
+	
+    var layer_link_div = document.getElementById(divId);
+
+    if (layer_link_div !== undefined && layer_link_div.innerHTML === '') {
+        layer_link_div.innerHTML = createLayerLinkBox(divId, layer, title);
+    }
+
+    $("#" + divId).toggle('fade', 500);
+}
+
+function hideLayerLinkBox(divId) {
+    $('#' + divId).hide('fade', 500);
+}
+
 function createKeywordLayersMap(layers) {
     var keywordLayersMap = {};
 
@@ -1615,10 +1684,10 @@ function updateLayersList(tag) {
 
         }
 
-        var new_layers = ['wgp:lyr_210_india_checklists','wgp:lyr_212_wg_fire_2002','wgp:lyr_213_wg_fire_2003','wgp:lyr_214_wg_fire_2010','wgp:lyr_215_wg_fire_2007','wgp:lyr_216_wg_fire_2004','wgp:lyr_217_wg_fire_2008','wgp:lyr_218_wg_fire_2005','wgp:lyr_219_wg_fire_2006','wgp:lyr_220_wg_fire_2001','wgp:lyr_221_wg_fire_2000','wgp:lyr_222_wg_fire_2009'];
+        var new_layers = ['lyr_104_india_states_census01'];
         var k;
         for (k = 0; k < new_layers.length; k += 1) {
-           var layer = new_layers[k];
+           var layer = getWorkspace() + ':' + new_layers[k];
            document.getElementById(layer).style.display = 'block';
         }
     }
@@ -1780,7 +1849,7 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         //html = html + getMapThumbnail(layers[i].name);
         if (layers[i].name !== undefined)
             html = html + getMapThumbnail(layers[i].name.replace(getWorkspace()+":", ""));
-        html = html + '<div id="abstrct"><p>' + layers[i]['abstrct'] + '</p></div>';
+        html = html + '<div class="abstrct"><p>' + layers[i]['abstrct'] + '</p></div>';
         html = html + '<div style="clear:both;">';
         html = html + '<ul class="layer_options">';
         html = html + '<li class="layer_details_link" onclick="toggleLayerDetails(\'layer_details_' + i + '\',\'' + layers[i].name + '\');">details</li>';
@@ -1791,6 +1860,9 @@ function generateHTMLForLayersAsList(layers, hasMap) {
             html = html + '<li id=\'' + layer_download_div + '_link\' class="layer_download_link" onclick="toggleDownloadBox(\'' + layer_download_div + '\',\'' + layers[i].name + '\',' + isAuthorised + ');">download</li>';
             html = html + '<div class="layer_download_box" id="' + layer_download_div + '" style="display:none;"></div>';
         }
+        var layer_link_div_id = 'layer_link_' + i;
+        html = html + '<li class="layer_link" onclick="toggleLayerLink(\'' + layer_link_div_id + '\',\'' + layers[i].name + '\',\'' + layers[i].title + '\');">link</li>';
+        html = html + '<div class="layer_link_box" id="' + layer_link_div_id + '" style="display:none;"></div>';
         html = html + '</ul>';
 
         html = html + '<ul class="layer_options layer_actions" style="text-align:right;">';
@@ -1988,8 +2060,11 @@ function getLayers(map, layersOptions) {
         var styles = layersOptions[layerNum].styles || '';
         var cql_filter = layersOptions[layerNum].cql_filter;
         var opacity = layersOptions[layerNum].opacity || 0.7;
-      
-        if (cql_filter !== undefined) {
+
+        if (layers === '')
+            continue;
+
+        if (cql_filter !== undefined && cql_filter !== '') {
             var layer = getWMSLayer_Filter(map, layers, styles, title, opacity, cql_filter);
             layersArray.push(layer);
         } else {
@@ -2006,17 +2081,74 @@ function getLayers(map, layersOptions) {
 // visible: boolean
 function setElementVisible(id, visible) {
     var elem = document.getElementById(id);
-    elem.style.display = visible ?'inline':'none';
+
+    if (elem !== null)
+        elem.style.display = visible ?'inline':'none';
+}
+
+function addFilteredLayer(layer, title, cql_filter) {
+    var map = window.map;
+    var wmslayer = getWMSLayer_Filter(map, layer, '', title, 0.7, cql_filter);
+    map.addLayer(wmslayer);
+
+    setElementVisible(layer + '_a_add', false);
+    setElementVisible(layer + '_a_remove', true);
+    setElementVisible(layer + '_zoom_to_extent', true);
+
+    setElementVisible(layer + '_a_add_search', false);
+    setElementVisible(layer + '_a_remove_search', true);
+    setElementVisible(layer + '_zoom_to_extent_search', true);
+
+}
+
+function addToLayersCookie(layer, title){
+    var layers_cookie = eatCookie("layers");        
+
+    if (layers_cookie !== null && layers_cookie !== ''){
+        var data = layers_cookie.split(",");
+        if (!arrayContains(data, layer)){
+            layers_cookie = [layers_cookie, layer, title].join(",");
+        }
+    } else {
+        layers_cookie = [layer, title].join(",");
+    }
+
+    bakeCookie("layers", layers_cookie, 7);
+}
+
+function removeFromLayersCookie(layer){
+    var layers_cookie = eatCookie("layers");        
+
+    if (layers_cookie !== null){
+        var data = layers_cookie.split(",");
+        
+        for (var i=0; i<data.length; i +=1){
+            if (data[i] === layer){
+                data.splice(i, 2);
+            }
+        }
+
+        var layers = data.join(",");
+
+        bakeCookie("layers", layers, 7);
+    }
 }
 
 function addLayer(layer, title) {
     var map = window.map;
     var wmslayer =  getWMSLayer(map, layer, '', title, 0.7);
     map.addLayer(wmslayer);
-    
+   
     setElementVisible(layer + '_a_add', false);
     setElementVisible(layer + '_a_remove', true);
     setElementVisible(layer + '_zoom_to_extent', true);
+
+    setElementVisible(layer + '_a_add_search', false);
+    setElementVisible(layer + '_a_remove_search', true);
+    setElementVisible(layer + '_zoom_to_extent_search', true);
+
+    addToLayersCookie(layer, title);
+
 }
 
 function removeLayer(layer) {
@@ -2026,6 +2158,12 @@ function removeLayer(layer) {
     setElementVisible(layer + '_a_add', true);
     setElementVisible(layer + '_a_remove', false);
     setElementVisible(layer + '_zoom_to_extent', false);
+
+    setElementVisible(layer + '_a_add_search', true);
+    setElementVisible(layer + '_a_remove_search', false);
+    setElementVisible(layer + '_zoom_to_extent_search', false);
+
+    removeFromLayersCookie(layer);
 }
 
 function resetMap() {
@@ -2037,6 +2175,7 @@ function resetMap() {
     for (i = 0; i < layers.length; i += 1)
         removeLayer(layers[i]);
     
+    map.clearFeatureInfoPanel();
 }
 
 function setBaseLayer(layer) {
@@ -2084,6 +2223,16 @@ function createBaseLayerSwitcher() {
     return html;
 }
 
+function loadLayersFromCookie(){
+    var layers_cookie = eatCookie("layers");
+    if (layers_cookie !== null && layers_cookie !== ''){
+        var data = layers_cookie.split(",");
+        for (var i=0; i<data.length; i += 2){
+            addLayer(data[i], data[i+1]);
+        }
+    }
+}
+
 //create a div; add map to the div  
 function showMap(map_div, mapOptions, layersOptions) {
     //alert(Drupal.settings.toSource());
@@ -2096,6 +2245,7 @@ function showMap(map_div, mapOptions, layersOptions) {
 
 
     var map = new AugmentedMap(map_div, fullOptions);
+
     var layers = getLayers(map, layersOptions);
     map.addLayers(layers);
 
@@ -2112,22 +2262,6 @@ function showMap(map_div, mapOptions, layersOptions) {
     return map;
 }
 
-// to add search box
-function addSearchBox(search_box_div) {
-    var html = '<div>';
-    html = html + '<input type="text" name="search" size="35"/>';
-    html = html + '<input type="submit" value="Search" />';
-    html = html + '</div>';
-    
-    document.getElementById(search_box_div).innerHTML = html;
-}
-
-function addSearchResultsPanel(search_results_panel_div) {
-    var html = '';
-
-    document.getElementById(search_results_panel_div).innerHTML = html;
-}
-
 function setLayerStyle(layer, style) {
     var map = window.map;
     var lyr = map.getLayer(layer);
@@ -2142,13 +2276,16 @@ function setLayerStyle(layer, style) {
     document.getElementById(layer.replace(":", "_") + '_legend').innerHTML = getLegendGraphic(layer, style);
 }
 
-function createLayerStylesPanel(layer) {
+function createLayerStylesPanel(layer, selectedStyle) {
     var styles = getLayerStyles(layer);
 
     var html = 'Style map by <select onchange="setLayerStyle(\'' + layer + '\', value)">';
 
     for (var key in styles) {
-        html = html + '<option value="' + key + '">' + styles[key] + '</option>';
+        if (selectedStyle === key)
+            html = html + '<option value="' + key + '" selected="selected">' + styles[key] + '</option>';
+        else
+            html = html + '<option value="' + key + '">' + styles[key] + '</option>';
     }
 
     html = html + '</select>';
@@ -2220,7 +2357,9 @@ function getLayerTitle(layer) {
 }
 
 function getLayerBoundingBoxString(layer) {
+
     var layers = window.layers;
+    var map = window.map;
 
     var i;
     for (i = 0; i < layers.length; i += 1) {
@@ -2228,6 +2367,8 @@ function getLayerBoundingBoxString(layer) {
             return layers[i].bbox;
         }
     }
+
+    return "68.106,6.76,97.415,37.074";
 }
 
 function getLayerBoundingBox(layer) {
@@ -2308,8 +2449,8 @@ function updateSelectedLayersPanel(selected_layers_div) {
             html = html + '<span id="' + layer_id + '_slider_value" class="selected_layer_opacity_value">' +  map.getLayer(layers[i].params.LAYERS).opacity*100 + '%</span></li>';
             html = html + '</ul>';
            
-            html = html + createLayerStylesPanel(layers[i].params.LAYERS);
-            html = html + createLegendPanel(layers[i].params.LAYERS, '');
+            html = html + createLayerStylesPanel(layers[i].params.LAYERS, layers[i].params.STYLES);
+            html = html + createLegendPanel(layers[i].params.LAYERS, layers[i].params.STYLES);
             html = html + '</div>';
 
             html = html + '</div>';
@@ -2370,4 +2511,24 @@ function generateEmbeddableMapCode(map) {
 
     return html;
 
+}
+
+function getLayerMetaData(layer_tablename){
+    var layers = window.layers;
+
+    if (layers === undefined){
+        return {title:layer_tablename, abstrct:layer_tablename};
+    }
+
+    if (layer_tablename === 'occurrence'){
+        return {title:'Occurrence Records', abstrct:'Species occurrence records'};
+    }
+
+    var layer_name = getWorkspace() + ":" + layer_tablename;
+    for (var i=0; i<layers.length; i += 1){
+        if (layers[i].name === layer_name)
+            return {title:layers[i].title, abstrct:layers[i].abstrct};
+    }
+    
+    return {title:layer_tablename, abstrct:layer_tablename};
 }

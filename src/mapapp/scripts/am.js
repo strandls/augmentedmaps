@@ -1,63 +1,11 @@
 
-// indexOf is a recent addition to the ECMA-262 standard; as such it may not be present in all browsers.
-// You can work around this by inserting the following code at the beginning of your scripts, allowing use
-// of indexOf in implementations which do not natively support it.
-if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
-        "use strict";
-        if (this === void 0 || this === null) {
-            throw new TypeError();
-        }
-        var t = Object(this);
-        var len = t.length >>> 0;
-        if (len === 0) {
-            return -1;
-        }
-        var n = 0;
-        if (arguments.length > 0) {
-            n = Number(arguments[1]);
-            if (n !== n) { // shortcut for verifying if it's NaN
-                n = 0;
-            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
-                n = (n > 0 || -1) * Math.floor(Math.abs(n));
-            }
-        }
-        if (n >= len) {
-            return -1;
-        }
-        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-        for (; k < len; k++) {
-            if (k in t && t[k] === searchElement) {
-                return k;
-            }
-        }
-        return -1;
-    }
-}
-
-
 function getHost() {
-    //return document.domain;
-    return 'thewesternghats.in';
+    return document.domain;
+    //return 'thewesternghats.in';
 }
 
 function getWorkspace() {
     return 'wgp';
-}
-
-function getMaxExtent() {
-    var ext = "5801108.428222222,-7.081154550627198, 12138100.077777777, 4439106.786632658";
-    return new OpenLayers.Bounds.fromString(ext);
-}
-
-function getMapExtent() {
-    var ext = "6567849.955888889,1574216.547942332,11354588.059333334,3763310.626620795";
-    return new OpenLayers.Bounds.fromString(ext);
-}
-
-function getRestrictedExtent() {
-    var ext = "5801108.428222222,674216.547942332, 12138100.077777777, 4439106.786632658";
-    return new OpenLayers.Bounds.fromString(ext);
 }
 
 function getWWWBase() {
@@ -85,14 +33,6 @@ function getWorkspaceOWS() {
 function getWFS() {
     var wfs = 'http://' + getHost() + '/geoserver/' + getWorkspace() + '/wfs';
     return wfs;
-}
-
-//add style for map div
-function addStyle(divId, css) {
-    document.write("<style>");
-    document.write("#" + divId);
-    document.write("{" + css + "}");
-    document.write("</style>");
 }
 
 function getSummaryColumns(layer) {
@@ -459,607 +399,6 @@ function getLayersAccessStatus() {
     return layersAccess;
 }
 
-function getUrlData(url) {
-    var url_data;
-
-    $.ajax({
-        url: url,
-        type: 'GET',
-        async: false,
-        cache: false,
-        timeout: 30000,
-        dataType: 'text',
-        error: function(){
-            return true;
-        },
-        success: function(data, msg){
-            if (parseFloat(msg)){
-                return false;
-            } else {
-                url_data = data;
-                return true;
-            }
-        }
-    });
-
-    return url_data;	
-    //$( "#" + lnk_table_div ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 480, modal:true, zIndex: 3999});
-}
-
-function showAjaxLinkPopup(url, title) {
-
-	var url_data = getUrlData(url);
-
-    	var elem = document.getElementById("layers_list_panel_info_dialog");
-
-	elem.innerHTML = url_data;
-
-    	$( "#layers_list_panel_info_dialog" ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 380, modal:true, zIndex: 3999});
-}
-
-function getLinkTableEntries(feature_id, layer_tablename, link_tablename) {
-    var url = 'http://' + getHost() + '/ml_orchestrator.php?action=getLinkTableEntries&layerdata_id=' + feature_id + '&layer_tablename=' + layer_tablename + '&link_tablename=' + link_tablename;
-    
-    var layer_link_table_entries;
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        async: false,
-        cache: false,
-        timeout: 30000,
-        dataType: 'text',
-        error: function(){
-            return true;
-        },
-        success: function(data, msg){ 
-            if (parseFloat(msg)){
-                return false;
-            } else {
-                layer_link_table_entries = eval ( '(' + data + ')');
-                return true;
-            }
-        }
-    });
-
-    return layer_link_table_entries;
-}
-
-function isAuthorisedUser() {
-    var url = 'http://' + getHost() + '/ml_orchestrator.php?action=getUserId';
-
-    var userid = 0;
-
-    $.ajax({
-        url: url,
-        type: 'GET',
-        async: false,
-        cache: false,
-        timeout: 30000,
-        dataType: 'text',
-        error: function(){
-            return true;
-        },
-        success: function(data, msg){
-            if (parseFloat(msg)){
-                return false;
-            } else {
-                userid = parseInt(data);
-                return true;
-            }
-        }
-    });
-
-    return userid > 0;
-}
-
-function AugmentedMap(map_div, options) {
-     
-    var map;
-    var popup;
-    var clicked_lonlat;
-    var popup_enabled = options.popup_enabled;
-    var feature_info_panel_div = options.feature_info_panel_div;
-    var features_list_panel_enabled = options.features_list_panel_enabled;
-    var features_list_panel_div = options.features_list_panel_div;
-    var bbox = options.bbox;
-    var toolbar_enabled = options.toolbar_enabled;
-    var toolbar;
-    var highlight_features = [];
-    var baselayer;
-
-    this.map_div = map_div;
-    
-    // add only one google base layer at a time; if there are multiple google layers added
-    // to openlayers map at any given instance some random repaint issues are encountered
-    function addBaseLayers() {
-        var gphy = new OpenLayers.Layer.Google(
-                "Google Physical",
-                {type: google.maps.MapTypeId.TERRAIN, numZoomLevels: 19}            
-            );
-           
-	setBaseLayer(gphy);
-    }
-
-    function addLayer(layer) {
-        layer.displayInLayerSwitcher = false;
-        map.addLayer(layer);
-        map.updateSize();
-    }
-
-    function removeLayer(layer_tablename) {
-	clearHighlight();
-        var layer = getLayer(layer_tablename);
-
-        if (layer !== undefined)
-            map.removeLayer(layer);
-    }
-
-    function getQueryableLayers() {
-        var queryableLayers = [];
-        var i;
-
-        var layers = getLayers();
-        
-        var i;
-        for (i = 0; i < layers.length; i += 1){
-            if (layers[i].params.LAYERS !== undefined)
-            	queryableLayers.push(layers[i].params.LAYERS);
-        }
-
-        return queryableLayers;
-    }
-
-    function getLayer(layer_tablename) {
-        var layers = getLayers();
-
-        var i;
-        for (i = 0; i < layers.length; i += 1){
-            if (layers[i].params.LAYERS !== undefined &&
-                    layers[i].params.LAYERS === layer_tablename)
-                return layers[i];
-        }
-    }
-
-    function getQueryableLayersAsString() {
-        var queryableLayers = getQueryableLayers(); 
-        return queryableLayers.join(',');
-    }
-
-    function zoomToExtent(bounds) {
-        map.zoomToExtent(bounds);
-    }
-
-    function addPopup(text) {
-	
-	function closePopup() {
-		clearHighlight();
-		popup.hide();	
-	}
-
-        if (popup != null) {
-            popup.destroy();
-            popup = null;
-        }
-        popup = new OpenLayers.Popup.FramedCloud("info",
-                                        clicked_lonlat,
-                                        new OpenLayers.Size(250,120),
-                                        text,
-                                        null,
-                                        true,
-					closePopup
-					);
-        popup.setBackgroundColor("#bcd2ee");
-        popup.setOpacity(.9);
-        popup.maxSize = new OpenLayers.Size(300,380);
-        map.addPopup(popup);
-    }
-
-    function addFeatureInfoPanel(feature_info_panel_div, text) {
-         document.getElementById(feature_info_panel_div).innerHTML = text;
-         document.getElementById(feature_info_panel_div).style.display = 'block';
-
-         //XXX:lines below should not be here
-         if (!$("#panel").is(":visible")) {
-            $("#panel_show_bttn").css('display', 'none');
-            $("#panel").show( "slide", {}, 500, function(){
-                    map.updateSize();
-                });
-	    $("#panel_hide_bttn").css('display', 'block');
-         }
-
-         $(".side_panel").hide();    
-         $('#' + feature_info_panel_div).fadeIn(500);    
-    }
-
-    function createPopupHTML(response) {
-        var featuresList = eval('(' + response.responseText + ')');
-        
-        var html = '';
-
-        var lyr;
-        for (var i in featuresList) {
-            highlightFeature(featuresList[i].layer, featuresList[i].featureid);
-            var summaryColumns = getSummaryColumns(featuresList[i].layer);
-
-            html = html + '<table class="popup_table">';
-            for (var j in summaryColumns) {
-                var summaryColumn = summaryColumns[j]; 
-                var title = getColumnTitle(featuresList[i].layer, 
-                        summaryColumn);
-                var value = featuresList[i][summaryColumn];
-                html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
-            }
-            html = html + '</table>';
-        }
-        return html;
-    }
-    
-    function arrayContains(arr, val) {
-        var i;
-        for (i = 0; i < arr.length; i += 1) {
-            if (arr[i] == val)
-                return true;
-        }
-
-        return false;
-    }
-
-
-    function createLinkTableLinks(layer, feature_id, title) {
-        var layer_link_tables = getLayerLinkTables(layer);
-        var fid = feature_id.split(".").pop();
-
-        var html = '';
-        for (var lnk_table in layer_link_tables) {
-            var lnk_table_div =  lnk_table + fid + '_link_table';
-            html = html + '<a class="lnk_table_link" href="#" onclick="showLinkTable(\'' + lnk_table_div + '\',' + fid + ',\'' + layer + '\',\'' + lnk_table + '\',\'' + title + ' : ' + layer_link_tables[lnk_table] + '\')">' + layer_link_tables[lnk_table] + '</a>&nbsp;&nbsp;&nbsp;';        
-            html = html + '<div id="' + lnk_table_div + '" style="display:none;"></div>';
-        }
-
-        return html;
-    }
-
-    function createInfoPanelHTML(response) {
-
-	var processedResponse = '[' + response.responseText.replace(/,\s*$/, '') + ']';
-
-        var featuresList = eval('(' + processedResponse + ')');
-        
-        var html = '';
-	
-	clearHighlight();
-
-        var i;
-        for (i = 0; i < featuresList.length; i += 1) {
-            highlightFeature(featuresList[i].layer, featuresList[i].featureid);
-            var layerColumns = eval("(" + getLayerColumns(featuresList[i].layer) + ")");
-            var summaryColumns = getSummaryColumns(featuresList[i].layer);
-            
-            var titleColumn = summaryColumns[0];
-            var titleValue = featuresList[i][titleColumn];
-            var feature_id = getLayerTitle(getWorkspace() + ":" + featuresList[i].layer) + " : " + titleValue; 
-            var title_div = titleValue.replace(/ /g, "_").replace(/./g, "_");
-            html = html + '<div class="layer_info_box">';
-            html = html + '<span class="feature_title">' + feature_id + '</span>';
-            var attribution_div_id = featuresList[i].layer + title_div + '_attribution';
-            html = html + '<div class="attribution_link" onclick="toggleAttribution(\'' + attribution_div_id + '\', \'' + featuresList[i].layer + '\');"></div>';
-            html = html + '<div class="attribution_box" id="' + attribution_div_id + '" style="display:none;"></div>';
-            //html = html + createAttributionBox(attribution_div_id, featuresList[i].layer);
-            html = html + '<div id=\'' + featuresList[i].layer + title_div + '_summary_info\'>';
-            html = html + '<table class="popup_table">';
-            
-            var j;
-            for (j = 0; j < summaryColumns.length; j += 1) {
-                var summaryColumn = summaryColumns[j]; 
-                //var title = getColumnTitle(featuresList[i].layer, summaryColumn);
-		var title = layerColumns[summaryColumn];
-                var value = featuresList[i][summaryColumn];
-                html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
-            }
-            html = html + '</table>';
-
-            html = html + '<div style="float:right;" id=\'' + featuresList[i].layer + title_div + '_more\'>';
-            html = html + '<a href="#" onClick="showDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\', \'fade\');hideDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1); showDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">more&darr;</a>';
-            html = html + '</div>';
-            html = html + '<div style="float:right; display:none;" id=\'' + featuresList[i].layer + title_div + '_less\'>';
-            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
-            html = html + '</div>';
-            html = html + '</div>';
-
-
-            html = html + '<div id=\'' + featuresList[i].layer + title_div + '_detailed_info\' style="display:none">';
-            html = html + '<table class="popup_table">';
-
-
-            //html = html + "<b>" + featuresList[i].layer  + "</b>" + "<br>"
-            $.each(featuresList[i], function(key, value) {
-                    if (key == 'layer' || key == 'featureid' || key.indexOf('__mlocate__') === 0 || arrayContains(summaryColumns, key))
-                        return;
-                     
-                    //var title = getColumnTitle(featuresList[i].layer, key);
-                    var title = layerColumns[key];
-                    //html = html + title + ":" + value + "<br>";
-                    html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
-                    });
-            html = html + '</table>';
-            html = html + '<div style="float:right;">';
-            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'slide\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
-            html = html + '</div>';
-            html = html + '</div>';
-            
-            html = html + createLinkTableLinks(featuresList[i].layer, featuresList[i].featureid, feature_id);
-
-            html = html + '</div>';
-        }
-
-        return html;
-    }
-
-
-    function setHTML(response) {
-	
-	popup_enabled = false; // disabling popups always; popups to be fixed
-        if (popup_enabled) { 
-            var text = createPopupHTML(response);
-
-            if (text !== '')
-                addPopup(text);
-            else
-                clearHighlight();
-        }
-
-        if (feature_info_panel_div !== undefined) {
-            var html = createInfoPanelHTML(response);
-
-            if (html !== '')
-                addFeatureInfoPanel(feature_info_panel_div, html);
-            else
-                clearHighlight();
-
-        }
-    }
-
-    function clearHighlight() {
-       
-	var i; 
-        for (i = 0; i < highlight_features.length; i += 1) {
-            map.removeLayer(highlight_features[i]);
-        }
-
-        highlight_features = [];
-    }
-
-    function highlightFeature(layer, featureid, index) {
-	
-	if (index == null)
-		index = 5;
-
-        var highlight_feature = new OpenLayers.Layer.WMS('highlight',
-            getWMS(), 
-            {layers:layer,
-            featureid:featureid,
-            env:'size:18;stroke:ff0000;stroke-width:'+index,
-            format: "image/png",
-            styles: '',
-            tiled: true,
-            tilesOrigin:map.maxExtent.left + ',' + map.maxExtent.bottom, transparent:true},
-            {buffer: 0,
-            displayOutsideMaxExtent: true,
-            isBaseLayer: false,
-            opacity:0.3
-            });
-
-        map.addLayer(highlight_feature);
-        highlight_features.push(highlight_feature);
-    }
-
-    function layerClicked(e) {
-        clicked_lonlat = map.getLonLatFromPixel(e.xy);
-        var queryable_layers = getQueryableLayersAsString();
-
-        var params = {
-	    REQUEST: "GetFeatureInfo",
-	    EXCEPTIONS: "application/vnd.ogc.se_xml",
-	    BBOX: map.getExtent().toBBOX(),
-	    SERVICE: "WMS",
-	    VERSION: "1.1.1",
-	    X: e.xy.x,
-	    Y: e.xy.y,
-	    INFO_FORMAT: 'text/html',
-	    QUERY_LAYERS: queryable_layers,
-	    LAYERS: queryable_layers,
-	    FEATURE_COUNT: 50,
-	    WIDTH: map.size.w,
-	    HEIGHT: map.size.h,
-	    srs: map.layers[0].projection};
-    
-        OpenLayers.loadURL(getWMS(), params, this, setHTML, setHTML);
-        OpenLayers.Event.stop(e);
-    }
-
-    function setFeatureListHTML(response) {
-        var text = response.responseText;
-
-        if (features_list_panel_enabled) {
-            var oXmlParser = new DOMParser();
-            var oXmlDoc = oXmlParser.parseFromString( text, "text/xml" ); 
-            var arrFeatures = oXmlDoc.getElementsByTagName("ibp:state"); 
-            var featuresList = [];
-
-            for (var i in arrFeatures){
-                if (arrFeatures[i].firstChild !== undefined)
-                    featuresList.push(arrFeatures[i].firstChild.nodeValue);
-            }
-
-            var html = featuresList.join("<br>");
-            document.getElementById(features_list_panel_div).innerHTML = html;
-        }
-    }
-
-    function addFeaturesList() {
-        var params = {
-            service: "wfs",
-            version: "1.1.0",
-            request: "getFeature",
-            typeName: getQueryableLayersAsString(),
-            propertyName: "state"   
-            };
-
-        OpenLayers.loadURL(getWMS(), params, this, setFeatureListHTML);
-
-    }
-
-    function activateNavigationControl() {
-        // Deactivate all controls in toolbar.
-        var len = toolbar.controls.length;
-        for(var i = 1; i < len; i++) {
-            toolbar.controls[i].deactivate();
-        }
-        // Activate navigation control
-        toolbar.controls[0].activate();
-    }
-
-    function onZoom() {
-        activateNavigationControl();
-	var zoom = map.getZoom();
-  	if ( zoom < 4) 
-    		map.zoomTo(4);
-
-    }
-
-    function getLayers() {
-        var layers = [];
-	
-	var i;
-         for (i = 0; i < map.layers.length; i += 1){
-               if (map.layers[i].name !== 'highlight' && map.layers[i].params !== undefined)
-                   layers.push(map.layers[i]);
-         }
-
-         return layers;
-    }
-
-    function getLayersName(layer) {
-        return map.getLayersName(layer);
-    }
-    
-    function setBaseLayer(layer) {
-        if (baselayer !== undefined)
-            map.removeLayer(baselayer);
-
-        baselayer = layer;
-
-        map.addLayer(layer);
-        map.setBaseLayer(layer);
-        map.setLayerIndex(layer, 0);
-
-    }
-
-    function updateSize() {
-        map.updateSize();
-    }
-
-    this.addLayer = addLayer;
-    this.removeLayer = removeLayer;
-    this.addFeaturesList = addFeaturesList;
-    this.getQueryableLayers = getQueryableLayers;
-    this.getLayer = getLayer;
-    this.zoomToExtent = zoomToExtent;
-    this.getLayers = getLayers;
-    this.clearHighlight = clearHighlight;
-    this.getLayersName = getLayersName;
-    this.setBaseLayer = setBaseLayer;
-    this.updateSize = updateSize;
-
-    map = new OpenLayers.Map(this.map_div, {
-            controls: [
-		    new OpenLayers.Control.Navigation(),
-		    new OpenLayers.Control.PanZoomBar({zoomWorldIcon:true}),
-		    new OpenLayers.Control.ScaleLine(),
-		    new OpenLayers.Control.MousePosition(),
-		    new OpenLayers.Control.KeyboardDefaults()
-		],
-             maxResolution: 156543.0339, // set the max resolution
-             units: "m", // set the resolution units
-             mapExtent: getMapExtent(),
-             maxExtent: getMaxExtent(),
-             restrictedExtent: getRestrictedExtent() // restrict the extent of the map to India
-            }
-        );
-
-    addBaseLayers();
-    
-    if (toolbar_enabled) {
-          // Multiple objects can share listeners with the same scope
-      var zoomListeners = {
-        //"activate": onZoomActivate,
-        //"deactivate": onZoomDeactivate
-      };
-
-      // create zoomBox control object
-      var zb = new OpenLayers.Control.ZoomBox({
-        eventListeners: zoomListeners,
-        title:"Click and draw a box to zoom into an area"
-      });
-
-      // create mouseDefaults(navigation icon) object
-      var md = new OpenLayers.Control.MouseDefaults({
-        title:'Click on a feature to show information or click and drag to pan'
-      });
-
-      // create toolbar panel object
-      toolbar = new OpenLayers.Control.Panel({
-        defaultControl: md
-      });
-
-      // add mouseDefaults and zoomBox controls to the toolbar panel
-      toolbar.addControls([
-        md,
-        zb
-      ]);
-        
-      // add the toolbar panel to map.
-      map.addControl(toolbar);
-
-        /*
-        var toolbar = 
-            new OpenLayers.Control.NavToolbar();
-        map.addControl(toolbar);
-        */
-    }
-
-    if (bbox !== undefined){
-        var bb = new OpenLayers.Bounds.fromString(bbox);
-        map.zoomToExtent(bb);
-    } else {
-
-        // Google.v3 uses EPSG:900913 as projection, so we have to
-        // transform our coordinates
-        map.setCenter(new OpenLayers.LonLat(77.22, 22.77).transform(
-            new OpenLayers.Projection("EPSG:4326"),
-            map.getProjectionObject()
-            ), 5);
-    }
-
-    this.layers = map.layers;
-    this.baseLayer = map.baseLayer;
-
-
-    map.events.register('click', map, layerClicked);
-    map.events.register('moveend', map, onZoom);
-
-
-}
-AugmentedMap.prototype = new OpenLayers.Map();
-
-function hasLayer(map, layer) {
-    var layers = map.getQueryableLayers();
-   
-    var f = layers.indexOf(layer) !== -1;
-    return f;
-}
-
 function getLatLonBBoxString(boundingBoxElement) {
     var minx = boundingBoxElement.getAttribute("miny");
     var miny = boundingBoxElement.getAttribute("minx");
@@ -1084,22 +423,6 @@ function getBBoxString(boundingBoxElement) {
                 bbox_upper_corner.replace(" ", ",");
 
     return bbox;
-}
-
-function getLayerKeywords(keywordsElement) {
-    var keywords = [];
-
-    if (keywordsElement === undefined)
-        return keywords;
-
-    var childNodes = keywordsElement.childNodes;
-
-    for (var i=0; i<childNodes.length; i++) {
-        if (childNodes[i].childNodes[0] !== undefined)
-            keywords.push(childNodes[i].childNodes[0].nodeValue);
-    }
-
-    return keywords;
 }
 
 function getLayerInfo_WFS(featureTypeElement) {
@@ -1140,8 +463,6 @@ function getLegendURL(legendURLElement) {
             return url;
         }
     }
-
-     
 }
 
 function getStyleInfo(styleElement) {
@@ -1182,11 +503,14 @@ function getLayerInfo_WMS_3(layerElement) {
 
     var childNodes = layerElement.childNodes;
 
+    var occurrence = getWorkspace() + ":occurrence";
     for (var i=0; i<childNodes.length; i++) {
         if (childNodes[i].nodeName === "Name"){
 	    if (childNodes[i].childNodes[0] === undefined)
 		return;
             name = childNodes[i].childNodes[0].nodeValue;
+            if (name === occurrence)
+	         return;
         }else if (childNodes[i].nodeName === "Title"){
 	    if (childNodes[i].childNodes[0] === undefined || childNodes[i].childNodes[0] === null)
 		return;
@@ -1306,6 +630,772 @@ function parseWFSCapabilities(responseText) {
     return layers;
 }
 
+
+/**
+ * @requires OpenLayers-2.10/OpenLayers.js
+ * @requires jquery.js
+ * @requires jquery-ui.js
+ * @requires geoserver-utils.js
+ */
+
+// indexOf is a recent addition to the ECMA-262 standard; as such it may not be present in all browsers.
+// You can work around this by inserting the following code at the beginning of your scripts, allowing use
+// of indexOf in implementations which do not natively support it.
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+        "use strict";
+        if (this === void 0 || this === null) {
+            throw new TypeError();
+        }
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = 0;
+        if (arguments.length > 0) {
+            n = Number(arguments[1]);
+            if (n !== n) { // shortcut for verifying if it's NaN
+                n = 0;
+            } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
+                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+            }
+        }
+        if (n >= len) {
+            return -1;
+        }
+        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+        for (; k < len; k++) {
+            if (k in t && t[k] === searchElement) {
+                return k;
+            }
+        }
+        return -1;
+    }
+}
+
+
+
+function getMaxExtent() {
+    var ext = "5801108.428222222,-7.081154550627198, 12138100.077777777, 4439106.786632658";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+function getMapExtent() {
+    var ext = "6567849.955888889,1574216.547942332,11354588.059333334,3763310.626620795";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+function getRestrictedExtent() {
+    var ext = "5801108.428222222,674216.547942332, 12138100.077777777, 4439106.786632658";
+    return new OpenLayers.Bounds.fromString(ext);
+}
+
+
+//add style for map div
+function addStyle(divId, css) {
+    document.write("<style>");
+    document.write("#" + divId);
+    document.write("{" + css + "}");
+    document.write("</style>");
+}
+
+function getUrlData(url) {
+    var url_data;
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        async: false,
+        cache: false,
+        timeout: 30000,
+        dataType: 'text',
+        error: function(){
+            return true;
+        },
+        success: function(data, msg){
+            if (parseFloat(msg)){
+                return false;
+            } else {
+                url_data = data;
+                return true;
+            }
+        }
+    });
+
+    return url_data;	
+    //$( "#" + lnk_table_div ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 480, modal:true, zIndex: 3999});
+}
+
+function showAjaxLinkPopup(url, title) {
+
+	var url_data = getUrlData(url);
+
+    	var elem = document.getElementById("layers_list_panel_info_dialog");
+
+	elem.innerHTML = url_data;
+
+    	$( "#layers_list_panel_info_dialog" ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 380, modal:true, zIndex: 3999});
+}
+
+function getLinkTableEntries(feature_id, layer_tablename, link_tablename) {
+    var url = 'http://' + getHost() + '/ml_orchestrator.php?action=getLinkTableEntries&layerdata_id=' + feature_id + '&layer_tablename=' + layer_tablename + '&link_tablename=' + link_tablename;
+    
+    var layer_link_table_entries;
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        async: false,
+        cache: false,
+        timeout: 30000,
+        dataType: 'text',
+        error: function(){
+            return true;
+        },
+        success: function(data, msg){ 
+            if (parseFloat(msg)){
+                return false;
+            } else {
+                layer_link_table_entries = eval ( '(' + data + ')');
+                return true;
+            }
+        }
+    });
+
+    return layer_link_table_entries;
+}
+
+function isAuthorisedUser() {
+    var url = 'http://' + getHost() + '/ml_orchestrator.php?action=getUserId';
+
+    var userid = 0;
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        async: false,
+        cache: false,
+        timeout: 30000,
+        dataType: 'text',
+        error: function(){
+            return true;
+        },
+        success: function(data, msg){
+            if (parseFloat(msg)){
+                return false;
+            } else {
+                userid = parseInt(data);
+                return true;
+            }
+        }
+    });
+
+    return userid > 0;
+}
+
+function arrayContains(arr, val) {
+    var i;
+    for (i = 0; i < arr.length; i += 1) {
+        if (arr[i] == val)
+            return true;
+    }
+
+    return false;
+}
+
+function AugmentedMap(map_div, options) {
+     
+    var map;
+    var popup;
+    var clicked_lonlat;
+    var popup_enabled = options.popup_enabled;
+    var feature_info_panel_div = options.feature_info_panel_div;
+    var features_list_panel_enabled = options.features_list_panel_enabled;
+    var features_list_panel_div = options.features_list_panel_div;
+    var bbox = options.bbox;
+    var toolbar_enabled = options.toolbar_enabled;
+    var toolbar;
+    var highlight_features = [];
+    var baselayer;
+
+    this.map_div = map_div;
+    
+    // add only one google base layer at a time; if there are multiple google layers added
+    // to openlayers map at any given instance some random repaint issues are encountered
+    function addBaseLayers() {
+        var gphy = new OpenLayers.Layer.Google(
+                "Google Physical",
+                {type: google.maps.MapTypeId.TERRAIN, numZoomLevels: 19}            
+            );
+           
+	setBaseLayer(gphy);
+    }
+
+    function addLayer(layer) {
+        layer.displayInLayerSwitcher = false;
+        map.addLayer(layer);
+        map.updateSize();
+    }
+
+    function removeLayer(layer_tablename) {
+	clearHighlight();
+        var layer = getLayer(layer_tablename);
+
+        if (layer !== undefined)
+            map.removeLayer(layer);
+    }
+
+    function getQueryableLayers() {
+        var queryableLayers = [];
+        var i;
+
+        var layers = getLayers();
+        
+        var i;
+        for (i = 0; i < layers.length; i += 1){
+            if (layers[i].params.LAYERS !== undefined)
+            	queryableLayers.push(layers[i].params.LAYERS);
+        }
+
+        return queryableLayers;
+    }
+
+    function getLayer(layer_tablename) {
+        var layers = getLayers();
+
+        var i;
+        for (i = 0; i < layers.length; i += 1){
+            if (layers[i].params.LAYERS !== undefined &&
+                    layers[i].params.LAYERS === layer_tablename)
+                return layers[i];
+        }
+    }
+
+    function getCQLFilter() {
+        var cql_filters = [];
+        var i;
+
+        var layers = getLayers();
+
+        var i;
+        for (i = 0; i < layers.length; i += 1){
+            if (layers[i].params.LAYERS !== undefined){
+                if (layers[i].params.CQL_FILTER !== undefined)
+            	    cql_filters.push(layers[i].params.CQL_FILTER);
+                else {
+                    var layers_cnt = layers[i].params.LAYERS.split(",").length;
+                    for (var j=0; j < layers_cnt; j += 1) {
+            	        cql_filters.push('INCLUDE');
+                    }
+                }
+            }
+        }
+
+        return cql_filters.join(";");
+
+    }
+
+    function getQueryableLayersAsString() {
+        var queryableLayers = getQueryableLayers(); 
+        return queryableLayers.join(',');
+    }
+
+    function zoomToExtent(bounds) {
+        map.zoomToExtent(bounds);
+    }
+
+    function addPopup(text) {
+	
+	function closePopup() {
+		clearHighlight();
+		popup.hide();	
+	}
+
+        if (popup != null) {
+            popup.destroy();
+            popup = null;
+        }
+        popup = new OpenLayers.Popup.FramedCloud("info",
+                                        clicked_lonlat,
+                                        new OpenLayers.Size(250,120),
+                                        text,
+                                        null,
+                                        true,
+					closePopup
+					);
+        popup.setBackgroundColor("#bcd2ee");
+        popup.setOpacity(.9);
+        popup.maxSize = new OpenLayers.Size(400,380);
+        map.addPopup(popup);
+    }
+
+    function addFeatureInfoPanel(feature_info_panel_div, text) {
+         document.getElementById(feature_info_panel_div).innerHTML = text;
+         document.getElementById(feature_info_panel_div).style.display = 'block';
+
+         //XXX:lines below should not be here
+         if (!$("#panel").is(":visible")) {
+            $("#panel_show_bttn").css('display', 'none');
+            $("#panel").show( "slide", {}, 500, function(){
+                    map.updateSize();
+                });
+	    $("#panel_hide_bttn").css('display', 'block');
+         }
+
+         $(".side_panel").hide();    
+         $('#' + feature_info_panel_div).fadeIn(500);    
+    }
+
+    function processed_source(source){
+	if (source === undefined)
+		return '';
+	
+	var d = source.split(":");
+
+	if (d.length === 2 && d[0] === "observation"){
+		var url = "http://" + getHost() + "/biodiv/observation/show/" + d[1];
+		return "<a href='" + url + "'>Observation</a>";			
+        }
+
+	if (d.length === 3 && d[0] === "checklist"){
+		var url = "http://" + getHost() + "/node/" + d[2];
+		return "<a href='" + url + "'>" + d[1] + "</a>";			
+	}
+
+	if (d.length === 5 && d[0] === "link_table"){
+		return  "Layer : " + d[1];	
+	}
+
+	return source;
+    }
+
+    function popup_table(feature){
+        highlightFeature(feature.layer, feature.featureid);
+        var summaryColumns = getSummaryColumns(feature.layer);
+       
+        var html = '';
+        html = html + '<table class="popup_table">';
+        for (var j=0; j<summaryColumns.length; j += 1) {
+            var summaryColumn = summaryColumns[j]; 
+            var title = getColumnTitle(feature.layer, 
+                    summaryColumn);
+	
+            var value = feature[summaryColumn];
+
+	    if (summaryColumn == "source") {
+		value = processed_source(value);	
+	    }
+
+            html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
+        }
+        html = html + '</table>';
+
+        return html;
+    }
+
+    function createPopupHTML(response) {
+        var html = '';
+        
+        if (response.responseText === '')
+            return html;
+
+	var processedResponse = '[' + response.responseText.replace(/,\s*$/, '') + ']';
+        var featuresList = eval('(' + processedResponse + ')');
+
+
+        html = html + '<script>' + 'var popup_feature_list = ' + processedResponse + '</script>';
+
+        var lyr;
+        for (var i in featuresList) {
+            html = html + popup_table(featuresList[i]);
+            break;
+        }
+        return html;
+    }
+    
+
+
+    function createLinkTableLinks(layer, feature_id, title) {
+        var layer_link_tables = getLayerLinkTables(layer);
+        var fid = feature_id.split(".").pop();
+
+        var html = '';
+        for (var lnk_table in layer_link_tables) {
+            var lnk_table_div =  lnk_table + fid + '_link_table';
+            html = html + '<a class="lnk_table_link" href="#" onclick="showLinkTable(\'' + lnk_table_div + '\',' + fid + ',\'' + layer + '\',\'' + lnk_table + '\',\'' + title + ' : ' + layer_link_tables[lnk_table] + '\')">' + layer_link_tables[lnk_table] + '</a>&nbsp;&nbsp;&nbsp;';        
+            html = html + '<div id="' + lnk_table_div + '" style="display:none;"></div>';
+        }
+
+        return html;
+    }
+
+    function createInfoPanelHTML(response) {
+
+	var processedResponse = '[' + response.responseText.replace(/,\s*$/, '') + ']';
+
+        var featuresList = eval('(' + processedResponse + ')');
+        
+        var html = '';
+	
+	clearHighlight();
+
+        var i;
+        for (i = 0; i < featuresList.length; i += 1) {
+            highlightFeature(featuresList[i].layer, featuresList[i].featureid);
+            var layerColumns = eval("(" + getLayerColumns(featuresList[i].layer) + ")");
+            var summaryColumns = getSummaryColumns(featuresList[i].layer);
+            
+            var titleColumn = summaryColumns[0];
+            var titleValue = featuresList[i][titleColumn];
+            var feature_id = getLayerTitle(getWorkspace() + ":" + featuresList[i].layer) + " : " + titleValue; 
+            var title_div = titleValue.replace(/ /g, "_").replace(/./g, "_");
+            html = html + '<div class="layer_info_box">';
+            html = html + '<span class="feature_title">' + feature_id + '</span>';
+            var attribution_div_id = featuresList[i].layer + title_div + '_attribution';
+            html = html + '<div class="attribution_link" onclick="toggleAttribution(\'' + attribution_div_id + '\', \'' + featuresList[i].layer + '\');"></div>';
+            html = html + '<div class="attribution_box" id="' + attribution_div_id + '" style="display:none;"></div>';
+            //html = html + createAttributionBox(attribution_div_id, featuresList[i].layer);
+            html = html + '<div id=\'' + featuresList[i].layer + title_div + '_summary_info\'>';
+            html = html + '<table class="popup_table">';
+            
+            var j;
+            for (j = 0; j < summaryColumns.length; j += 1) {
+                var summaryColumn = summaryColumns[j]; 
+                //var title = getColumnTitle(featuresList[i].layer, summaryColumn);
+		var title = layerColumns[summaryColumn];
+                var value = featuresList[i][summaryColumn];
+                html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
+            }
+            html = html + '</table>';
+
+            html = html + '<div style="float:right;" id=\'' + featuresList[i].layer + title_div + '_more\'>';
+            html = html + '<a href="#" onClick="showDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\', \'fade\');hideDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1); showDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">more&darr;</a>';
+            html = html + '</div>';
+            html = html + '<div style="float:right; display:none;" id=\'' + featuresList[i].layer + title_div + '_less\'>';
+            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'fade\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
+            html = html + '</div>';
+            html = html + '</div>';
+
+
+            html = html + '<div id=\'' + featuresList[i].layer + title_div + '_detailed_info\' style="display:none">';
+            html = html + '<table class="popup_table">';
+
+
+            //html = html + "<b>" + featuresList[i].layer  + "</b>" + "<br>"
+            $.each(featuresList[i], function(key, value) {
+                    if (key == 'layer' || key == 'featureid' || key.indexOf('__mlocate__') === 0 || arrayContains(summaryColumns, key))
+                        return;
+                     
+                    //var title = getColumnTitle(featuresList[i].layer, key);
+                    var title = layerColumns[key];
+                    //html = html + title + ":" + value + "<br>";
+                    html = html + '<tr><td class="first"><span class="popup_item_key">' + title + '</span></td><td><span class="popup_item_value">' + value + "</span></td></tr>";        
+                    });
+            html = html + '</table>';
+            html = html + '<div style="float:right;">';
+            html = html + '<a href="#" onClick="hideDiv(\'' + featuresList[i].layer + title_div + '_detailed_info\');showDiv(\'' + featuresList[i].layer + title_div + '_more\', \'slide\', 1);hideDiv(\'' + featuresList[i].layer + title_div + '_less\', \'fade\', 1);">less&uarr;</a>';
+            html = html + '</div>';
+            html = html + '</div>';
+            
+            html = html + createLinkTableLinks(featuresList[i].layer, featuresList[i].featureid, feature_id);
+
+            html = html + '</div>';
+        }
+
+        return html;
+    }
+    function clearFeatureInfoPanel() {
+        if (feature_info_panel_div !== undefined) {
+            var msg = '<p style="padding:10px"><span class="info_msg">No features selected</span></p>';
+            addFeatureInfoPanel(feature_info_panel_div, msg);
+        }
+    }
+
+    function setHTML(response) {
+	
+	//popup_enabled = false; // disabling popups always; popups to be fixed
+        if (popup_enabled) { 
+            var text = createPopupHTML(response);
+
+            if (text !== '')
+                addPopup(text);
+            else
+                clearHighlight();
+        } else if (feature_info_panel_div !== undefined) {
+            var html = createInfoPanelHTML(response);
+
+            if (html !== '')
+                addFeatureInfoPanel(feature_info_panel_div, html);
+            else {
+                clearHighlight();
+                clearFeatureInfoPanel();
+            }
+
+        }
+    }
+
+    function clearHighlight() {
+       
+	var i; 
+        for (i = 0; i < highlight_features.length; i += 1) {
+            map.removeLayer(highlight_features[i]);
+        }
+
+        highlight_features = [];
+    }
+
+    function highlightFeature(layer, featureid, index) {
+	
+	if (index == null)
+		index = 5;
+
+        var highlight_feature = new OpenLayers.Layer.WMS('highlight',
+            getWMS(), 
+            {layers:layer,
+            featureid:featureid,
+            env:'size:18;stroke:ff0000;stroke-width:'+index,
+            format: "image/png",
+            styles: '',
+            tiled: true,
+            tilesOrigin:map.maxExtent.left + ',' + map.maxExtent.bottom, transparent:true},
+            {buffer: 0,
+            displayOutsideMaxExtent: true,
+            isBaseLayer: false,
+            opacity:0.3
+            });
+
+        map.addLayer(highlight_feature);
+        highlight_features.push(highlight_feature);
+    }
+
+    function layerClicked(e) {
+        clicked_lonlat = map.getLonLatFromPixel(e.xy);
+        var queryable_layers = getQueryableLayersAsString();
+
+        var params = {
+	    REQUEST: "GetFeatureInfo",
+	    EXCEPTIONS: "application/vnd.ogc.se_xml",
+	    BBOX: map.getExtent().toBBOX(),
+	    SERVICE: "WMS",
+	    VERSION: "1.1.1",
+	    X: e.xy.x,
+	    Y: e.xy.y,
+	    INFO_FORMAT: 'text/html',
+	    QUERY_LAYERS: queryable_layers,
+	    LAYERS: queryable_layers,
+	    FEATURE_COUNT: 50,
+	    WIDTH: map.size.w,
+	    HEIGHT: map.size.h,
+            cql_filter: getCQLFilter(),
+	    srs: map.layers[0].projection};
+    
+        OpenLayers.loadURL(getWMS(), params, this, setHTML, setHTML);
+        OpenLayers.Event.stop(e);
+    }
+
+    function setFeatureListHTML(response) {
+        var text = response.responseText;
+
+        if (features_list_panel_enabled) {
+            var oXmlParser = new DOMParser();
+            var oXmlDoc = oXmlParser.parseFromString( text, "text/xml" ); 
+            var arrFeatures = oXmlDoc.getElementsByTagName("ibp:state"); 
+            var featuresList = [];
+
+            for (var i in arrFeatures){
+                if (arrFeatures[i].firstChild !== undefined)
+                    featuresList.push(arrFeatures[i].firstChild.nodeValue);
+            }
+
+            var html = featuresList.join("<br>");
+            document.getElementById(features_list_panel_div).innerHTML = html;
+        }
+    }
+
+    function addFeaturesList() {
+        var params = {
+            service: "wfs",
+            version: "1.1.0",
+            request: "getFeature",
+            typeName: getQueryableLayersAsString(),
+            propertyName: "state"   
+            };
+
+        OpenLayers.loadURL(getWMS(), params, this, setFeatureListHTML);
+
+    }
+
+    function activateNavigationControl() {
+        // Deactivate all controls in toolbar.
+        var len = toolbar.controls.length;
+        for(var i = 1; i < len; i++) {
+            toolbar.controls[i].deactivate();
+        }
+        // Activate navigation control
+        toolbar.controls[0].activate();
+    }
+
+    function onZoom() {
+        activateNavigationControl();
+	var zoom = map.getZoom();
+  	if ( zoom < 4) 
+    		map.zoomTo(4);
+
+    }
+
+    function getLayers() {
+        var layers = [];
+	
+	var i;
+         for (i = 0; i < map.layers.length; i += 1){
+               if (map.layers[i].name !== 'highlight' && map.layers[i].params !== undefined)
+                   layers.push(map.layers[i]);
+         }
+
+         return layers;
+    }
+
+    function getLayersName(layer) {
+        return map.getLayersName(layer);
+    }
+    
+    function setBaseLayer(layer) {
+        if (baselayer !== undefined)
+            map.removeLayer(baselayer);
+
+        baselayer = layer;
+
+        map.addLayer(layer);
+        map.setBaseLayer(layer);
+        map.setLayerIndex(layer, 0);
+
+    }
+
+    function updateSize() {
+        map.updateSize();
+    }
+
+    this.addLayer = addLayer;
+    this.removeLayer = removeLayer;
+    this.addFeaturesList = addFeaturesList;
+    this.getQueryableLayers = getQueryableLayers;
+    this.getLayer = getLayer;
+    this.zoomToExtent = zoomToExtent;
+    this.getLayers = getLayers;
+    this.clearHighlight = clearHighlight;
+    this.getLayersName = getLayersName;
+    this.setBaseLayer = setBaseLayer;
+    this.updateSize = updateSize;
+    this.getCQLFilter = getCQLFilter;
+    this.clearFeatureInfoPanel = clearFeatureInfoPanel;
+
+    map = new OpenLayers.Map(this.map_div, {
+            controls: [
+		    new OpenLayers.Control.Navigation(),
+		    new OpenLayers.Control.PanZoomBar({zoomWorldIcon:true}),
+		    new OpenLayers.Control.ScaleLine(),
+		    new OpenLayers.Control.MousePosition(),
+		    new OpenLayers.Control.KeyboardDefaults()
+		],
+             maxResolution: 156543.0339, // set the max resolution
+             units: "m", // set the resolution units
+             mapExtent: getMapExtent(),
+             maxExtent: getMaxExtent(),
+             restrictedExtent: getRestrictedExtent() // restrict the extent of the map to India
+            }
+        );
+
+    addBaseLayers();
+    
+    if (toolbar_enabled) {
+          // Multiple objects can share listeners with the same scope
+      var zoomListeners = {
+        //"activate": onZoomActivate,
+        //"deactivate": onZoomDeactivate
+      };
+
+      // create zoomBox control object
+      var zb = new OpenLayers.Control.ZoomBox({
+        eventListeners: zoomListeners,
+        title:"Click and draw a box to zoom into an area"
+      });
+
+      // create mouseDefaults(navigation icon) object
+      var md = new OpenLayers.Control.MouseDefaults({
+        title:'Click on a feature to show information or click and drag to pan'
+      });
+
+      // create toolbar panel object
+      toolbar = new OpenLayers.Control.Panel({
+        defaultControl: md
+      });
+
+      // add mouseDefaults and zoomBox controls to the toolbar panel
+      toolbar.addControls([
+        md,
+        zb
+      ]);
+        
+      // add the toolbar panel to map.
+      map.addControl(toolbar);
+
+        /*
+        var toolbar = 
+            new OpenLayers.Control.NavToolbar();
+        map.addControl(toolbar);
+        */
+    }
+
+    if (bbox !== undefined){
+        var bb = new OpenLayers.Bounds.fromString(bbox);
+        map.zoomToExtent(bb);
+    } else {
+
+        // Google.v3 uses EPSG:900913 as projection, so we have to
+        // transform our coordinates
+        map.setCenter(new OpenLayers.LonLat(77.22, 22.77).transform(
+            new OpenLayers.Projection("EPSG:4326"),
+            map.getProjectionObject()
+            ), 5);
+    }
+
+    this.layers = map.layers;
+    this.baseLayer = map.baseLayer;
+
+
+    map.events.register('click', map, layerClicked);
+    map.events.register('moveend', map, onZoom);
+
+
+}
+AugmentedMap.prototype = new OpenLayers.Map();
+
+function hasLayer(map, layer) {
+    var layers = map.getQueryableLayers();
+   
+    var f = layers.indexOf(layer) !== -1;
+    return f;
+}
+
+
+function getLayerKeywords(keywordsElement) {
+    var keywords = [];
+
+    if (keywordsElement === undefined)
+        return keywords;
+
+    var childNodes = keywordsElement.childNodes;
+
+    for (var i=0; i<childNodes.length; i++) {
+        if (childNodes[i].childNodes[0] !== undefined)
+            keywords.push(childNodes[i].childNodes[0].nodeValue);
+    }
+
+    return keywords;
+}
+
+
 function isEven(value) {
     return (value%2 == 0);
 }
@@ -1340,7 +1430,6 @@ function createLinkTableHTML(fid, layer, lnk_table) {
     return html;
 }
 
-
 function showLinkTable(lnk_table_div, fid, layer, lnk_table, title) {
     var elem = document.getElementById(lnk_table_div);
 
@@ -1350,14 +1439,41 @@ function showLinkTable(lnk_table_div, fid, layer, lnk_table, title) {
     $( "#" + lnk_table_div ).dialog({show: "fade", hide: "fade", title:title, width:670,minWidth:670, height: 480, modal:true, zIndex: 3999});
 }
 
-
+// using pre-generated thumbnails instead of querying wms and getting new image every time
+// this should make use of browser caching and decrease load time of the page
 function getMapThumbnail(layer_tablename) {
     var html = '<div class="map_thumbnail">';
-    html = html + '<img src="' + getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers=' + layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width=80&height=80&srs=EPSG:4326&format=image/gif&FORMAT_OPTIONS=antialias:none&transparent=true"/>'; 
+    html = html + '<img src="/sites/default/files/map_thumbnails/' + layer_tablename + '_thumb.gif" onerror="this.src = \'/sites/default/files/map_thumbnails/no_preview.png\'"/>'; 
+    //html = html + '<img src="' + getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers=' + layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width=80&height=80&srs=EPSG:4326&format=image/gif&FORMAT_OPTIONS=antialias:none&transparent=true"/>'; 
     html = html + '</div>';
 
     return html;
 }
+
+var india_baundary_lyr = getWorkspace() + ':lyr_121_india_boundary';
+
+function getMapImage(layer_tablename, cql_filter, width, height, format) {
+    
+
+    if (width === undefined)
+        width = 80;
+
+    if (height === undefined)
+        height = 80;
+
+    if (format === undefined)
+        format = 'image/gif';
+
+    var html = '<div class="map_image">';
+    var uri = getWMS() + '?service=WMS&version=1.1.0&request=GetMap&layers='+ india_baundary_lyr +','+ layer_tablename + '&styles=&bbox=' + getLayerBoundingBoxString(layer_tablename) + '&width='+ width +'&height='+ height +'&srs=EPSG:4326&format='+ format +'&FORMAT_OPTIONS=antialias:none&transparent=true&cql_filter=INCLUDE;' + cql_filter;
+     uri = uri.replace(/\\x27/g, "'");
+
+    html = html + '<img src="' + encodeURI(uri) + '"/>'; 
+    html = html + '</div>';
+
+    return html;
+}
+
 
 function processLayerSummary(layer_summary) {
     var html = '<table class="summary_table">';
@@ -1464,6 +1580,32 @@ function hideAttribution(divId) {
     $('#' + divId).hide('fade', 500);
 }
 
+function createLayerLinkBox(divId, layer, title) {
+    var html = '';
+
+    html = html + '<a style="float:right;" href="#" onclick="hideLayerLinkBox(\'' + divId + '\')">close</a>';
+    html = html + '<span style="font-weight:bold;">Direct URL link to this layer</span><br>';
+    var url = 'http://' + getHost() + '/map?layers=' + layer + '&title=' + title;
+    html = html + '<textarea rows=3 cols=30>' + url + '</textarea>';
+
+    return html;
+}
+
+function toggleLayerLink(divId, layer, title) {
+	
+    var layer_link_div = document.getElementById(divId);
+
+    if (layer_link_div !== undefined && layer_link_div.innerHTML === '') {
+        layer_link_div.innerHTML = createLayerLinkBox(divId, layer, title);
+    }
+
+    $("#" + divId).toggle('fade', 500);
+}
+
+function hideLayerLinkBox(divId) {
+    $('#' + divId).hide('fade', 500);
+}
+
 function createKeywordLayersMap(layers) {
     var keywordLayersMap = {};
 
@@ -1542,10 +1684,10 @@ function updateLayersList(tag) {
 
         }
 
-        var new_layers = ['wgp:lyr_210_india_checklists','wgp:lyr_212_wg_fire_2002','wgp:lyr_213_wg_fire_2003','wgp:lyr_214_wg_fire_2010','wgp:lyr_215_wg_fire_2007','wgp:lyr_216_wg_fire_2004','wgp:lyr_217_wg_fire_2008','wgp:lyr_218_wg_fire_2005','wgp:lyr_219_wg_fire_2006','wgp:lyr_220_wg_fire_2001','wgp:lyr_221_wg_fire_2000','wgp:lyr_222_wg_fire_2009'];
+        var new_layers = ['lyr_104_india_states_census01'];
         var k;
         for (k = 0; k < new_layers.length; k += 1) {
-           var layer = new_layers[k];
+           var layer = getWorkspace() + ':' + new_layers[k];
            document.getElementById(layer).style.display = 'block';
         }
     }
@@ -1704,8 +1846,10 @@ function generateHTMLForLayersAsList(layers, hasMap) {
         var attribution_div_id = 'layer_attribution_' + i;
         html = html + '<div class="attribution_link" onclick="toggleAttribution(\'' + attribution_div_id + '\', \'' + layers[i].name + '\');"></div>';
         html = html + '<div class="attribution_box" id="' + attribution_div_id + '" style="display:none;"></div>';
-        html = html + getMapThumbnail(layers[i].name);
-        html = html + '<div id="abstrct"><p>' + layers[i]['abstrct'] + '</p></div>';
+        //html = html + getMapThumbnail(layers[i].name);
+        if (layers[i].name !== undefined)
+            html = html + getMapThumbnail(layers[i].name.replace(getWorkspace()+":", ""));
+        html = html + '<div class="abstrct"><p>' + layers[i]['abstrct'] + '</p></div>';
         html = html + '<div style="clear:both;">';
         html = html + '<ul class="layer_options">';
         html = html + '<li class="layer_details_link" onclick="toggleLayerDetails(\'layer_details_' + i + '\',\'' + layers[i].name + '\');">details</li>';
@@ -1716,6 +1860,9 @@ function generateHTMLForLayersAsList(layers, hasMap) {
             html = html + '<li id=\'' + layer_download_div + '_link\' class="layer_download_link" onclick="toggleDownloadBox(\'' + layer_download_div + '\',\'' + layers[i].name + '\',' + isAuthorised + ');">download</li>';
             html = html + '<div class="layer_download_box" id="' + layer_download_div + '" style="display:none;"></div>';
         }
+        var layer_link_div_id = 'layer_link_' + i;
+        html = html + '<li class="layer_link" onclick="toggleLayerLink(\'' + layer_link_div_id + '\',\'' + layers[i].name + '\',\'' + layers[i].title + '\');">link</li>';
+        html = html + '<div class="layer_link_box" id="' + layer_link_div_id + '" style="display:none;"></div>';
         html = html + '</ul>';
 
         html = html + '<ul class="layer_options layer_actions" style="text-align:right;">';
@@ -1864,6 +2011,26 @@ function getFullMapOptions(options) {
     return fullOptions;
 }
 
+function getWMSLayer_Filter(map, layers, styles, title, opacity, cql_filter) {
+
+    var layer = new OpenLayers.Layer.WMS( title,
+            getWMS(), 
+            {layers:layers,
+            format: "image/png",
+            styles: styles,
+            tiled: true,
+            cql_filter:cql_filter,
+            tilesOrigin:map.maxExtent.left + ',' + map.maxExtent.bottom, transparent:true},
+            {buffer: 0,
+            displayOutsideMaxExtent: true,
+            isBaseLayer: false,
+            opacity:opacity
+            });
+
+    return layer;
+}
+
+
 function getWMSLayer(map, layers, styles, title, opacity) {
     var layer = new OpenLayers.Layer.WMS( title,
             getWMS(), 
@@ -1891,10 +2058,19 @@ function getLayers(map, layersOptions) {
         var title = layersOptions[layerNum].title;
         var layers = layersOptions[layerNum].layers;
         var styles = layersOptions[layerNum].styles || '';
+        var cql_filter = layersOptions[layerNum].cql_filter;
         var opacity = layersOptions[layerNum].opacity || 0.7;
-       
-        var layer = getWMSLayer(map, layers, styles, title, opacity);
-        layersArray.push(layer);
+
+        if (layers === '')
+            continue;
+
+        if (cql_filter !== undefined && cql_filter !== '') {
+            var layer = getWMSLayer_Filter(map, layers, styles, title, opacity, cql_filter);
+            layersArray.push(layer);
+        } else {
+            var layer = getWMSLayer(map, layers, styles, title, opacity);
+            layersArray.push(layer);
+        }
     }
 
     return layersArray;
@@ -1905,17 +2081,74 @@ function getLayers(map, layersOptions) {
 // visible: boolean
 function setElementVisible(id, visible) {
     var elem = document.getElementById(id);
-    elem.style.display = visible ?'inline':'none';
+
+    if (elem !== null)
+        elem.style.display = visible ?'inline':'none';
+}
+
+function addFilteredLayer(layer, title, cql_filter) {
+    var map = window.map;
+    var wmslayer = getWMSLayer_Filter(map, layer, '', title, 0.7, cql_filter);
+    map.addLayer(wmslayer);
+
+    setElementVisible(layer + '_a_add', false);
+    setElementVisible(layer + '_a_remove', true);
+    setElementVisible(layer + '_zoom_to_extent', true);
+
+    setElementVisible(layer + '_a_add_search', false);
+    setElementVisible(layer + '_a_remove_search', true);
+    setElementVisible(layer + '_zoom_to_extent_search', true);
+
+}
+
+function addToLayersCookie(layer, title){
+    var layers_cookie = eatCookie("layers");        
+
+    if (layers_cookie !== null && layers_cookie !== ''){
+        var data = layers_cookie.split(",");
+        if (!arrayContains(data, layer)){
+            layers_cookie = [layers_cookie, layer, title].join(",");
+        }
+    } else {
+        layers_cookie = [layer, title].join(",");
+    }
+
+    bakeCookie("layers", layers_cookie, 7);
+}
+
+function removeFromLayersCookie(layer){
+    var layers_cookie = eatCookie("layers");        
+
+    if (layers_cookie !== null){
+        var data = layers_cookie.split(",");
+        
+        for (var i=0; i<data.length; i +=1){
+            if (data[i] === layer){
+                data.splice(i, 2);
+            }
+        }
+
+        var layers = data.join(",");
+
+        bakeCookie("layers", layers, 7);
+    }
 }
 
 function addLayer(layer, title) {
     var map = window.map;
     var wmslayer =  getWMSLayer(map, layer, '', title, 0.7);
     map.addLayer(wmslayer);
-    
+   
     setElementVisible(layer + '_a_add', false);
     setElementVisible(layer + '_a_remove', true);
     setElementVisible(layer + '_zoom_to_extent', true);
+
+    setElementVisible(layer + '_a_add_search', false);
+    setElementVisible(layer + '_a_remove_search', true);
+    setElementVisible(layer + '_zoom_to_extent_search', true);
+
+    addToLayersCookie(layer, title);
+
 }
 
 function removeLayer(layer) {
@@ -1925,6 +2158,12 @@ function removeLayer(layer) {
     setElementVisible(layer + '_a_add', true);
     setElementVisible(layer + '_a_remove', false);
     setElementVisible(layer + '_zoom_to_extent', false);
+
+    setElementVisible(layer + '_a_add_search', true);
+    setElementVisible(layer + '_a_remove_search', false);
+    setElementVisible(layer + '_zoom_to_extent_search', false);
+
+    removeFromLayersCookie(layer);
 }
 
 function resetMap() {
@@ -1936,6 +2175,7 @@ function resetMap() {
     for (i = 0; i < layers.length; i += 1)
         removeLayer(layers[i]);
     
+    map.clearFeatureInfoPanel();
 }
 
 function setBaseLayer(layer) {
@@ -1983,9 +2223,19 @@ function createBaseLayerSwitcher() {
     return html;
 }
 
+function loadLayersFromCookie(){
+    var layers_cookie = eatCookie("layers");
+    if (layers_cookie !== null && layers_cookie !== ''){
+        var data = layers_cookie.split(",");
+        for (var i=0; i<data.length; i += 2){
+            addLayer(data[i], data[i+1]);
+        }
+    }
+}
+
 //create a div; add map to the div  
 function showMap(map_div, mapOptions, layersOptions) {
-
+    //alert(Drupal.settings.toSource());
     var fullOptions = getFullMapOptions(mapOptions);
 
     if (fullOptions.baselayers_switcher_enabled) {
@@ -1995,6 +2245,7 @@ function showMap(map_div, mapOptions, layersOptions) {
 
 
     var map = new AugmentedMap(map_div, fullOptions);
+
     var layers = getLayers(map, layersOptions);
     map.addLayers(layers);
 
@@ -2011,22 +2262,6 @@ function showMap(map_div, mapOptions, layersOptions) {
     return map;
 }
 
-// to add search box
-function addSearchBox(search_box_div) {
-    var html = '<div>';
-    html = html + '<input type="text" name="search" size="35"/>';
-    html = html + '<input type="submit" value="Search" />';
-    html = html + '</div>';
-    
-    document.getElementById(search_box_div).innerHTML = html;
-}
-
-function addSearchResultsPanel(search_results_panel_div) {
-    var html = '';
-
-    document.getElementById(search_results_panel_div).innerHTML = html;
-}
-
 function setLayerStyle(layer, style) {
     var map = window.map;
     var lyr = map.getLayer(layer);
@@ -2041,13 +2276,16 @@ function setLayerStyle(layer, style) {
     document.getElementById(layer.replace(":", "_") + '_legend').innerHTML = getLegendGraphic(layer, style);
 }
 
-function createLayerStylesPanel(layer) {
+function createLayerStylesPanel(layer, selectedStyle) {
     var styles = getLayerStyles(layer);
 
     var html = 'Style map by <select onchange="setLayerStyle(\'' + layer + '\', value)">';
 
     for (var key in styles) {
-        html = html + '<option value="' + key + '">' + styles[key] + '</option>';
+        if (selectedStyle === key)
+            html = html + '<option value="' + key + '" selected="selected">' + styles[key] + '</option>';
+        else
+            html = html + '<option value="' + key + '">' + styles[key] + '</option>';
     }
 
     html = html + '</select>';
@@ -2119,7 +2357,9 @@ function getLayerTitle(layer) {
 }
 
 function getLayerBoundingBoxString(layer) {
+
     var layers = window.layers;
+    var map = window.map;
 
     var i;
     for (i = 0; i < layers.length; i += 1) {
@@ -2127,6 +2367,8 @@ function getLayerBoundingBoxString(layer) {
             return layers[i].bbox;
         }
     }
+
+    return "68.106,6.76,97.415,37.074";
 }
 
 function getLayerBoundingBox(layer) {
@@ -2207,8 +2449,8 @@ function updateSelectedLayersPanel(selected_layers_div) {
             html = html + '<span id="' + layer_id + '_slider_value" class="selected_layer_opacity_value">' +  map.getLayer(layers[i].params.LAYERS).opacity*100 + '%</span></li>';
             html = html + '</ul>';
            
-            html = html + createLayerStylesPanel(layers[i].params.LAYERS);
-            html = html + createLegendPanel(layers[i].params.LAYERS, '');
+            html = html + createLayerStylesPanel(layers[i].params.LAYERS, layers[i].params.STYLES);
+            html = html + createLegendPanel(layers[i].params.LAYERS, layers[i].params.STYLES);
             html = html + '</div>';
 
             html = html + '</div>';
@@ -2269,4 +2511,24 @@ function generateEmbeddableMapCode(map) {
 
     return html;
 
+}
+
+function getLayerMetaData(layer_tablename){
+    var layers = window.layers;
+
+    if (layers === undefined){
+        return {title:layer_tablename, abstrct:layer_tablename};
+    }
+
+    if (layer_tablename === 'occurrence'){
+        return {title:'Occurrence Records', abstrct:'Species occurrence records'};
+    }
+
+    var layer_name = getWorkspace() + ":" + layer_tablename;
+    for (var i=0; i<layers.length; i += 1){
+        if (layers[i].name === layer_name)
+            return {title:layers[i].title, abstrct:layers[i].abstrct};
+    }
+    
+    return {title:layer_tablename, abstrct:layer_tablename};
 }
