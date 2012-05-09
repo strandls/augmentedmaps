@@ -1,12 +1,18 @@
 import psycopg2
 import os
+import sys
+
+workspace = 'ibp'
+
+if ( len(sys.argv) > 1):
+	workspace = sys.argv[1]
 
 featuretype_xml_tpl = """<featureType>
-  <id>FeatureTypeInfoImpl-%s-ibp</id>
+  <id>FeatureTypeInfoImpl-%s-%s</id>
   <name>%s</name>
   <nativeName>%s</nativeName>
   <namespace>
-    <id>NamespaceInfoImpl-ibp</id>
+    <id>NamespaceInfoImpl-%s</id>
   </namespace>
   <title>%s</title>
   <abstract>%s</abstract>
@@ -27,7 +33,7 @@ featuretype_xml_tpl = """<featureType>
     <entry key="cachingEnabled">false</entry>
   </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl-ibp</id>
+    <id>DataStoreInfoImpl-%s</id>
   </store>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
@@ -45,7 +51,7 @@ layer_xml_tpl="""<layer>
   %s
   </styles>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-%s-ibp</id>
+    <id>FeatureTypeInfoImpl-%s-%s</id>
   </resource>
   <enabled>true</enabled>
   <attribution>
@@ -109,7 +115,7 @@ def create_featuretype_xml(tablename):
 
     bbox = get_bounding_box(tablename)
 
-    featuretype_xml = featuretype_xml_tpl % (tablename, tablename, tablename, title, abstract, keywords, bbox, bbox)
+    featuretype_xml = featuretype_xml_tpl % (tablename, workspace, tablename, tablename, workspace, title, abstract, keywords, bbox, bbox, workspace)
     
     featuretype_xml_file = open("featuretype.xml", "w")
     featuretype_xml_file.write(featuretype_xml)
@@ -142,12 +148,20 @@ def create_layer_xml(tablename):
         color_by = row[0].strip("'");
         default_style = tablename + "_" + color_by
     elif layer_type == 'POINT':
-        title_column = row[1].strip("'");
-        default_style = tablename + "_" + title_column
+        color_by = row[0].strip("'");
+	if color_by:
+         	default_style = tablename + "_" + color_by
+	else:
+        	#title_column = row[1].strip("'");
+        	#default_style = tablename + "_" + title_column
+        	default_style = 'default_point'
 
-    styles = create_styles_xml(tablename)
+    if default_style == 'default_point':
+	styles = ''
+    else:
+    	styles = create_styles_xml(tablename)
 
-    layer_xml = layer_xml_tpl % (tablename, tablename, default_style, styles, tablename)        
+    layer_xml = layer_xml_tpl % (tablename, tablename, default_style, styles, tablename, workspace)        
 
     layer_xml_file = open("layer.xml", "w")
     layer_xml_file.write(layer_xml)
@@ -162,7 +176,7 @@ cur = conn.cursor()
 
 
 
-#tables = ['lyr_104_india_states_census01']
+tables = ['lyr_121_india_boundary']
 
 for tablename in tables:
     os.system("mkdir " + tablename)
